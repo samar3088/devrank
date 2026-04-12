@@ -93,14 +93,6 @@ class AuthService
      */
     public function getDashboardRoute(User $user): string
     {
-        if ($user->hasRole(['super_admin', 'sub_admin'])) {
-            return '/admin/dashboard';
-        }
-
-        if ($user->hasRole('company')) {
-            return '/company/dashboard';
-        }
-
         return '/dashboard';
     }
 
