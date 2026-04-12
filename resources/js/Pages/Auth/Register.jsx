@@ -1,4 +1,5 @@
 import '@css/pages/auth.css';
+import LoadingButton from '@/Components/LoadingButton';
 import { useState } from 'react';
 import { useForm, Head, Link } from '@inertiajs/react';
 
@@ -28,12 +29,16 @@ export default function Register() {
     function handleRegister(e) {
         e.preventDefault();
         registerForm.data.role = role;
-        registerForm.post('/register');
+        registerForm.post('/register', {
+            onFinish: () => registerForm.reset('password', 'password_confirmation'),
+        });
     }
 
     function handleLogin(e) {
         e.preventDefault();
-        loginForm.post('/login');
+        loginForm.post('/login', {
+            onFinish: () => loginForm.reset('password'),
+        });
     }
 
     function switchTab(mode) {
@@ -159,13 +164,13 @@ export default function Register() {
                                     </div>
                                 </div>
 
-                                <button
+                                <LoadingButton
                                     type="submit"
+                                    loading={loginForm.processing}
                                     className="auth-submit-btn"
-                                    disabled={loginForm.processing}
                                 >
                                     {loginForm.processing ? 'Signing In...' : 'Log In to DevRank'}
-                                </button>
+                                </LoadingButton>
                             </form>
                         )}
 
@@ -334,13 +339,13 @@ export default function Register() {
                                     <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
                                 </label>
 
-                                <button
+                                <LoadingButton
                                     type="submit"
+                                    loading={registerForm.processing}
                                     className="auth-submit-btn"
-                                    disabled={registerForm.processing}
                                 >
                                     {registerForm.processing ? 'Creating Account...' : 'Create My Account'}
-                                </button>
+                                </LoadingButton>
                             </form>
                         )}
 

@@ -131,4 +131,20 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
     {
         return $this->monthly_job_posts < config('devrank.limits.monthly_job_posts', 5);
     }
+
+    /**
+     * Send custom password reset notification
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
+
+    /**
+     * Send custom email verification notification
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\VerifyEmailNotification());
+    }
 }

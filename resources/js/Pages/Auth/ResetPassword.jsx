@@ -69,13 +69,13 @@ export default function ResetPassword({ token, email }) {
                             />
                         </div>
 
-                        <button
+                        <LoadingButton
                             type="submit"
+                            loading={form.processing}
                             className="password-submit-btn"
-                            disabled={form.processing}
                         >
                             {form.processing ? 'Resetting...' : 'Reset Password'}
-                        </button>
+                        </LoadingButton>
                     </form>
                 </div>
             </div>

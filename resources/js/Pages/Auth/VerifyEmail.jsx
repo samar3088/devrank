@@ -1,4 +1,5 @@
 import '../../../css/pages/verify-email.css';
+import LoadingButton from '@/Components/LoadingButton';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 
@@ -48,13 +49,13 @@ export default function VerifyEmail() {
                     </div>
 
                     <form onSubmit={handleResend}>
-                        <button
+                        <LoadingButton
                             type="submit"
+                            loading={form.processing}
                             className="verify-resend-btn"
-                            disabled={form.processing}
                         >
                             {form.processing ? 'Sending...' : 'Resend Verification Email'}
-                        </button>
+                        </LoadingButton>
                     </form>
 
                     <p className="verify-hint">

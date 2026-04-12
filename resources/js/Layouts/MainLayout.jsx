@@ -1,4 +1,5 @@
 import '../../css/layouts/main.css';
+import PageLoader from '@/Components/PageLoader';
 import { useState, useRef, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 
@@ -49,6 +50,7 @@ export default function MainLayout({ children }) {
 
     return (
         <>
+            <PageLoader />
             <nav className="navbar">
                 <div className="navbar-inner">
                     {/* Logo */}
@@ -123,6 +125,13 @@ export default function MainLayout({ children }) {
                                                 as="button"
                                                 className="nav-dropdown-item"
                                                 style={{ color: 'var(--coral)' }}
+                                                onClick={(e) => {
+                                                    if (e.currentTarget.disabled) {
+                                                        e.preventDefault();
+                                                        return;
+                                                    }
+                                                    e.currentTarget.disabled = true;
+                                                }}
                                             >
                                                 🚪 Logout
                                             </Link>

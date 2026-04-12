@@ -1,4 +1,5 @@
 import '../../../css/pages/password-reset.css';
+import LoadingButton from '@/Components/LoadingButton';
 import { Head, useForm, Link } from '@inertiajs/react';
 
 export default function ForgotPassword({ status }) {
@@ -8,7 +9,9 @@ export default function ForgotPassword({ status }) {
 
     function handleSubmit(e) {
         e.preventDefault();
-        form.post('/forgot-password');
+        form.post('/forgot-password', {
+            onSuccess: () => form.reset(),
+        });
     }
 
     return (
@@ -46,13 +49,13 @@ export default function ForgotPassword({ status }) {
                             )}
                         </div>
 
-                        <button
+                        <LoadingButton
                             type="submit"
+                            loading={form.processing}
                             className="password-submit-btn"
-                            disabled={form.processing}
                         >
                             {form.processing ? 'Sending...' : 'Send Reset Link'}
-                        </button>
+                        </LoadingButton>
                     </form>
 
                     <div className="password-back-link">

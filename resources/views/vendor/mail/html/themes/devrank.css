@@ -63,6 +63,7 @@ p {
     border-radius: 8px !important;
     font-weight: 600 !important;
     padding: 12px 28px !important;
+    color: #ffffff !important;
 }
 
 .button-primary:hover {

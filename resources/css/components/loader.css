@@ -1,0 +1,73 @@
+/* ================================================================
+   DevRank — Loader / Spinner Component
+   ================================================================ */
+
+   .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+.spinner-sm {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+}
+
+.spinner-lg {
+    width: 24px;
+    height: 24px;
+    border-width: 3px;
+}
+
+.spinner-violet {
+    border-color: rgba(124, 109, 250, 0.3);
+    border-top-color: var(--violet-bright);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Page Loader (full page overlay) ─────────────────────── */
+.page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 9999;
+    background: transparent;
+    pointer-events: none;
+}
+
+.page-loader-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--violet-bright));
+    border-radius: 0 2px 2px 0;
+    animation: pageLoad 1.5s ease-in-out infinite;
+}
+
+@keyframes pageLoad {
+    0% { width: 0%; margin-left: 0; }
+    50% { width: 60%; margin-left: 20%; }
+    100% { width: 0%; margin-left: 100%; }
+}
+
+/* ── Button with loader ──────────────────────────────────── */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
