@@ -1,6 +1,6 @@
 import '@css/pages/auth.css';
 import { useState } from 'react';
-import { useForm, Head } from '@inertiajs/react';
+import { useForm, Head, Link } from '@inertiajs/react';
 
 export default function Register() {
     const [isLogin, setIsLogin] = useState(true);
@@ -155,7 +155,7 @@ export default function Register() {
                                         onChange={e => loginForm.setData('password', e.target.value)}
                                     />
                                     <div className="auth-hint">
-                                        <a href="#">Forgot password?</a>
+                                        <Link href="/forgot-password" className="auth-forgot-link">Forgot password?</Link>
                                     </div>
                                 </div>
 

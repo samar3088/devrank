@@ -1,0 +1,120 @@
+/* DevRank Email Theme */
+
+/* Body */
+body {
+    background-color: #0d0f1a;
+    color: #c8cce8;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Header */
+.header {
+    background-color: #11131f;
+    border-bottom: 2px solid #7c6dfa;
+    padding: 25px 0;
+    text-align: center;
+}
+
+.header a {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    text-decoration: none;
+    letter-spacing: -0.03em;
+}
+
+/* Body Content */
+.body {
+    background-color: #11131f;
+    border-color: #1a1d2e;
+}
+
+.inner-body {
+    background-color: #1a1d2e;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    margin-top: 0;
+}
+
+.content-cell {
+    padding: 36px 40px;
+}
+
+/* Typography */
+h1 {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+p {
+    color: #c8cce8;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* Primary Button */
+.button-primary {
+    background-color: #7c6dfa !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 12px 28px !important;
+}
+
+.button-primary:hover {
+    background-color: #9d91ff !important;
+}
+
+/* Table */
+.table th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #7880a8;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.table td {
+    color: #c8cce8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+}
+
+.footer p {
+    color: #4a5070;
+    font-size: 12px;
+}
+
+/* Panel */
+.panel {
+    background-color: #20243a;
+    border-left: 3px solid #7c6dfa;
+    border-radius: 0 8px 8px 0;
+}
+
+.panel-content p {
+    color: #7880a8;
+    font-size: 13px;
+}
+
+/* Subcopy */
+.subcopy {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.subcopy p {
+    color: #4a5070;
+    font-size: 12px;
+}
+
+/* Links */
+a {
+    color: #9d91ff;
+}

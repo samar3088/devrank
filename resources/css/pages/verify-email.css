@@ -1,0 +1,150 @@
+/* ================================================================
+   DevRank — Email Verification Page
+   ================================================================ */
+
+   .verify-wrapper {
+    min-height: calc(100vh - 68px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+}
+
+.verify-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+}
+
+.verify-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--violet-soft);
+    border: 1px solid var(--violet-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 36px;
+}
+
+.verify-card h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.verify-desc {
+    font-size: 15px;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 380px;
+    margin: 0 auto 28px;
+}
+
+.verify-desc strong {
+    color: var(--violet-bright);
+}
+
+.verify-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+    text-align: left;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.verify-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text2);
+}
+
+.verify-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--violet-soft);
+    border: 1px solid var(--violet-border);
+    color: var(--violet-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.verify-resend-btn {
+    width: 100%;
+    max-width: 320px;
+    padding: 12px 28px;
+    border-radius: var(--r);
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Geist', system-ui, sans-serif;
+    transition: all 0.18s;
+}
+
+.verify-resend-btn:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.verify-resend-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.verify-hint {
+    font-size: 13px;
+    color: var(--text3);
+    margin-top: 12px;
+}
+
+.verify-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px 16px;
+    background: var(--violet-soft);
+    border: 1px solid var(--violet-border);
+    border-radius: var(--r);
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    text-align: left;
+    margin-top: 24px;
+}
+
+.verify-success {
+    background: rgba(52, 235, 160, .06);
+    border-color: rgba(52, 235, 160, .2);
+    color: var(--emerald);
+    padding: 12px 18px;
+    border-radius: var(--r);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+    .verify-card {
+        padding: 32px 20px;
+    }
+}
