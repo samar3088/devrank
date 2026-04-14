@@ -20,19 +20,11 @@ class AuthController extends Controller
      */
     public function showAccount()
     {
-        if (auth()->check()) {
+        if (Auth::check()) {
             return redirect('/dashboard');
         }
 
         return Inertia::render('Auth/Register');
-    }
-
-    /**
-     * Show register & login page (alias for backward compat)
-     */
-    public function showRegister()
-    {
-        return $this->showAccount();
     }
 
     /**
@@ -57,9 +49,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        $redirect = $this->authService->getDashboardRoute($user);
-
-        return redirect()->intended($redirect);
+        return redirect('/dashboard');
     }
 
     /**
@@ -85,9 +75,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        $redirect = $this->authService->getDashboardRoute($result['user']);
-
-        return redirect()->intended($redirect);
+        return redirect('/dashboard');
     }
 
     /**
