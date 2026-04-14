@@ -1,6 +1,7 @@
 import '../../css/pages/home.css';
 import { Head, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
+import { FullFooter } from '@/Components/Footer';
 
 export default function Home() {
     return (
@@ -142,7 +143,6 @@ export default function Home() {
                             <span style={{fontSize:'13px',color:'var(--text3)'}}>Updated hourly</span>
                         </div>
 
-                        {/* Header Row */}
                         <div className="lb-row" style={{background:'var(--surface)',borderBottom:'1px solid var(--border2)'}}>
                             <span style={{fontSize:'11px',color:'var(--text3)',fontWeight:700,textTransform:'uppercase'}}>Rank</span>
                             <span style={{fontSize:'11px',color:'var(--text3)',fontWeight:700,textTransform:'uppercase'}}>Candidate</span>
@@ -256,57 +256,11 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ── Footer ──────────────────────────────────────── */}
-            <footer className="home-footer">
-                <div className="home-container">
-                    <div className="footer-grid">
-                        <div className="footer-brand">
-                            <Link href="/" style={{display:'flex',alignItems:'center',gap:'10px',textDecoration:'none',marginBottom:'0'}}>
-                                <span className="nav-logo-mark">DR</span>
-                                <span className="nav-logo-text">Dev<span>Rank</span></span>
-                            </Link>
-                            <p>The platform where developer knowledge builds careers. Transparent hiring for everyone.</p>
-                        </div>
-                        <div className="footer-col">
-                            <h5>Platform</h5>
-                            <ul>
-                                <li><Link href="/forum">Forum</Link></li>
-                                <li><Link href="/leaderboard">Leaderboard</Link></li>
-                                <li><Link href="/jobs">Job Board</Link></li>
-                                <li><Link href="/quizzes">Skill Quizzes</Link></li>
-                                <li><Link href="/interviews">Interview Board</Link></li>
-                            </ul>
-                        </div>
-                        <div className="footer-col">
-                            <h5>Company</h5>
-                            <ul>
-                                <li><a href="#">About Us</a></li>
-                                <li><a href="#">Blog</a></li>
-                                <li><a href="#">Careers</a></li>
-                                <li><a href="#">Press</a></li>
-                            </ul>
-                        </div>
-                        <div className="footer-col">
-                            <h5>Legal</h5>
-                            <ul>
-                                <li><a href="#">Privacy Policy</a></li>
-                                <li><a href="#">Terms of Service</a></li>
-                                <li><a href="#">Cookie Policy</a></li>
-                                <li><a href="#">Contact</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="footer-bottom">
-                        <span>© 2026 DevRank. All rights reserved.</span>
-                        <span>Made with 🔥 for developers who know their stuff</span>
-                    </div>
-                </div>
-            </footer>
+            <FullFooter />
         </MainLayout>
     );
 }
 
-// Leaderboard Row Component
 function LeaderboardRow({ rank, rankClass, initials, name, city, score, tags, points }) {
     return (
         <div className="lb-row">
