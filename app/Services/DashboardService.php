@@ -46,19 +46,66 @@ class DashboardService
     /**
      * Get company dashboard stats
      */
-    public function getCompanyStats(User $user): array
+    public function getCompanyStats($user): array
     {
+        $activeJobs = \App\Models\JobListing::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->count();
+
+        $totalApplicants = \App\Models\JobApplication::whereHas('jobListing', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->count();
+
+        $expiringJobs = \App\Models\JobListing::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where('expires_at', '<=', now()->addDays(7))
+            ->count();
+
+        $interestsAccepted = \App\Models\InterestRequest::where('company_id', $user->id)
+            ->where('status', 'accepted')
+            ->count();
+
+        $outreachSent = \App\Models\InterestRequest::where('company_id', $user->id)->count();
+        $outreachPending = \App\Models\InterestRequest::where('company_id', $user->id)
+            ->where('status', 'pending')
+            ->count();
+        $outreachAccepted = \App\Models\InterestRequest::where('company_id', $user->id)
+            ->where('status', 'accepted')
+            ->count();
+
+        $monthlyOutreachLimit = config('devrank.limits.monthly_outreach', 10);
+        $monthlyOutreachRemaining = $monthlyOutreachLimit - $user->monthly_outreach_sent;
+
+        // Recent applicants
+        $recentApplicants = \App\Models\JobApplication::whereHas('jobListing', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+        ->with(['user:id,name,rank_score,human_score', 'jobListing:id,title'])
+        ->latest()
+        ->take(5)
+        ->get()
+        ->map(function ($app) {
+            return [
+                'id' => $app->id,
+                'candidate_name' => $app->user->name ?? 'Unknown',
+                'candidate_initials' => collect(explode(' ', $app->user->name ?? 'U'))->map(fn($n) => $n[0])->join(''),
+                'candidate_score' => $app->user->rank_score ?? 0,
+                'job_title' => $app->jobListing->title ?? '',
+                'status' => $app->status,
+                'applied_at' => $app->created_at->diffForHumans(),
+            ];
+        });
+
         return [
-            'total_jobs' => $user->jobListings()->count(),
-            'active_jobs' => $user->jobListings()->where('status', 'active')->count(),
-            'total_applications' => JobApplication::whereIn(
-                'jobs_listing_id',
-                $user->jobListings()->pluck('id')
-            )->count(),
-            'interests_sent' => $user->sentInterests()->count(),
-            'interests_accepted' => $user->sentInterests()->accepted()->count(),
-            'monthly_outreach_remaining' => config('devrank.limits.monthly_outreach') - $user->monthly_outreach_sent,
-            'monthly_posts_remaining' => config('devrank.limits.monthly_job_posts') - $user->monthly_job_posts,
+            'active_jobs' => $activeJobs,
+            'expiring_jobs' => $expiringJobs,
+            'total_applicants' => $totalApplicants,
+            'interests_accepted' => $interestsAccepted,
+            'outreach_sent' => $outreachSent,
+            'outreach_pending' => $outreachPending,
+            'outreach_accepted' => $outreachAccepted,
+            'monthly_outreach_remaining' => $monthlyOutreachRemaining,
+            'recent_applicants' => $recentApplicants,
         ];
     }
 

@@ -61,145 +61,144 @@ export default function JobsIndex() {
     return (
         <CompanyLayout>
             <Head title="My Jobs" />
-            <div>
-                {/* Flash Messages */}
-                {flash?.success && (
-                    <div className="flash-success">✓ {flash.success}</div>
-                )}
 
-                {/* Header */}
-                <div className="jobs-header">
-                    <h1>My Job Listings</h1>
-                    <div className="jobs-header-actions">
-                        <div className={`jobs-limit-badge ${getLimitClass()}`}>
-                            Posts remaining: <span className="jobs-limit-count">{monthlyPostsRemaining}</span>
-                        </div>
-                        {monthlyPostsRemaining > 0 ? (
-                            <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">
-                                + Post New Job
-                            </Link>
-                        ) : (
-                            <span className="btn-sm btn-outline-sm" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-                                Limit Reached
-                            </span>
-                        )}
+            {/* Flash Messages */}
+            {flash?.success && (
+                <div className="flash-success">✓ {flash.success}</div>
+            )}
+
+            {/* Header */}
+            <div className="jobs-header">
+                <h1>My Job Listings</h1>
+                <div className="jobs-header-actions">
+                    <div className={`jobs-limit-badge ${getLimitClass()}`}>
+                        Posts remaining: <span className="jobs-limit-count">{monthlyPostsRemaining}</span>
                     </div>
+                    {monthlyPostsRemaining > 0 ? (
+                        <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">
+                            + Post New Job
+                        </Link>
+                    ) : (
+                        <span className="btn-sm btn-outline-sm" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                            Limit Reached
+                        </span>
+                    )}
                 </div>
-
-                {/* Search & Filter Bar */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    marginBottom: '20px',
-                    flexWrap: 'wrap',
-                }}>
-                    <form onSubmit={handleSearch} style={{ flex: 1, minWidth: '200px' }}>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="Search jobs by title..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            style={{ maxWidth: '300px' }}
-                        />
-                    </form>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        {['all', 'active', 'draft', 'expired', 'closed'].map(status => (
-                            <button
-                                key={status}
-                                onClick={() => handleStatusFilter(status)}
-                                className={`btn-sm ${filters?.status === status ? 'btn-primary-sm' : 'btn-outline-sm'}`}
-                            >
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Jobs List */}
-                {jobs.data.length === 0 ? (
-                    <div className="jobs-empty">
-                        <div className="jobs-empty-icon">💼</div>
-                        <h3>No jobs found</h3>
-                        <p>
-                            {filters?.search || filters?.status !== 'all'
-                                ? 'Try adjusting your search or filters.'
-                                : 'Post your first job and start receiving applications.'
-                            }
-                        </p>
-                        {!filters?.search && filters?.status === 'all' && (
-                            <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">
-                                + Post Your First Job
-                            </Link>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        {jobs.data.map(job => (
-                            <div key={job.id} className={`job-card ${job.is_featured ? 'featured' : ''}`}>
-                                <div>
-                                    <div className="job-card-title">{job.title}</div>
-                                    <div className="job-card-meta">
-                                        <span>{job.job_type}</span>
-                                        <span>{job.work_mode}</span>
-                                        {job.location && <span>📍 {job.location}</span>}
-                                        {job.experience_range && <span>🧑‍💼 {job.experience_range}</span>}
-                                        <span>Posted {formatDate(job.published_at || job.created_at)}</span>
-                                    </div>
-                                    {job.tags && job.tags.length > 0 && (
-                                        <div className="job-card-tags">
-                                            {job.tags.map(tag => (
-                                                <span key={tag.id} className="job-tag">{tag.name}</span>
-                                            ))}
-                                        </div>
-                                    )}
-                                    <div className="job-card-stats">
-                                        <span className="job-card-stat">👥 {job.applications_count || 0} applicants</span>
-                                        <span className="job-card-stat">👁 {job.views_count || 0} views</span>
-                                        {job.expires_at && (
-                                            <span className="job-card-stat">⏳ Expires {formatDate(job.expires_at)}</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="job-card-actions">
-                                    {formatSalary(job.salary_min, job.salary_max, job.salary_currency) && (
-                                        <div className="job-salary">
-                                            {formatSalary(job.salary_min, job.salary_max, job.salary_currency)}
-                                        </div>
-                                    )}
-                                    <span className={getStatusClass(job.status)}>{job.status}</span>
-                                    <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                                        <Link href={`/company/jobs/${job.id}/edit`} className="btn-sm btn-outline-sm">
-                                            Edit
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(job.id)}
-                                            className="btn-sm btn-danger-sm"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Pagination */}
-                        {jobs.last_page > 1 && (
-                            <div className="pagination-wrapper">
-                                {jobs.links.map((link, i) => (
-                                    <Link
-                                        key={i}
-                                        href={link.url || '#'}
-                                        className={`page-link ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </>
-                )}
             </div>
+
+            {/* Search & Filter Bar */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '20px',
+                flexWrap: 'wrap',
+            }}>
+                <form onSubmit={handleSearch} style={{ flex: 1, minWidth: '200px' }}>
+                    <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Search jobs by title..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        style={{ maxWidth: '300px' }}
+                    />
+                </form>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                    {['all', 'active', 'draft', 'expired', 'closed'].map(status => (
+                        <button
+                            key={status}
+                            onClick={() => handleStatusFilter(status)}
+                            className={`btn-sm ${filters?.status === status ? 'btn-primary-sm' : 'btn-outline-sm'}`}
+                        >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Jobs List */}
+            {jobs.data.length === 0 ? (
+                <div className="jobs-empty">
+                    <div className="jobs-empty-icon">💼</div>
+                    <h3>No jobs found</h3>
+                    <p>
+                        {filters?.search || filters?.status !== 'all'
+                            ? 'Try adjusting your search or filters.'
+                            : 'Post your first job and start receiving applications.'
+                        }
+                    </p>
+                    {!filters?.search && filters?.status === 'all' && (
+                        <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">
+                            + Post Your First Job
+                        </Link>
+                    )}
+                </div>
+            ) : (
+                <>
+                    {jobs.data.map(job => (
+                        <div key={job.id} className={`job-card ${job.is_featured ? 'featured' : ''}`}>
+                            <div>
+                                <div className="job-card-title">{job.title}</div>
+                                <div className="job-card-meta">
+                                    <span>{job.job_type}</span>
+                                    <span>{job.work_mode}</span>
+                                    {job.location && <span>📍 {job.location}</span>}
+                                    {job.experience_range && <span>🧑‍💼 {job.experience_range}</span>}
+                                    <span>Posted {formatDate(job.published_at || job.created_at)}</span>
+                                </div>
+                                {job.tags && job.tags.length > 0 && (
+                                    <div className="job-card-tags">
+                                        {job.tags.map(tag => (
+                                            <span key={tag.id} className="job-tag">{tag.name}</span>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="job-card-stats">
+                                    <span className="job-card-stat">👥 {job.applications_count || 0} applicants</span>
+                                    <span className="job-card-stat">👁 {job.views_count || 0} views</span>
+                                    {job.expires_at && (
+                                        <span className="job-card-stat">⏳ Expires {formatDate(job.expires_at)}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="job-card-actions">
+                                {formatSalary(job.salary_min, job.salary_max, job.salary_currency) && (
+                                    <div className="job-salary">
+                                        {formatSalary(job.salary_min, job.salary_max, job.salary_currency)}
+                                    </div>
+                                )}
+                                <span className={getStatusClass(job.status)}>{job.status}</span>
+                                <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                                    <Link href={`/company/jobs/${job.id}/edit`} className="btn-sm btn-outline-sm">
+                                        Edit
+                                    </Link>
+                                    <button
+                                        onClick={() => handleDelete(job.id)}
+                                        className="btn-sm btn-danger-sm"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Pagination */}
+                    {jobs.last_page > 1 && (
+                        <div className="pagination-wrapper">
+                            {jobs.links.map((link, i) => (
+                                <Link
+                                    key={i}
+                                    href={link.url || '#'}
+                                    className={`page-link ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
         </CompanyLayout>
     );
 }

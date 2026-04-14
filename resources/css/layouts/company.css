@@ -1,102 +1,69 @@
 /* ================================================================
-   DevRank — Company Layout (Sidebar + Content)
+   DevRank — Company Layout (matching dashboard-company.html)
    ================================================================ */
 
-   .company-layout {
+/* ── Dashboard Layout Grid ───────────────────────────────── */
+.dash-layout {
     display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 0;
-    min-height: calc(100vh - 68px);
+    grid-template-columns: 220px 1fr;
+    gap: 28px;
+    align-items: start;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
-.company-sidebar {
-    background: var(--bg2);
-    border-right: 1px solid var(--border);
-    padding: 24px 16px;
+.dash-sidebar {
     position: sticky;
-    top: 68px;
-    height: calc(100vh - 68px);
-    overflow-y: auto;
+    top: calc(var(--nav-h) + 24px);
 }
 
-.company-sidebar-header {
-    padding: 0 12px 20px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-}
-
-.company-sidebar-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 2px;
-}
-
-.company-sidebar-role {
-    font-size: 12px;
-    color: var(--text3);
-}
-
-.company-nav {
+.dash-nav {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.company-nav-section {
+.dash-nav-section {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--text4);
-    padding: 16px 12px 6px;
+    color: var(--text3);
+    padding: 12px 14px 4px;
+    margin-top: 8px;
 }
 
-.company-nav-link {
+.dash-nav-section:first-child {
+    margin-top: 0;
+}
+
+.dash-nav-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 12px;
-    border-radius: var(--r);
+    padding: 10px 14px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     color: var(--text2);
     text-decoration: none;
     transition: background 0.15s, color 0.15s;
+    cursor: pointer;
 }
 
-.company-nav-link:hover {
+.dash-nav-link:hover {
     background: var(--surface);
     color: var(--text);
 }
 
-.company-nav-link.active {
-    background: var(--violet-soft);
-    color: var(--violet-bright);
+.dash-nav-link.active {
+    background: var(--cyan-glow);
+    color: var(--cyan);
 }
 
-.company-nav-icon {
+.dash-nav-icon {
     width: 18px;
     text-align: center;
-    font-size: 15px;
-}
-
-.company-nav-badge {
-    margin-left: auto;
-    background: var(--violet-soft);
-    color: var(--violet-bright);
-    border: 1px solid var(--violet-border);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 1px 8px;
-    border-radius: 10px;
-}
-
-/* ── Content Area ────────────────────────────────────────── */
-.company-content {
-    padding: 36px 32px 80px;
-    max-width: 1000px;
+    font-size: 16px;
 }
 
 /* ── Plan Card ───────────────────────────────────────────── */
@@ -165,15 +132,18 @@
     color: #fff;
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
+/* ── Company Page Container ──────────────────────────────── */
+.company-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 28px 80px;
+}
+
 @media (max-width: 768px) {
-    .company-layout {
+    .dash-layout {
         grid-template-columns: 1fr;
     }
-    .company-sidebar {
-        display: none;
-    }
-    .company-content {
-        padding: 24px 18px 60px;
+    .dash-sidebar {
+        position: static;
     }
 }

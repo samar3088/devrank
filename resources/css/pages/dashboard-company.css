@@ -1,0 +1,369 @@
+/* ================================================================
+   DevRank — Company Dashboard (matching dashboard-company.html)
+   ================================================================ */
+
+/* ── Header ──────────────────────────────────────────────── */
+.dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.dash-header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.dash-header-left p {
+    font-size: 13px;
+    color: var(--text3);
+}
+
+.dash-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ── Stat Cards Grid ─────────────────────────────────────── */
+.stats-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 22px 24px;
+}
+
+.stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text3);
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--text);
+}
+
+.stat-change {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 8px;
+}
+
+.stat-change-up {
+    color: var(--emerald);
+}
+
+.stat-change-warn {
+    color: var(--champagne);
+}
+
+/* ── Alerts ──────────────────────────────────────────────── */
+.dash-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: var(--r);
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 14px;
+}
+
+.dash-alert strong {
+    color: var(--text);
+}
+
+.dash-alert-warn {
+    background: var(--champagne-soft);
+    border: 1px solid var(--champagne-border);
+    color: var(--champagne);
+}
+
+.dash-alert-warn strong {
+    color: var(--champagne);
+}
+
+.dash-alert-info {
+    background: var(--violet-soft);
+    border: 1px solid var(--violet-border);
+    color: var(--violet-bright);
+}
+
+.dash-alert-info strong {
+    color: var(--violet-bright);
+}
+
+/* ── Two Column Cards ────────────────────────────────────── */
+.dash-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.dash-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 24px;
+}
+
+.dash-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.dash-card-header h4 {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.dash-card-header a {
+    font-size: 12px;
+    color: var(--violet-bright);
+    text-decoration: none;
+}
+
+.dash-card-header a:hover {
+    color: #fff;
+}
+
+/* ── Pipeline Funnel ─────────────────────────────────────── */
+.pipeline-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.pipeline-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pipeline-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.pipeline-bar {
+    flex: 1;
+    height: 7px;
+    border-radius: 4px;
+    background: var(--surface2);
+    overflow: hidden;
+}
+
+.pipeline-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1.2s cubic-bezier(.4, 0, .2, 1);
+}
+
+.pipeline-fill-applied { background: var(--cyan); }
+.pipeline-fill-reviewed { background: var(--purple); }
+.pipeline-fill-interview { background: var(--champagne); }
+.pipeline-fill-offered { background: var(--emerald); }
+.pipeline-fill-rejected { background: var(--coral); }
+
+.pipeline-score {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text2);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ── Trust Score ─────────────────────────────────────────── */
+.trust-big {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--champagne);
+    text-align: center;
+    margin-bottom: 4px;
+    font-family: var(--font-display);
+}
+
+.trust-sub {
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+/* ── Recent Applicants ───────────────────────────────────── */
+.app-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+}
+
+.app-row:hover {
+    border-color: var(--border2);
+}
+
+.app-rank-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 212, 255, .12);
+    border: 1px solid rgba(0, 212, 255, .3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cyan);
+    flex-shrink: 0;
+}
+
+.app-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--violet-bright);
+    flex-shrink: 0;
+}
+
+.app-info {
+    flex: 1;
+}
+
+.app-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.app-meta {
+    font-size: 12px;
+    color: var(--text3);
+}
+
+.app-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-score {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cyan);
+}
+
+.app-status {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.app-status-applied {
+    background: rgba(0, 212, 255, .1);
+    color: var(--cyan);
+    border: 1px solid rgba(0, 212, 255, .2);
+}
+
+.app-status-reviewing {
+    background: rgba(139, 92, 246, .1);
+    color: var(--purple);
+    border: 1px solid rgba(139, 92, 246, .2);
+}
+
+/* ── Shared Buttons ──────────────────────────────────────── */
+.btn-sm {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: 'Geist', system-ui, sans-serif;
+    transition: all 0.18s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-primary-sm {
+    background: var(--violet);
+    color: #fff;
+}
+
+.btn-primary-sm:hover {
+    background: var(--violet-bright);
+    color: #fff;
+}
+
+.btn-outline-sm {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+}
+
+.btn-outline-sm:hover {
+    border-color: var(--border3);
+    color: var(--text);
+    background: rgba(255, 255, 255, .04);
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.dash-empty {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text3);
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dash-grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
