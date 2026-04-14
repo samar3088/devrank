@@ -112,18 +112,29 @@ class DashboardService
     /**
      * Get candidate dashboard stats
      */
-    public function getCandidateStats(User $user): array
+    public function getCandidateStats($user): array
     {
+        $topicsCount = \App\Models\Topic::where('user_id', $user->id)->count();
+        $repliesCount = \App\Models\Reply::where('user_id', $user->id)->where('status', 'visible')->count();
+        $likesReceived = \App\Models\Reply::where('user_id', $user->id)
+            ->where('status', 'visible')
+            ->sum('likes_count');
+        $applicationsCount = \App\Models\JobApplication::where('user_id', $user->id)->count();
+        $interestRequests = \App\Models\InterestRequest::where('candidate_id', $user->id)->count();
+        $pendingOutreach = \App\Models\InterestRequest::where('candidate_id', $user->id)
+            ->where('status', 'pending')->count();
+        $monthlyAppsRemaining = config('devrank.limits.monthly_applications', 5) - $user->monthly_job_applications;
+
         return [
-            'total_topics' => $user->topics()->count(),
-            'total_replies' => $user->replies()->count(),
-            'total_likes_received' => $user->replies()->sum('likes_count'),
-            'rank_score' => $user->total_rank_score,
-            'human_score' => $user->human_score,
-            'applications_sent' => $user->jobApplications()->count(),
-            'interests_received' => $user->receivedInterests()->count(),
-            'interests_pending' => $user->receivedInterests()->pending()->count(),
-            'monthly_applications_remaining' => config('devrank.limits.monthly_applications') - $user->monthly_job_applications,
+            'total_rank_score' => $user->total_rank_score ?? 0,
+            'human_score' => $user->human_score ?? 0,
+            'topics_count' => $topicsCount,
+            'replies_count' => $repliesCount,
+            'likes_received' => (int)$likesReceived,
+            'applications_count' => $applicationsCount,
+            'interest_requests' => $interestRequests,
+            'pending_outreach' => $pendingOutreach,
+            'monthly_apps_remaining' => $monthlyAppsRemaining,
         ];
     }
 }
