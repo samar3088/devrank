@@ -113,3 +113,18 @@ body {
 
 a { color: var(--violet-bright); text-decoration: none; }
 a:hover { color: #fff; }
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Geist', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    color: var(--text);
+}
+
+h1 { font-size: clamp(2.6rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; }
+h2 { font-size: clamp(1.8rem, 3.5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; }
+h3 { font-size: clamp(1.15rem, 2vw, 1.6rem); font-weight: 600; }
+h4 { font-size: 1.05rem; font-weight: 600; }
+h5 { font-size: 0.9rem; font-weight: 600; }
+p { color: var(--text2); line-height: 1.75; }
