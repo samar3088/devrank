@@ -7,7 +7,7 @@ use App\Services\CompanyProfileService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class ProfileController extends Controller
+class CompanyProfileController extends Controller
 {
     public function __construct(
         private CompanyProfileService $profileService

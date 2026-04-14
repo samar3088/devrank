@@ -48,6 +48,10 @@ Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show
 // Public leaderboard
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 
+// Public profiles
+Route::get('/candidate/{id}', [\App\Http\Controllers\PublicProfileController::class, 'candidateProfile'])->name('profile.candidate');
+Route::get('/company/{id}', [\App\Http\Controllers\PublicProfileController::class, 'companyProfile'])->name('profile.company');
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -77,8 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/jobs/{job}', [\App\Http\Controllers\Company\JobController::class, 'update'])->name('jobs.update');
         Route::delete('/jobs/{job}', [\App\Http\Controllers\Company\JobController::class, 'destroy'])->name('jobs.destroy');
 
-        Route::get('/profile', [\App\Http\Controllers\Company\ProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [\App\Http\Controllers\Company\ProfileController::class, 'update'])->name('profile.update');
-        Route::post('/profile/logo', [\App\Http\Controllers\Company\ProfileController::class, 'updateLogo'])->name('profile.logo');
+        Route::get('/profile', [\App\Http\Controllers\Company\CompanyProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [\App\Http\Controllers\Company\CompanyProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/logo', [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
     });
 });

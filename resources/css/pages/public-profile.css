@@ -1,0 +1,270 @@
+/* ================================================================
+   DevRank — Public Profile Pages (Candidate + Company)
+   ================================================================ */
+
+   .profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 28px 80px;
+}
+
+.profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 28px;
+    align-items: start;
+}
+
+/* ── Profile Hero ────────────────────────────────────────── */
+.profile-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 32px;
+    margin-bottom: 24px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.profile-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar-xl {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--violet-bright);
+    border: 2px solid var(--cyan);
+}
+
+.open-to-work {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: var(--emerald);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.profile-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.profile-headline {
+    font-size: 15px;
+    color: var(--text2);
+}
+
+.profile-badges {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+}
+
+.profile-bio {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+}
+
+/* ── Rank Tag Cards ──────────────────────────────────────── */
+.rank-showcase {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.rank-tag-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 10px 14px;
+    text-align: center;
+    min-width: 90px;
+}
+
+.rank-val {
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--cyan);
+}
+
+.rank-tag-label {
+    font-size: 11px;
+    color: var(--text3);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.profile-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+
+.profile-tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text3);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'Geist', system-ui, sans-serif;
+    transition: color 0.18s, border-color 0.18s;
+}
+
+.profile-tab:hover {
+    color: var(--text);
+}
+
+.profile-tab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+}
+
+/* ── Answer Preview ──────────────────────────────────────── */
+.answer-preview {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.answer-preview-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.answer-preview-title:hover {
+    color: var(--cyan);
+}
+
+.answer-preview-body {
+    font-size: 13px;
+    color: var(--text3);
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+/* ── Sidebar Cards ───────────────────────────────────────── */
+.profile-sidebar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.profile-rank-big {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--cyan);
+    text-align: center;
+    font-family: var(--font-display);
+}
+
+.profile-rank-label {
+    font-size: 12px;
+    color: var(--text3);
+    text-align: center;
+}
+
+.profile-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0;
+}
+
+.profile-rank-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+}
+
+/* ── Company Hero Stats ──────────────────────────────────── */
+.company-quick-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border-radius: var(--r);
+    overflow: hidden;
+}
+
+.company-quick-stat {
+    background: var(--bg2);
+    padding: 14px 16px;
+    text-align: center;
+}
+
+.company-quick-stat-value {
+    font-weight: 800;
+    font-size: 1.3rem;
+}
+
+.company-quick-stat-label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+}
+
+/* ── Company Logo Large ──────────────────────────────────── */
+.company-logo-lg {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--cyan);
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .company-quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
