@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForumController;
+use App\Http\Controllers\JobBoardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -38,6 +39,10 @@ Route::get('/forum/create', [ForumController::class, 'create'])
 // Public forum
 Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
 Route::get('/forum/{slug}', [ForumController::class, 'show'])->name('forum.show');
+
+// Public jobs
+Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show');
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {

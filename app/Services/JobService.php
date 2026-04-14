@@ -125,4 +125,63 @@ class JobService
             ->select('id', 'name', 'slug')
             ->get();
     }
+
+    /**
+     * Get public job listings with filters
+     */
+    public function getPublicJobs(?string $search = null, ?string $jobType = null, ?string $workMode = null, ?string $experience = null, ?int $tagId = null, int $perPage = 15)
+    {
+        $query = JobListing::with([
+            'company:id,name,company_name,trust_score',
+            'tags:id,name,slug',
+        ])
+        ->withCount('applications')
+        ->where('status', 'active')
+        ->where('expires_at', '>', now());
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        if ($jobType) {
+            $query->where('job_type', $jobType);
+        }
+
+        if ($workMode) {
+            $query->where('work_mode', $workMode);
+        }
+
+        if ($experience) {
+            $query->where('experience_level', $experience);
+        }
+
+        if ($tagId) {
+            $query->whereHas('tags', function ($q) use ($tagId) {
+                $q->where('tags.id', $tagId);
+            });
+        }
+
+        return $query->orderByDesc('is_featured')->orderByDesc('published_at')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /**
+     * Get single public job by slug
+     */
+    public function getPublicJob(string $slug)
+    {
+        return JobListing::with([
+            'company:id,name,company_name,company_website,company_size,industry,trust_score,company_description',
+            'tags:id,name,slug',
+        ])
+        ->withCount('applications')
+        ->where('slug', $slug)
+        ->where('status', 'active')
+        ->firstOrFail();
+    }
 }
