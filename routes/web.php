@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\JobBoardController;
+use App\Http\Controllers\LeaderboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -43,6 +44,9 @@ Route::get('/forum/{slug}', [ForumController::class, 'show'])->name('forum.show'
 // Public jobs
 Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show');
+
+// Public leaderboard
+Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
