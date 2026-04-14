@@ -25,6 +25,11 @@ class JobApplication extends Model
         return $this->belongsTo(JobListing::class, 'jobs_listing_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function candidate()
     {
         return $this->belongsTo(User::class, 'user_id');

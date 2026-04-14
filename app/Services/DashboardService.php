@@ -80,7 +80,7 @@ class DashboardService
         $recentApplicants = \App\Models\JobApplication::whereHas('jobListing', function ($q) use ($user) {
             $q->where('user_id', $user->id);
         })
-        ->with(['user:id,name,rank_score,human_score', 'jobListing:id,title'])
+        ->with(['user:id,name,total_rank_score,human_score', 'jobListing:id,title'])
         ->latest()
         ->take(5)
         ->get()
@@ -89,7 +89,7 @@ class DashboardService
                 'id' => $app->id,
                 'candidate_name' => $app->user->name ?? 'Unknown',
                 'candidate_initials' => collect(explode(' ', $app->user->name ?? 'U'))->map(fn($n) => $n[0])->join(''),
-                'candidate_score' => $app->user->rank_score ?? 0,
+                'candidate_score' => $app->user->total_rank_score ?? 0,
                 'job_title' => $app->jobListing->title ?? '',
                 'status' => $app->status,
                 'applied_at' => $app->created_at->diffForHumans(),
