@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Redirect guests to /register instead of /login
-        $middleware->redirectGuestsTo('/register');
+        $middleware->redirectGuestsTo('/account');
 
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

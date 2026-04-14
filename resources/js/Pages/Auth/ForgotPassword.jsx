@@ -59,7 +59,7 @@ export default function ForgotPassword({ status }) {
                     </form>
 
                     <div className="password-back-link">
-                        <Link href="/register">← Back to Login</Link>
+                        <Link href="/account">← Back to Login</Link>
                     </div>
                 </div>
             </div>

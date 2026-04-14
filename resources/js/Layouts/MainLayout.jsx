@@ -141,9 +141,9 @@ export default function MainLayout({ children }) {
                             </>
                         ) : (
                             <>
-                                <Link href="/register" className="nav-link">Log In</Link>
+                                <Link href="/account" className="nav-link">Log In</Link>
                                 <Link
-                                    href="/register"
+                                    href="/account"
                                     style={{
                                         background: 'var(--violet)',
                                         color: '#fff',

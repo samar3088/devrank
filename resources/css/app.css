@@ -13,33 +13,103 @@
 
 /* ================================================================
    DevRank — Global Design Tokens
+   Matches original style.css design system
    ================================================================ */
 :root {
+    /* Base */
     --bg: #0d0f1a;
     --bg2: #11131f;
+    --bg3: #151828;
     --surface: #1a1d2e;
     --surface2: #20243a;
+    --surface3: #272c47;
+
+    /* Borders */
     --border: rgba(255,255,255,.08);
     --border2: rgba(255,255,255,.13);
+    --border3: rgba(255,255,255,.22);
+
+    /* Primary — Violet */
     --violet: #7c6dfa;
     --violet-bright: #9d91ff;
+    --violet-dim: #5c4fe0;
+    --violet-glow: rgba(124,109,250,.2);
     --violet-soft: rgba(124,109,250,.09);
     --violet-border: rgba(124,109,250,.28);
-    --violet-glow: rgba(124,109,250,.2);
+
+    /* Cyan — used for gradients, glows, accents */
+    --cyan: #00d4ff;
+    --cyan-dim: #00a8cc;
+    --cyan-glow: rgba(0,212,255,.15);
+    --cyan-soft: rgba(0,212,255,.08);
+    --cyan-border: rgba(0,212,255,.2);
+
+    /* Champagne / Gold */
     --champagne: #f0c96e;
+    --champagne-dim: #c9a33a;
+    --champagne-soft: rgba(240,201,110,.09);
+    --champagne-border: rgba(240,201,110,.25);
+
+    /* Semantic */
     --emerald: #34eba0;
+    --emerald-dim: #1fc97e;
+    --emerald-soft: rgba(52,235,160,.09);
+    --emerald-border: rgba(52,235,160,.22);
     --coral: #ff5c4d;
+    --coral-soft: rgba(255,92,77,.09);
+    --coral-border: rgba(255,92,77,.22);
+    --sky: #5bc4f8;
+    --sky-soft: rgba(91,196,248,.09);
+    --purple: #b09eff;
+    --amber: var(--champagne);
+    --amber-dim: var(--champagne-dim);
+    --green: var(--emerald);
+    --green-dim: var(--emerald-dim);
+    --green-soft: var(--emerald-soft);
+    --red: var(--coral);
+    --red-soft: var(--coral-soft);
+
+    /* Text */
     --text: #ffffff;
     --text2: #c8cce8;
     --text3: #7880a8;
     --text4: #4a5070;
+
+    /* Shape */
     --r: 8px;
     --r-lg: 14px;
     --r-xl: 20px;
+    --r-2xl: 28px;
+    --radius: 8px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+
+    /* Shadows */
+    --shadow: 0 4px 24px rgba(0,0,0,.6);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,.7);
+    --shadow-v: 0 8px 32px rgba(124,109,250,.3);
+    --shadow-c: 0 8px 32px rgba(240,201,110,.2);
+    --shadow-cyan: 0 8px 32px rgba(0,212,255,.2);
+
+    /* Nav */
+    --nav-h: 68px;
+
+    /* Typography */
+    --font-display: 'Geist', system-ui, sans-serif;
+    --font-body: 'Geist', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', monospace;
 }
 
 body {
     background: var(--bg);
     color: var(--text);
     font-family: 'Geist', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+        radial-gradient(ellipse 140% 70% at 65% -5%, rgba(124,109,250,.16) 0%, transparent 55%),
+        radial-gradient(ellipse 90% 50% at -10% 75%, rgba(52,235,160,.06) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(240,201,110,.04) 0%, transparent 50%);
 }
+
+a { color: var(--violet-bright); text-decoration: none; }
+a:hover { color: #fff; }

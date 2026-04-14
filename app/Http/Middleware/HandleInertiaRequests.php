@@ -38,19 +38,21 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
 
-            // Auth data available on every page
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'avatar' => $request->user()->avatar,
+                    'company_name' => $request->user()->company_name,
                     'roles' => $request->user()->getRoleNames(),
                     'permissions' => $request->user()->getAllPermissions()->pluck('name'),
+                    'monthly_job_posts' => $request->user()->monthly_job_posts,
+                    'monthly_outreach_sent' => $request->user()->monthly_outreach_sent,
+                    'monthly_job_applications' => $request->user()->monthly_job_applications,
                 ] : null,
             ],
 
-            // Flash messages available on every page
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

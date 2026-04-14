@@ -1,0 +1,225 @@
+/* ================================================================
+   DevRank — Company Job Create/Edit Form
+   ================================================================ */
+
+   .job-form-wrapper {
+    max-width: 780px;
+}
+
+.job-form-header {
+    margin-bottom: 32px;
+}
+
+.job-form-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.job-form-header p {
+    color: var(--text3);
+    font-size: 14px;
+}
+
+.job-form-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.job-form-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: var(--r);
+    padding: 11px 15px;
+    font-size: 14px;
+    outline: none;
+    font-family: 'Geist', system-ui, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 3px var(--violet-soft);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: var(--text3);
+}
+
+.form-select option {
+    background: var(--bg2);
+}
+
+.form-error {
+    font-size: 12px;
+    color: var(--coral);
+}
+
+.form-hint {
+    font-size: 12px;
+    color: var(--text3);
+}
+
+/* ── Tag Selector ────────────────────────────────────────── */
+.tag-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-option {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: 'Geist', system-ui, sans-serif;
+}
+
+.tag-option:hover {
+    border-color: var(--border2);
+    color: var(--text);
+}
+
+.tag-option.selected {
+    background: var(--violet-soft);
+    color: var(--violet-bright);
+    border-color: var(--violet-border);
+}
+
+.tag-count {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 8px;
+}
+
+/* ── Form Actions ────────────────────────────────────────── */
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-submit {
+    padding: 12px 32px;
+    border-radius: var(--r);
+    background: var(--violet);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: 'Geist', system-ui, sans-serif;
+    transition: all 0.18s;
+}
+
+.btn-submit:hover {
+    background: var(--violet-bright);
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    border-radius: var(--r);
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Geist', system-ui, sans-serif;
+    text-decoration: none;
+    transition: all 0.18s;
+}
+
+.btn-cancel:hover {
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.limit-warning {
+    background: rgba(255, 92, 77, .06);
+    border: 1px solid rgba(255, 92, 77, .2);
+    color: var(--coral);
+    padding: 14px 18px;
+    border-radius: var(--r);
+    font-size: 14px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .form-row,
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+    .form-actions {
+        flex-direction: column;
+    }
+    .form-actions .btn-submit,
+    .form-actions .btn-cancel {
+        width: 100%;
+        text-align: center;
+    }
+}

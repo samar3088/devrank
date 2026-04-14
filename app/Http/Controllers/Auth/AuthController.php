@@ -16,11 +16,23 @@ class AuthController extends Controller
     ) {}
 
     /**
-     * Show register & login page
+     * Show account page (login/register for guests, redirect for logged in)
+     */
+    public function showAccount()
+    {
+        if (auth()->check()) {
+            return redirect('/dashboard');
+        }
+
+        return Inertia::render('Auth/Register');
+    }
+
+    /**
+     * Show register & login page (alias for backward compat)
      */
     public function showRegister()
     {
-        return Inertia::render('Auth/Register');
+        return $this->showAccount();
     }
 
     /**

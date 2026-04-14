@@ -29,14 +29,14 @@ export default function Register() {
     function handleRegister(e) {
         e.preventDefault();
         registerForm.data.role = role;
-        registerForm.post('/register', {
+        registerForm.post('/account/register', {
             onFinish: () => registerForm.reset('password', 'password_confirmation'),
         });
     }
 
     function handleLogin(e) {
         e.preventDefault();
-        loginForm.post('/login', {
+        loginForm.post('/account/login', {
             onFinish: () => loginForm.reset('password'),
         });
     }

@@ -16,7 +16,7 @@ class EnsureUserIsActive
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect('/register')->withErrors([
+            return redirect('/account')->withErrors([
                 'email' => 'Your account has been deactivated. Please contact support.',
             ]);
         }

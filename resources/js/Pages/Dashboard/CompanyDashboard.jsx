@@ -1,52 +1,39 @@
-import { Head, usePage } from '@inertiajs/react';
-import MainLayout from '@/Layouts/MainLayout';
+import { Head, usePage, Link } from '@inertiajs/react';
+import CompanyLayout from '@/Layouts/CompanyLayout';
 
 export default function CompanyDashboard() {
     const { auth, stats } = usePage().props;
 
     return (
-        <MainLayout>
+        <CompanyLayout>
             <Head title="Company Dashboard" />
-            <div className="page-container">
-                <div style={{ marginBottom: '32px' }}>
-                    <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>
-                        Company Dashboard
-                    </h1>
-                    <p style={{ color: 'var(--text3)' }}>
-                        Welcome back, {auth.user.name}!
-                        <span style={{
-                            marginLeft: '12px',
-                            background: 'rgba(240,201,110,.09)',
-                            border: '1px solid rgba(240,201,110,.25)',
-                            color: 'var(--champagne)',
-                            padding: '2px 10px',
-                            borderRadius: '20px',
-                            fontSize: '11px',
-                            fontWeight: '700',
-                            textTransform: 'uppercase',
-                        }}>
-                            Company
-                        </span>
-                    </p>
-                </div>
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: '16px',
-                    marginBottom: '32px',
-                }}>
-                    <StatCard label="Active Jobs" value={stats?.active_jobs || 0} color="var(--emerald)" />
-                    <StatCard label="Total Applications" value={stats?.total_applications || 0} />
-                    <StatCard label="Interests Accepted" value={stats?.interests_accepted || 0} color="var(--violet-bright)" />
-                    <StatCard label="Outreach Remaining" value={stats?.monthly_outreach_remaining || 0} color="var(--champagne)" />
-                </div>
-
+            <div style={{ marginBottom: '32px' }}>
+                <h1 style={{ fontSize: '1.75rem', marginBottom: '8px' }}>
+                    Dashboard
+                </h1>
                 <p style={{ color: 'var(--text3)' }}>
-                    Job management, candidate pipeline, and outreach tools coming soon.
+                    Welcome back, {auth.user.name}!
                 </p>
             </div>
-        </MainLayout>
+
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '16px',
+                marginBottom: '32px',
+            }}>
+                <StatCard label="Active Jobs" value={stats?.active_jobs || 0} color="var(--emerald)" />
+                <StatCard label="Total Applications" value={stats?.total_applications || 0} />
+                <StatCard label="Interests Accepted" value={stats?.interests_accepted || 0} color="var(--violet-bright)" />
+                <StatCard label="Outreach Remaining" value={stats?.monthly_outreach_remaining || 0} color="var(--champagne)" />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+                <Link href="/company/jobs" className="btn-sm btn-outline-sm">View My Jobs →</Link>
+                <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">+ Post New Job</Link>
+            </div>
+        </CompanyLayout>
     );
 }
 
