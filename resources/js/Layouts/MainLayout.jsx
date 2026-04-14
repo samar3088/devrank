@@ -1,21 +1,31 @@
 import '../../css/layouts/main.css';
-import PageLoader from '@/Components/PageLoader';
 import { useState, useRef, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
+import PageLoader from '@/Components/PageLoader';
 
 export default function MainLayout({ children }) {
     const { auth } = usePage().props;
     const user = auth?.user;
+    const roles = user?.roles || [];
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Get user initials for avatar
+    const isAdmin = roles.includes('super_admin') || roles.includes('sub_admin');
+    const isCompany = roles.includes('company');
+    const isCandidate = roles.includes('candidate');
+
     function getInitials(name) {
         if (!name) return '?';
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
 
-    // Close dropdown when clicking outside
+    function getAvatarBorderColor() {
+        if (isAdmin) return 'var(--coral)';
+        if (isCompany) return 'var(--champagne)';
+        return 'var(--cyan)';
+    }
+
+    // Close dropdown on outside click
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -26,8 +36,10 @@ export default function MainLayout({ children }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Get nav links based on role
+    // Nav links based on role
     function getNavLinks() {
+        if (isAdmin) return []; // Admin has no top nav links
+
         const links = [
             { href: '/forum', label: 'Forum' },
             { href: '/leaderboard', label: 'Leaderboard' },
@@ -35,17 +47,25 @@ export default function MainLayout({ children }) {
             { href: '/interviews', label: 'Interviews' },
         ];
 
-        if (user?.roles?.includes('super_admin') || user?.roles?.includes('sub_admin')) {
-            links.push({ href: '/admin', label: 'Admin' });
+        // Company doesn't see Quizzes
+        if (!isCompany) {
+            links.push({ href: '/quizzes', label: 'Quizzes' });
         }
 
         return links;
     }
 
-    // Check if link is active
     function isActive(href) {
-        const currentUrl = window.location.pathname;
-        return currentUrl.startsWith(href);
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (href === '/') return currentPath === '/';
+        return currentPath.startsWith(href);
+    }
+
+    function handleLogout(e) {
+        e.preventDefault();
+        if (e.currentTarget.disabled) return;
+        e.currentTarget.disabled = true;
+        router.post('/logout');
     }
 
     return (
@@ -59,7 +79,7 @@ export default function MainLayout({ children }) {
                         <span className="nav-logo-text">Dev<span>Rank</span></span>
                     </Link>
 
-                    {/* Navigation Links */}
+                    {/* Nav Links */}
                     <div className="nav-links">
                         {getNavLinks().map(link => (
                             <Link
@@ -76,22 +96,31 @@ export default function MainLayout({ children }) {
                     <div className="nav-actions">
                         {user ? (
                             <>
-                                {/* Notifications */}
-                                <button className="nav-notification">
-                                    🔔
-                                    <span className="nav-notification-badge"></span>
-                                </button>
+                                {/* Admin Mode Badge */}
+                                {isAdmin && (
+                                    <span className="nav-admin-badge">🔴 Admin Mode</span>
+                                )}
 
-                                {/* User Menu */}
+                                {/* Company Name (for company users) */}
+                                {isCompany && user.company_name && (
+                                    <span className="nav-company-name">{user.company_name}</span>
+                                )}
+
+                                {/* Avatar */}
                                 <div style={{ position: 'relative' }} ref={dropdownRef}>
                                     <div
-                                        className="nav-user"
+                                        className="nav-user-pill"
                                         onClick={() => setDropdownOpen(!dropdownOpen)}
                                     >
-                                        <div className="nav-avatar">
-                                            {getInitials(user.name)}
+                                        <div
+                                            className="nav-avatar"
+                                            style={{ borderColor: getAvatarBorderColor() }}
+                                        >
+                                            {getInitials(isCompany ? user.company_name : user.name)}
                                         </div>
-                                        <span className="nav-user-name">{user.name}</span>
+                                        <span className="nav-user-name">
+                                            {isAdmin ? (roles.includes('super_admin') ? 'Super Admin' : 'Sub Admin') : user.name}
+                                        </span>
                                     </div>
 
                                     {/* Dropdown */}
@@ -104,58 +133,49 @@ export default function MainLayout({ children }) {
                                             >
                                                 📊 Dashboard
                                             </Link>
-                                            <Link
-                                                href="/profile"
-                                                className="nav-dropdown-item"
-                                                onClick={() => setDropdownOpen(false)}
-                                            >
-                                                👤 My Profile
-                                            </Link>
-                                            <Link
-                                                href="/settings"
-                                                className="nav-dropdown-item"
-                                                onClick={() => setDropdownOpen(false)}
-                                            >
-                                                ⚙️ Settings
-                                            </Link>
+                                            {isCompany && (
+                                                <Link
+                                                    href="/company/profile"
+                                                    className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}
+                                                >
+                                                    🏢 Company Profile
+                                                </Link>
+                                            )}
+                                            {isCandidate && (
+                                                <Link
+                                                    href="/profile"
+                                                    className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}
+                                                >
+                                                    👤 My Profile
+                                                </Link>
+                                            )}
+                                            {isAdmin && (
+                                                <Link
+                                                    href="/admin"
+                                                    className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}
+                                                >
+                                                    ⚙️ Admin Panel
+                                                </Link>
+                                            )}
                                             <hr className="nav-dropdown-divider" />
-                                            <Link
-                                                href="/logout"
-                                                method="post"
-                                                as="button"
+                                            <button
+                                                onClick={handleLogout}
                                                 className="nav-dropdown-item"
                                                 style={{ color: 'var(--coral)' }}
-                                                onClick={(e) => {
-                                                    if (e.currentTarget.disabled) {
-                                                        e.preventDefault();
-                                                        return;
-                                                    }
-                                                    e.currentTarget.disabled = true;
-                                                }}
                                             >
-                                                🚪 Logout
-                                            </Link>
+                                                🚪 Log Out
+                                            </button>
                                         </div>
                                     )}
                                 </div>
                             </>
                         ) : (
                             <>
-                                <Link href="/account" className="nav-link">Log In</Link>
-                                <Link
-                                    href="/account"
-                                    style={{
-                                        background: 'var(--violet)',
-                                        color: '#fff',
-                                        padding: '6px 16px',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        fontWeight: '600',
-                                        textDecoration: 'none',
-                                    }}
-                                >
-                                    Get Started
-                                </Link>
+                                <Link href="/account" className="nav-btn-outline">Log In</Link>
+                                <Link href="/account" className="nav-btn-primary">Get Started</Link>
                             </>
                         )}
                     </div>
