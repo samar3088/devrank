@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reply;
+use App\Models\Topic;
 use App\Services\ForumService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ForumController extends Controller
 {
-    public function __construct(
-        private ForumService $forumService
-    ) {}
+    public function __construct(private ForumService $forumService) {}
 
-    /**
-     * Forum listing page
-     */
+    // ── Public: forum listing ────────────────────────────────────
     public function index(Request $request)
     {
         $topics = $this->forumService->getTopics(
@@ -23,109 +21,124 @@ class ForumController extends Controller
             $request->input('filter')
         );
 
-        $categories = $this->forumService->getCategories();
-        $topContributors = $this->forumService->getTopContributors();
-        $trendingTags = $this->forumService->getTrendingTags();
-
         return Inertia::render('Forum/Index', [
-            'topics' => $topics,
-            'categories' => $categories,
-            'topContributors' => $topContributors,
-            'trendingTags' => $trendingTags,
-            'filters' => [
-                'search' => $request->input('search', ''),
+            'topics'           => $topics,
+            'categories'       => $this->forumService->getCategories(),
+            'topContributors'  => $this->forumService->getTopContributors(),
+            'trendingTags'     => $this->forumService->getTrendingTags(),
+            'filters'          => [
+                'search'   => $request->input('search', ''),
                 'category' => $request->input('category', ''),
-                'filter' => $request->input('filter', 'all'),
+                'filter'   => $request->input('filter', 'all'),
             ],
         ]);
     }
 
-    /**
-     * Topic detail page
-     */
+    // ── Public: topic detail ─────────────────────────────────────
     public function show(string $slug)
     {
-        $topic = $this->forumService->getTopic($slug);
-        $userId = auth()->id();
+        $topic   = $this->forumService->getTopic($slug);
+        $userId  = auth()->id();
         $replies = $this->forumService->getReplies($topic->id, 'likes', $userId);
 
+        $topic->increment('views_count');
+
         return Inertia::render('Forum/Topic', [
-            'topic' => $topic,
+            'topic'   => $topic,
             'replies' => $replies,
         ]);
     }
 
-    /**
-     * Show create topic form
-     */
+    // ── Candidate: show create form ──────────────────────────────
     public function create()
     {
-        if (auth()->user()->isCompany()) {
-            return redirect('/forum')->with('error', 'Companies cannot create forum topics.');
-        }
-
-        $categories = $this->forumService->getCategories();
-        $tags = $this->forumService->getTrendingTags(50);
-
         return Inertia::render('Forum/Create', [
-            'categories' => $categories,
-            'tags' => $tags,
+            'categories' => $this->forumService->getCategories(),
+            'tags'       => $this->forumService->getApprovedTags(50),
         ]);
     }
 
-    /**
-     * Store new topic
-     */
+    // ── Candidate: store new topic ───────────────────────────────
     public function store(Request $request)
     {
-        if ($request->user()->isCompany()) {
-            return redirect('/forum')->with('error', 'Companies cannot create forum topics.');
-        }
-
+        // Route middleware handles company block (role:candidate)
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255', 'min:10'],
-            'body' => ['required', 'string', 'min:30'],
+            'title'       => ['required', 'string', 'min:10', 'max:255'],
+            'body'        => ['required', 'string', 'min:30'],
             'category_id' => ['required', 'exists:categories,id'],
-            'tags' => ['nullable', 'array', 'max:10'],
-            'tags.*' => ['integer', 'exists:tags,id'],
+            'tags'        => ['nullable', 'array', 'max:10'],
+            'tags.*'      => ['integer', 'exists:tags,id'],
         ]);
 
         $topic = $this->forumService->createTopic($request->user(), $validated);
 
-        return redirect("/forum/{$topic->slug}")
+        return redirect()->route('forum.show', $topic->slug)
             ->with('success', 'Topic created successfully!');
     }
 
-    /**
-     * Store a reply
-     */
-    public function storeReply(Request $request, int $topicId)
+    // ── Candidate: soft-delete own topic ────────────────────────
+    public function destroyTopic(Request $request, Topic $topic)
     {
-        if ($request->user()->isCompany()) {
-            return back()->with('error', 'Companies cannot post forum replies.');
-        }
+        abort_unless($topic->user_id === $request->user()->id, 403);
+
+        $this->forumService->deleteTopic($topic);
+
+        return redirect()->route('forum.index')
+            ->with('success', 'Topic deleted.');
+    }
+
+    // ── Candidate: post a reply ──────────────────────────────────
+    public function storeReply(Request $request, Topic $topic)
+    {
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'min:10'],
+        ]);
+
+        $this->forumService->createReply($request->user(), $topic->id, $validated);
+
+        return redirect()->route('forum.show', $topic->slug)
+            ->with('success', 'Answer posted!');
+    }
+
+    // ── Candidate: edit own reply ────────────────────────────────
+    public function updateReply(Request $request, Reply $reply)
+    {
+        abort_unless($reply->user_id === $request->user()->id, 403);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'min:10'],
         ]);
 
-        $this->forumService->createReply($request->user(), $topicId, $validated);
-        $topic = \App\Models\Topic::findOrFail($topicId);
+        $this->forumService->updateReply($reply, $validated['body']);
 
-        return redirect("/forum/{$topic->slug}")
-            ->with('success', 'Answer posted successfully!');
+        return back()->with('success', 'Answer updated.');
     }
 
-    /**
-     * Toggle like on a reply
-     */
-    public function toggleLike(Request $request, int $replyId)
+    // ── Candidate: soft-delete own reply ────────────────────────
+    public function destroyReply(Request $request, Reply $reply)
     {
-        if ($request->user()->isCompany()) {
-            return back()->with('error', 'Companies cannot like forum replies.');
-        }
+        abort_unless($reply->user_id === $request->user()->id, 403);
 
-        $result = $this->forumService->toggleLike($request->user(), $replyId);
+        $this->forumService->deleteReply($reply);
+
+        return back()->with('success', 'Answer deleted.');
+    }
+
+    // ── Candidate (topic owner): mark accepted answer ────────────
+    public function acceptReply(Request $request, Topic $topic, Reply $reply)
+    {
+        abort_unless($topic->user_id === $request->user()->id, 403);
+        abort_unless($reply->topic_id === $topic->id, 422);
+
+        $this->forumService->acceptReply($topic, $reply);
+
+        return back()->with('success', 'Answer marked as accepted.');
+    }
+
+    // ── Candidate: toggle like on a reply ────────────────────────
+    public function toggleLike(Request $request, Reply $reply)
+    {
+        $result = $this->forumService->toggleLike($request->user(), $reply->id);
 
         return back()->with('like_result', $result);
     }

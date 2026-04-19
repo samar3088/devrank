@@ -12,49 +12,41 @@ use App\Http\Controllers\PublicProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Public routes
-Route::get('/', function () {
-    return Inertia::render('Home');
-});
+// ── Public ───────────────────────────────────────────────────────
+Route::get('/', fn () => Inertia::render('Home'));
 
-// Redirect /login and /register to /account
-Route::get('/login', fn () => redirect('/account'))->name('login.redirect');
+Route::get('/login',    fn () => redirect('/account'))->name('login.redirect');
 Route::get('/register', fn () => redirect('/account'));
+Route::get('/account',  [AuthController::class, 'showAccount'])->name('account');
 
-// Account page
-Route::get('/account', [AuthController::class, 'showAccount'])->name('account');
-
-// Guest routes
+// ── Guest only ───────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
-    Route::post('/account/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/account/login', [AuthController::class, 'login'])->name('login');
-
-    Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/account/register',      [AuthController::class, 'register'])->name('register');
+    Route::post('/account/login',         [AuthController::class, 'login'])->name('login');
+    Route::get('/forgot-password',        [PasswordResetController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password',       [PasswordResetController::class, 'sendResetLink'])->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
+    Route::post('/reset-password',        [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
-// Forum — create must come before {slug} catch-all
+// ── Forum public (create BEFORE {slug} catch-all) ───────────────
 Route::get('/forum/create', [ForumController::class, 'create'])
-    ->middleware(['auth', 'verified'])->name('forum.create');
+    ->middleware(['auth', 'verified', 'role:candidate'])
+    ->name('forum.create');
 
-// Public forum
-Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
+Route::get('/forum',        [ForumController::class, 'index'])->name('forum.index');
 Route::get('/forum/{slug}', [ForumController::class, 'show'])->name('forum.show');
 
-// Public jobs
-Route::get('/jobs', [JobBoardController::class, 'index'])->name('jobs.index');
+// ── Public jobs ──────────────────────────────────────────────────
+Route::get('/jobs',        [JobBoardController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show');
 
-// Public leaderboard
-Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
-
-// Public profiles
+// ── Public leaderboard + profiles ───────────────────────────────
+Route::get('/leaderboard',    [LeaderboardController::class, 'index'])->name('leaderboard.index');
 Route::get('/candidate/{id}', [PublicProfileController::class, 'candidateProfile'])->name('profile.candidate');
-Route::get('/company/{id}', [PublicProfileController::class, 'companyProfile'])->name('profile.company');
+Route::get('/company/{id}',   [PublicProfileController::class, 'companyProfile'])->name('profile.company');
 
-// Authenticated routes
+// ── Auth only ────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -65,43 +57,51 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 });
 
-// Authenticated + Verified routes
+// ── Auth + Verified ──────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Forum actions
-    Route::post('/forum', [ForumController::class, 'store'])->name('forum.store');
-    Route::post('/forum/{topic}/reply', [ForumController::class, 'storeReply'])->name('forum.reply');
-    Route::post('/forum/reply/{reply}/like', [ForumController::class, 'toggleLike'])->name('forum.like');
-
-    // Job apply (candidates only)
-    Route::post('/jobs/{job}/apply', [JobBoardController::class, 'apply'])->name('jobs.apply');
-
-    // Interest Flow — Candidate
+    // ── Forum (candidate only) ───────────────────────────────────
     Route::middleware('role:candidate')->group(function () {
-        Route::get('/interests', [InterestController::class, 'candidateIndex'])->name('interests.candidate');
+        Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
+        Route::delete('/forum/{topic}',              [ForumController::class, 'destroyTopic'])->name('forum.destroy');
+        Route::post('/forum/{topic}/reply',          [ForumController::class, 'storeReply'])->name('forum.reply');
+        Route::put('/forum/reply/{reply}',           [ForumController::class, 'updateReply'])->name('forum.reply.update');
+        Route::delete('/forum/reply/{reply}',        [ForumController::class, 'destroyReply'])->name('forum.reply.destroy');
+        Route::post('/forum/{topic}/accept/{reply}', [ForumController::class, 'acceptReply'])->name('forum.accept');
+        Route::post('/forum/reply/{reply}/like',     [ForumController::class, 'toggleLike'])->name('forum.like');
+    });
+
+    // ── Jobs apply (candidate only) ──────────────────────────────
+    Route::post('/jobs/{job}/apply', [JobBoardController::class, 'apply'])
+        ->middleware('role:candidate')
+        ->name('jobs.apply');
+
+    // ── Interests: candidate ─────────────────────────────────────
+    Route::middleware('role:candidate')->group(function () {
+        Route::get('/interests',                            [InterestController::class, 'candidateIndex'])->name('interests.candidate');
         Route::post('/interests/{interestRequest}/respond', [InterestController::class, 'respond'])->name('interests.respond');
     });
 
-    // Company routes
-    Route::middleware('role:company')->prefix('company')->name('company.')->group(function () {
-        Route::get('/jobs', [\App\Http\Controllers\Company\JobController::class, 'index'])->name('jobs.index');
-        Route::get('/jobs/create', [\App\Http\Controllers\Company\JobController::class, 'create'])->name('jobs.create');
-        Route::post('/jobs', [\App\Http\Controllers\Company\JobController::class, 'store'])->name('jobs.store');
-        Route::get('/jobs/{job}/edit', [\App\Http\Controllers\Company\JobController::class, 'edit'])->name('jobs.edit');
-        Route::put('/jobs/{job}', [\App\Http\Controllers\Company\JobController::class, 'update'])->name('jobs.update');
-        Route::delete('/jobs/{job}', [\App\Http\Controllers\Company\JobController::class, 'destroy'])->name('jobs.destroy');
-
-        Route::get('/profile', [\App\Http\Controllers\Company\CompanyProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [\App\Http\Controllers\Company\CompanyProfileController::class, 'update'])->name('profile.update');
-        Route::post('/profile/logo', [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
-
-        // Interest Flow — Company
-        Route::get('/interests', [InterestController::class, 'companyIndex'])->name('interests.index');
-    });
-
-    // Interest send — company only, outside prefix so URL stays /interests/send/{candidate}
+    // ── Interests: send (company, outside /company prefix) ───────
     Route::post('/interests/send/{candidate}', [InterestController::class, 'send'])
         ->middleware('role:company')
         ->name('interests.send');
+
+    // ── Company ──────────────────────────────────────────────────
+    Route::middleware('role:company')->prefix('company')->name('company.')->group(function () {
+        Route::get('/jobs',            [\App\Http\Controllers\Company\JobController::class, 'index'])->name('jobs.index');
+        Route::get('/jobs/create',     [\App\Http\Controllers\Company\JobController::class, 'create'])->name('jobs.create');
+        Route::post('/jobs',           [\App\Http\Controllers\Company\JobController::class, 'store'])->name('jobs.store');
+        Route::get('/jobs/{job}/edit', [\App\Http\Controllers\Company\JobController::class, 'edit'])->name('jobs.edit');
+        Route::put('/jobs/{job}',      [\App\Http\Controllers\Company\JobController::class, 'update'])->name('jobs.update');
+        Route::delete('/jobs/{job}',   [\App\Http\Controllers\Company\JobController::class, 'destroy'])->name('jobs.destroy');
+
+        Route::get('/profile',         [\App\Http\Controllers\Company\CompanyProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile',         [\App\Http\Controllers\Company\CompanyProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/logo',   [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
+
+        Route::get('/interests',       [InterestController::class, 'companyIndex'])->name('interests.index');
+    });
 });
