@@ -18,4 +18,12 @@ return [
         'allowed_resume' => ['pdf', 'doc', 'docx'],
         'avatar_max_size' => 2048, // KB
     ],
+
+    'points' => [
+        'like_received'    => 10,
+        'reply_posted'     => 5,
+        'answer_accepted'  => 50,
+        'quiz_mcq_correct' => 10,
+        'quiz_coding_pass' => 40,
+    ],
 ];

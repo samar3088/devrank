@@ -1,4 +1,3 @@
-import '../../../css/pages/password-reset.css';
 import LoadingButton from '@/Components/LoadingButton';
 import { Head, useForm, Link } from '@inertiajs/react';
 

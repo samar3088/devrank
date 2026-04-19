@@ -1,4 +1,3 @@
-import '../../../css/pages/dashboard-company.css';
 import { Head, usePage, Link } from '@inertiajs/react';
 import CompanyLayout from '@/Layouts/CompanyLayout';
 

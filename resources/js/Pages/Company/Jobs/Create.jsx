@@ -1,4 +1,3 @@
-import '../../../../css/pages/company/job-form.css';
 import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import CompanyLayout from '@/Layouts/CompanyLayout';
 import LoadingButton from '@/Components/LoadingButton';

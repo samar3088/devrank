@@ -1,4 +1,3 @@
-import '../../css/pages/home.css';
 import { Head, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';

@@ -1,4 +1,3 @@
-import '../../../css/pages/verify-email.css';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';

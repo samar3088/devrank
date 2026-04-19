@@ -1,5 +1,27 @@
 @import 'tailwindcss';
 
+/* ── Page CSS imports — only files that exist ───────────────────── */
+@import './layouts/main.css';
+@import './layouts/company.css';
+@import './components/loader.css';
+@import './pages/auth.css';
+@import './pages/home.css';
+@import './pages/forum.css';
+@import './pages/forum-topic.css';
+@import './pages/jobs.css';
+@import './pages/job-detail.css';
+@import './pages/leaderboard.css';
+@import './pages/public-profile.css';
+@import './pages/dashboard-company.css';
+@import './pages/dashboard-candidate.css';
+@import './pages/verify-email.css';
+@import './pages/password-reset.css';
+@import './pages/interests.css';
+@import './pages/quiz.css';
+@import './pages/company/jobs.css';
+@import './pages/company/job-form.css';
+@import './pages/company/profile.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source "../**/*.blade.php";
@@ -13,7 +35,6 @@
 
 /* ================================================================
    DevRank — Global Design Tokens
-   Matches original style.css design system
    ================================================================ */
 :root {
     /* Base */
@@ -28,6 +49,7 @@
     --border: rgba(255,255,255,.08);
     --border2: rgba(255,255,255,.13);
     --border3: rgba(255,255,255,.22);
+    --border-hover: rgba(255,255,255,.18);
 
     /* Primary — Violet */
     --violet: #7c6dfa;
@@ -37,7 +59,7 @@
     --violet-soft: rgba(124,109,250,.09);
     --violet-border: rgba(124,109,250,.28);
 
-    /* Cyan — used for gradients, glows, accents */
+    /* Cyan */
     --cyan: #00d4ff;
     --cyan-dim: #00a8cc;
     --cyan-glow: rgba(0,212,255,.15);
@@ -61,6 +83,8 @@
     --sky: #5bc4f8;
     --sky-soft: rgba(91,196,248,.09);
     --purple: #b09eff;
+
+    /* Aliases */
     --amber: var(--champagne);
     --amber-dim: var(--champagne-dim);
     --green: var(--emerald);
@@ -100,6 +124,7 @@
     --font-mono: 'Geist Mono', monospace;
 }
 
+/* ── Base styles ─────────────────────────────────────────────── */
 body {
     background: var(--bg);
     color: var(--text);
@@ -127,4 +152,4 @@ h2 { font-size: clamp(1.8rem, 3.5vw, 3rem); font-weight: 700; letter-spacing: -0
 h3 { font-size: clamp(1.15rem, 2vw, 1.6rem); font-weight: 600; }
 h4 { font-size: 1.05rem; font-weight: 600; }
 h5 { font-size: 0.9rem; font-weight: 600; }
-p { color: var(--text2); line-height: 1.75; }
+p  { color: var(--text2); line-height: 1.75; }

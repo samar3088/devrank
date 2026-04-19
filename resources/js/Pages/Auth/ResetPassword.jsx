@@ -1,4 +1,3 @@
-import '../../../css/pages/password-reset.css';
 import { Head, useForm, Link } from '@inertiajs/react';
 
 export default function ResetPassword({ token, email }) {

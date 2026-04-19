@@ -1,0 +1,194 @@
+/* ================================================================
+   DevRank — Quiz Module Styles
+   resources/css/pages/quiz.css
+   ================================================================ */
+
+/* ── Quiz listing card ──────────────────────────────────────── */
+.quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 24px;
+    transition: border-color 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.quiz-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+/* ── Attempt wrapper ────────────────────────────────────────── */
+.quiz-attempt-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+}
+
+/* ── Top bar ────────────────────────────────────────────────── */
+.quiz-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: var(--nav-h, 64px);
+    z-index: 10;
+}
+
+.quiz-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.quiz-title-sm {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+}
+
+/* ── Timer ──────────────────────────────────────────────────── */
+.quiz-timer {
+    font-family: var(--font-mono, monospace);
+    font-size: 16px;
+    font-weight: 800;
+    padding: 6px 16px;
+    border-radius: var(--r);
+    background: color-mix(in srgb, var(--violet) 12%, transparent);
+    color: var(--violet-bright);
+    border: 1px solid color-mix(in srgb, var(--violet) 30%, transparent);
+    letter-spacing: 0.05em;
+    transition: all 0.3s;
+}
+
+.quiz-timer.danger {
+    background: color-mix(in srgb, var(--coral) 12%, transparent);
+    color: var(--coral);
+    border-color: color-mix(in srgb, var(--coral) 30%, transparent);
+    animation: pulse-danger 1s infinite;
+}
+
+@keyframes pulse-danger {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.7; }
+}
+
+/* ── Content area ───────────────────────────────────────────── */
+.quiz-content {
+    flex: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 32px 20px;
+}
+
+.quiz-question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 32px;
+    margin-bottom: 20px;
+}
+
+/* ── Question type badge ────────────────────────────────────── */
+.quiz-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.quiz-type-badge.mcq {
+    background: color-mix(in srgb, var(--cyan) 12%, transparent);
+    color: var(--cyan);
+    border: 1px solid color-mix(in srgb, var(--cyan) 25%, transparent);
+}
+
+.quiz-type-badge.coding {
+    background: color-mix(in srgb, var(--violet) 12%, transparent);
+    color: var(--violet-bright);
+    border: 1px solid color-mix(in srgb, var(--violet) 25%, transparent);
+}
+
+/* ── Code editor textarea (Monaco placeholder) ──────────────── */
+.quiz-code-editor {
+    width: 100%;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    background: #0a0c14;
+    color: #c9d1d9;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px;
+    resize: vertical;
+    outline: none;
+    tab-size: 2;
+    caret-color: var(--violet-bright);
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.quiz-code-editor:focus {
+    border-color: var(--violet-bright);
+}
+
+/* ── Navigation bar ─────────────────────────────────────────── */
+.quiz-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ── Result hero ────────────────────────────────────────────── */
+.quiz-result-hero {
+    background: var(--surface);
+    border: 1px solid;
+    border-radius: var(--r-xl);
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.quiz-result-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+/* ── Admin quiz table ───────────────────────────────────────── */
+.quiz-admin-table th,
+.quiz-admin-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.quiz-admin-table th {
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: .07em;
+    background: var(--bg);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .quiz-question-card { padding: 20px; }
+    .quiz-result-hero   { padding: 24px; }
+    .quiz-topbar        { flex-direction: column; gap: 10px; }
+    .quiz-nav           { flex-direction: column; }
+}

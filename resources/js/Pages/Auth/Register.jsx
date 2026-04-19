@@ -1,4 +1,3 @@
-import '@css/pages/auth.css';
 import LoadingButton from '@/Components/LoadingButton';
 import { useState } from 'react';
 import { useForm, Head, Link } from '@inertiajs/react';

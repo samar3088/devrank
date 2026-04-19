@@ -1,5 +1,3 @@
-import '../../../css/pages/dashboard-candidate.css';
-import '../../../css/pages/dashboard-company.css';
 import { Head, usePage, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 

@@ -1,8 +1,3 @@
-import '../../../css/pages/public-profile.css';
-import '../../../css/pages/forum.css';
-import '../../../css/pages/home.css';
-import '../../../css/pages/dashboard-company.css';
-import '../../../css/pages/interests.css';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';

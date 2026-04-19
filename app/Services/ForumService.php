@@ -204,6 +204,13 @@ class ForumService
         if ($existing) {
             $existing->delete();
             $reply->decrement('likes_count');
+
+            // Remove rank points from reply author (not self-like)
+            if ($reply->user_id !== $user->id) {
+                User::where('id', $reply->user_id)
+                    ->decrement('total_rank_score', config('devrank.points.like_received', 10));
+            }
+
             return ['liked' => false, 'count' => $reply->likes_count];
         }
 
@@ -213,6 +220,12 @@ class ForumService
             'likeable_id'   => $replyId,
         ]);
         $reply->increment('likes_count');
+
+        // Award rank points to reply author (not self-like)
+        if ($reply->user_id !== $user->id) {
+            User::where('id', $reply->user_id)
+                ->increment('total_rank_score', config('devrank.points.like_received', 10));
+        }
 
         return ['liked' => true, 'count' => $reply->likes_count];
     }

@@ -9,6 +9,9 @@ use App\Http\Controllers\InterestController;
 use App\Http\Controllers\JobBoardController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\PublicProfileController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\QuizAttemptController;
+use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -29,7 +32,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password',        [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
-// ── Forum public (create BEFORE {slug} catch-all) ───────────────
+// ── Forum public (create BEFORE {slug} catch-all) ────────────────
 Route::get('/forum/create', [ForumController::class, 'create'])
     ->middleware(['auth', 'verified', 'role:candidate'])
     ->name('forum.create');
@@ -41,10 +44,15 @@ Route::get('/forum/{slug}', [ForumController::class, 'show'])->name('forum.show'
 Route::get('/jobs',        [JobBoardController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show');
 
-// ── Public leaderboard + profiles ───────────────────────────────
+// ── Public leaderboard + profiles ────────────────────────────────
 Route::get('/leaderboard',    [LeaderboardController::class, 'index'])->name('leaderboard.index');
 Route::get('/candidate/{id}', [PublicProfileController::class, 'candidateProfile'])->name('profile.candidate');
 Route::get('/company/{id}',   [PublicProfileController::class, 'companyProfile'])->name('profile.company');
+
+// ── Public quiz (result BEFORE {slug} to avoid catch-all conflict) ─
+Route::get('/quiz',                  [QuizController::class, 'index'])->name('quiz.index');
+Route::get('/quiz/result/{attempt}', [QuizAttemptController::class, 'result'])->name('quiz.result');
+Route::get('/quiz/{slug}',           [QuizController::class, 'show'])->name('quiz.show');
 
 // ── Auth only ────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
@@ -62,7 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // ── Forum (candidate only) ───────────────────────────────────
+    // ── Forum (candidate only) ────────────────────────────────────
     Route::middleware('role:candidate')->group(function () {
         Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
         Route::delete('/forum/{topic}',              [ForumController::class, 'destroyTopic'])->name('forum.destroy');
@@ -73,23 +81,44 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/forum/reply/{reply}/like',     [ForumController::class, 'toggleLike'])->name('forum.like');
     });
 
-    // ── Jobs apply (candidate only) ──────────────────────────────
+    // ── Jobs apply (candidate only) ───────────────────────────────
     Route::post('/jobs/{job}/apply', [JobBoardController::class, 'apply'])
         ->middleware('role:candidate')
         ->name('jobs.apply');
 
-    // ── Interests: candidate ─────────────────────────────────────
+    // ── Interests: candidate ──────────────────────────────────────
     Route::middleware('role:candidate')->group(function () {
         Route::get('/interests',                            [InterestController::class, 'candidateIndex'])->name('interests.candidate');
         Route::post('/interests/{interestRequest}/respond', [InterestController::class, 'respond'])->name('interests.respond');
     });
 
-    // ── Interests: send (company, outside /company prefix) ───────
+    // ── Quiz attempt (candidate only) ─────────────────────────────
+    Route::middleware('role:candidate')->group(function () {
+        Route::post('/quiz/{quiz}/start',             [QuizAttemptController::class, 'start'])->name('quiz.start');
+        Route::post('/quiz/attempt/{attempt}/answer',  [QuizAttemptController::class, 'answer'])->name('quiz.answer');
+        Route::post('/quiz/attempt/{attempt}/complete',[QuizAttemptController::class, 'complete'])->name('quiz.complete');
+    });
+
+    // ── Admin quiz ────────────────────────────────────────────────
+    Route::middleware('role:super_admin')->prefix('admin/quiz')->name('admin.quiz.')->group(function () {
+        Route::get('/',                               [AdminQuizController::class, 'index'])->name('index');
+        Route::get('/create',                         [AdminQuizController::class, 'create'])->name('create');
+        Route::post('/',                              [AdminQuizController::class, 'store'])->name('store');
+        Route::get('/{quiz}/edit',                    [AdminQuizController::class, 'edit'])->name('edit');
+        Route::put('/{quiz}',                         [AdminQuizController::class, 'update'])->name('update');
+        Route::delete('/{quiz}',                      [AdminQuizController::class, 'destroy'])->name('destroy');
+        Route::get('/{quiz}/questions',               [AdminQuizController::class, 'questions'])->name('questions');
+        Route::post('/{quiz}/questions',              [AdminQuizController::class, 'storeQuestion'])->name('questions.store');
+        Route::delete('/{quiz}/questions/{question}', [AdminQuizController::class, 'destroyQuestion'])->name('questions.destroy');
+        Route::get('/{quiz}/attempts',                [AdminQuizController::class, 'attempts'])->name('attempts');
+    });
+
+    // ── Interests: send (company, outside /company prefix) ────────
     Route::post('/interests/send/{candidate}', [InterestController::class, 'send'])
         ->middleware('role:company')
         ->name('interests.send');
 
-    // ── Company ──────────────────────────────────────────────────
+    // ── Company ───────────────────────────────────────────────────
     Route::middleware('role:company')->prefix('company')->name('company.')->group(function () {
         Route::get('/jobs',            [\App\Http\Controllers\Company\JobController::class, 'index'])->name('jobs.index');
         Route::get('/jobs/create',     [\App\Http\Controllers\Company\JobController::class, 'create'])->name('jobs.create');

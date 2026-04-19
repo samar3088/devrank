@@ -1,4 +1,3 @@
-import '../../../../css/pages/company/jobs.css';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import CompanyLayout from '@/Layouts/CompanyLayout';
