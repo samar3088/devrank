@@ -48,8 +48,40 @@ class JobBoardController extends Controller
         $job = $this->jobService->getPublicJob($slug);
         $job->increment('views_count');
 
+        $hasApplied = false;
+        $canApply = false;
+
+        if (auth()->check() && auth()->user()->isCandidate()) {
+            $hasApplied = $this->jobService->hasApplied(auth()->id(), $job->id);
+            $canApply = auth()->user()->canApplyToJob();
+        }
+
         return Inertia::render('JobBoard/Show', [
             'job' => $job,
+            'hasApplied' => $hasApplied,
+            'canApply' => $canApply,
         ]);
+    }
+
+    /**
+     * Apply to a job
+     */
+    public function apply(Request $request, int $jobId)
+    {
+        if ($request->user()->isCompany()) {
+            return back()->with('error', 'Companies cannot apply to jobs.');
+        }
+
+        $validated = $request->validate([
+            'cover_letter' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $result = $this->jobService->applyToJob($request->user(), $jobId, $validated);
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
     }
 }

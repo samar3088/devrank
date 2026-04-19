@@ -1,11 +1,12 @@
 import '../../../css/pages/job-detail.css';
 import '../../../css/pages/forum.css';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
+import LoadingButton from '@/Components/LoadingButton';
 import { FullFooter } from '@/Components/Footer';
 
 export default function JobShow() {
-    const { job, auth } = usePage().props;
+    const { job, auth, hasApplied, canApply, flash } = usePage().props;
 
     function getInitials(name) {
         if (!name) return '?';
@@ -14,16 +15,13 @@ export default function JobShow() {
 
     function formatSalary(min, max, currency) {
         if (!min && !max) return null;
-        const fmt = (n) => {
-            if (currency === 'INR') return `₹${(n / 100000).toFixed(0)}–`;
-            return `${currency} ${n.toLocaleString()}`;
-        };
-        if (min && max) {
-            if (currency === 'INR') return `₹${(min / 100000).toFixed(0)}–${(max / 100000).toFixed(0)} LPA`;
-            return `${currency} ${min.toLocaleString()} – ${max.toLocaleString()}`;
+        if (currency === 'INR') {
+            if (min && max) return `₹${(min / 100000).toFixed(0)}–${(max / 100000).toFixed(0)} LPA`;
+            if (min) return `₹${(min / 100000).toFixed(0)}L+`;
+            return `Up to ₹${(max / 100000).toFixed(0)}L`;
         }
-        if (min) return `₹${(min / 100000).toFixed(0)}L+`;
-        return `Up to ₹${(max / 100000).toFixed(0)}L`;
+        if (min && max) return `${currency} ${min.toLocaleString()} – ${max.toLocaleString()}`;
+        return null;
     }
 
     function daysLeft(date) {
@@ -55,6 +53,18 @@ export default function JobShow() {
                     <Link href="/jobs">Jobs</Link> › <span>{job.company?.company_name}</span> › {job.title}
                 </div>
 
+                {/* Flash */}
+                {flash?.success && (
+                    <div style={{ background: 'var(--emerald-soft)', border: '1px solid var(--emerald-border)', color: 'var(--emerald)', padding: '12px 18px', borderRadius: 'var(--r)', marginBottom: '16px', fontSize: '14px' }}>
+                        ✓ {flash.success}
+                    </div>
+                )}
+                {flash?.error && (
+                    <div style={{ background: 'var(--coral-soft)', border: '1px solid var(--coral-border)', color: 'var(--coral)', padding: '12px 18px', borderRadius: 'var(--r)', marginBottom: '16px', fontSize: '14px' }}>
+                        {flash.error}
+                    </div>
+                )}
+
                 <div className="job-detail-layout">
                     {/* Main Content */}
                     <div>
@@ -63,18 +73,14 @@ export default function JobShow() {
                             <div className="job-hero-top">
                                 <div>
                                     <div className="job-hero-company">
-                                        <div className="job-hero-logo">
-                                            {getInitials(job.company?.company_name)}
-                                        </div>
+                                        <div className="job-hero-logo">{getInitials(job.company?.company_name)}</div>
                                         <div>
                                             <span className="job-hero-company-name">{job.company?.company_name}</span>
                                             <div className="job-hero-badges">
                                                 {trustScore >= 80 && <span className="badge badge-amber">🏅 Transparent</span>}
                                                 {trustScore >= 70 && <span className="badge badge-cyan">✅ Trusted Hirer</span>}
                                                 <span className="stars-sm">{stars}</span>
-                                                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
-                                                    {trustScore}/100 Trust
-                                                </span>
+                                                <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{trustScore}/100 Trust</span>
                                             </div>
                                         </div>
                                     </div>
@@ -96,72 +102,39 @@ export default function JobShow() {
                             </div>
                             {job.tags?.length > 0 && (
                                 <div className="tags" style={{ marginTop: '16px' }}>
-                                    {job.tags.map(tag => (
-                                        <span key={tag.id} className="tag">{tag.name}</span>
-                                    ))}
+                                    {job.tags.map(tag => <span key={tag.id} className="tag">{tag.name}</span>)}
                                 </div>
                             )}
                         </div>
 
-                        {/* About the Role */}
                         {job.description && (
-                            <div className="section-block">
-                                <h4>About the Role</h4>
-                                <p>{job.description}</p>
-                            </div>
+                            <div className="section-block"><h4>About the Role</h4><p>{job.description}</p></div>
                         )}
-
-                        {/* Requirements */}
                         {job.requirements && (
-                            <div className="section-block">
-                                <h4>Requirements</h4>
-                                {renderLines(job.requirements)}
-                            </div>
+                            <div className="section-block"><h4>Requirements</h4>{renderLines(job.requirements)}</div>
                         )}
-
-                        {/* Benefits */}
                         {job.benefits && (
-                            <div className="section-block">
-                                <h4>What We Offer</h4>
-                                {renderLines(job.benefits)}
-                            </div>
+                            <div className="section-block"><h4>What We Offer</h4>{renderLines(job.benefits)}</div>
                         )}
 
                         {/* Interview Process */}
                         <div className="section-block">
                             <h4>Interview Process</h4>
                             <div style={{ background: 'var(--violet-soft)', border: '1px solid var(--violet-border)', borderRadius: 'var(--r)', padding: '12px 16px', fontSize: '13px', color: 'var(--violet-bright)', marginBottom: '16px' }}>
-                                💡 This company uses DevRank's free first screening service. You may receive a screening call before the formal process.
+                                💡 This company uses DevRank's free first screening service.
                             </div>
                             <div className="process-steps">
-                                <div className="process-step">
-                                    <div className="process-step-num">1</div>
-                                    <div>
-                                        <div className="process-step-title">DevRank Screening (Optional Free)</div>
-                                        <div className="process-step-desc">20–30 min with our coordinator · Technical + communication check</div>
+                                {[
+                                    ['DevRank Screening (Optional Free)', '20–30 min · Technical + communication check'],
+                                    ['Technical Interview', '60 min · Deep-dive + live coding'],
+                                    ['System Design', '45 min · Architecture discussion'],
+                                    ['Culture Fit / HR', '30 min · Team + values alignment'],
+                                ].map(([title, desc], i) => (
+                                    <div key={i} className="process-step">
+                                        <div className="process-step-num">{i + 1}</div>
+                                        <div><div className="process-step-title">{title}</div><div className="process-step-desc">{desc}</div></div>
                                     </div>
-                                </div>
-                                <div className="process-step">
-                                    <div className="process-step-num">2</div>
-                                    <div>
-                                        <div className="process-step-title">Technical Interview</div>
-                                        <div className="process-step-desc">60 min · Deep-dive + live coding</div>
-                                    </div>
-                                </div>
-                                <div className="process-step">
-                                    <div className="process-step-num">3</div>
-                                    <div>
-                                        <div className="process-step-title">System Design</div>
-                                        <div className="process-step-desc">45 min · Architecture discussion</div>
-                                    </div>
-                                </div>
-                                <div className="process-step">
-                                    <div className="process-step-num">4</div>
-                                    <div>
-                                        <div className="process-step-title">Culture Fit / HR</div>
-                                        <div className="process-step-desc">30 min · Team + values alignment</div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -175,40 +148,35 @@ export default function JobShow() {
                             </>
                         )}
 
-                        {auth?.user ? (
-                            <Link href="/account" className="apply-btn-full">Apply Now</Link>
+                        {hasApplied ? (
+                            <div style={{ background: 'var(--emerald-soft)', border: '1px solid var(--emerald-border)', color: 'var(--emerald)', padding: '12px', borderRadius: 'var(--r)', textAlign: 'center', fontWeight: 600, marginBottom: '10px' }}>
+                                ✅ You've already applied
+                            </div>
+                        ) : auth?.user && !auth.user.roles?.includes('company') ? (
+                            <ApplyForm jobId={job.id} canApply={canApply} />
+                        ) : auth?.user?.roles?.includes('company') ? (
+                            <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text3)', fontSize: '13px' }}>
+                                Companies cannot apply to jobs.
+                            </div>
                         ) : (
                             <Link href="/account" className="apply-btn-full">Log In to Apply</Link>
                         )}
-                        <button className="save-btn-full">🔖 Save Job</button>
 
+                        <button className="save-btn-full">🔖 Save Job</button>
                         <hr className="apply-divider" />
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div className="apply-stat-row">
-                                <span className="apply-stat-label">Deadline</span>
-                                <span className="apply-stat-value">{daysLeft(job.expires_at)}</span>
-                            </div>
-                            <div className="apply-stat-row">
-                                <span className="apply-stat-label">Applicants</span>
-                                <span className="apply-stat-value">{job.applications_count}</span>
-                            </div>
-                            <div className="apply-stat-row">
-                                <span className="apply-stat-label">Work Mode</span>
-                                <span className="apply-stat-value">{job.work_mode}</span>
-                            </div>
-                            <div className="apply-stat-row">
-                                <span className="apply-stat-label">Experience</span>
-                                <span className="apply-stat-value">{job.experience_range || job.experience_level || '—'}</span>
-                            </div>
+                            <div className="apply-stat-row"><span className="apply-stat-label">Deadline</span><span className="apply-stat-value">{daysLeft(job.expires_at)}</span></div>
+                            <div className="apply-stat-row"><span className="apply-stat-label">Applicants</span><span className="apply-stat-value">{job.applications_count}</span></div>
+                            <div className="apply-stat-row"><span className="apply-stat-label">Work Mode</span><span className="apply-stat-value">{job.work_mode}</span></div>
+                            <div className="apply-stat-row"><span className="apply-stat-label">Experience</span><span className="apply-stat-value">{job.experience_range || job.experience_level || '—'}</span></div>
                         </div>
 
-                        <div className="apply-match">
-                            🎯 Candidates with relevant skills are a strong match for this role!
-                        </div>
+                        {!hasApplied && canApply && (
+                            <div className="apply-match">🎯 Candidates with relevant skills are a strong match!</div>
+                        )}
 
                         <hr className="apply-divider" />
-
                         <div className="apply-share-title">Share This Job</div>
                         <div className="apply-share-btns">
                             <button className="apply-share-btn" onClick={() => navigator.clipboard.writeText(window.location.href)}>🔗</button>
@@ -218,9 +186,52 @@ export default function JobShow() {
                         </div>
                     </div>
                 </div>
-
                 <FullFooter />
             </div>
         </MainLayout>
+    );
+}
+
+function ApplyForm({ jobId, canApply }) {
+    const form = useForm({ cover_letter: '' });
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        form.post(`/jobs/${jobId}/apply`, {
+            preserveScroll: true,
+            onSuccess: () => form.reset(),
+        });
+    }
+
+    if (!canApply) {
+        return (
+            <div style={{ background: 'var(--champagne-soft)', border: '1px solid var(--champagne-border)', color: 'var(--champagne)', padding: '12px', borderRadius: 'var(--r)', textAlign: 'center', fontSize: '13px', marginBottom: '10px' }}>
+                ⚠️ Monthly application limit reached (5/5)
+            </div>
+        );
+    }
+
+    return (
+        <form onSubmit={handleSubmit} style={{ marginBottom: '10px' }}>
+            <textarea
+                style={{
+                    width: '100%', minHeight: '80px', resize: 'vertical',
+                    background: 'var(--bg2)', border: '1px solid var(--border2)',
+                    color: 'var(--text)', borderRadius: 'var(--r)',
+                    padding: '10px 12px', fontSize: '13px', lineHeight: '1.6',
+                    outline: 'none', fontFamily: "'Geist', system-ui, sans-serif",
+                    boxSizing: 'border-box', marginBottom: '10px',
+                }}
+                placeholder="Write a short cover letter (optional)..."
+                value={form.data.cover_letter}
+                onChange={e => form.setData('cover_letter', e.target.value)}
+            />
+            {form.errors.cover_letter && (
+                <div style={{ color: 'var(--coral)', fontSize: '12px', marginBottom: '8px' }}>{form.errors.cover_letter}</div>
+            )}
+            <LoadingButton type="submit" loading={form.processing} className="apply-btn-full">
+                {form.processing ? 'Submitting...' : 'Apply Now'}
+            </LoadingButton>
+        </form>
     );
 }

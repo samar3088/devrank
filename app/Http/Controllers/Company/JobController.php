@@ -84,53 +84,58 @@ class JobController extends Controller
     /**
      * Show edit job form
      */
-    public function edit(Request $request, JobListing $job)
+    public function edit(JobListing $job)
     {
         // Ensure company owns this job
-        if (!$job->isOwnedBy($request->user())) {
+        if ($job->user_id !== Auth::id()) {
             abort(403);
         }
-
-        $job->load('tags:id,name,slug');
+    
         $tags = $this->jobService->getApprovedTags();
-
+    
+        // Load the job's existing tags so Edit.jsx can pre-select them
+        $job->load('tags:id,name,slug');
+    
+        // Also load applications_count and views_count for the info sidebar
+        $job->loadCount('applications');
+    
         return Inertia::render('Company/Jobs/Edit', [
-            'job' => $job,
+            'job'  => $job,
             'tags' => $tags,
         ]);
     }
-
-    /**
-     * Update job
-     */
+    
+    // Also verify your update() method does a tag sync. It should look like this:
+    
     public function update(Request $request, JobListing $job)
     {
-        if (!$job->isOwnedBy($request->user())) {
+        if ($job->user_id !== Auth::id()) {
             abort(403);
         }
-
+        
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'min:50'],
-            'requirements' => ['nullable', 'string'],
-            'benefits' => ['nullable', 'string'],
-            'job_type' => ['required', 'in:full-time,part-time,contract,freelance,internship'],
-            'work_mode' => ['required', 'in:remote,onsite,hybrid'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'experience_level' => ['nullable', 'in:junior,mid,senior,lead,principal'],
-            'experience_range' => ['nullable', 'string', 'max:50'],
-            'salary_min' => ['nullable', 'integer', 'min:0'],
-            'salary_max' => ['nullable', 'integer', 'min:0', 'gte:salary_min'],
-            'salary_currency' => ['nullable', 'string', 'max:3'],
-            'salary_period' => ['nullable', 'in:yearly,monthly,hourly'],
-            'tags' => ['nullable', 'array', 'max:10'],
-            'tags.*' => ['integer', 'exists:tags,id'],
+            'title'            => ['required', 'string', 'max:255'],
+            'description'      => ['required', 'string', 'min:30'],
+            'requirements'     => ['required', 'string', 'min:10'],
+            'benefits'         => ['nullable', 'string'],
+            'job_type'         => ['required', 'in:full-time,part-time,contract,freelance,internship'],
+            'work_mode'        => ['required', 'in:onsite,remote,hybrid'],
+            'location'         => ['nullable', 'string', 'max:255'],
+            'experience_level' => ['nullable', 'string', 'max:100'],
+            'experience_range' => ['nullable', 'string', 'max:100'],
+            'salary_min'       => ['nullable', 'numeric', 'min:0'],
+            'salary_max'       => ['nullable', 'numeric', 'min:0'],
+            'salary_currency'  => ['nullable', 'string', 'size:3'],
+            'salary_period'    => ['nullable', 'in:yearly,monthly'],
+            'status'           => ['required', 'in:active,paused,closed'],
+            'tags'             => ['nullable', 'array', 'max:10'],
+            'tags.*'           => ['integer', 'exists:tags,id'],
         ]);
-
+        
         $this->jobService->updateJob($job, $validated);
-
+        
         return redirect()->route('company.jobs.index')
-            ->with('success', 'Job updated successfully!');
+            ->with('success', 'Job updated successfully.');
     }
 
     /**

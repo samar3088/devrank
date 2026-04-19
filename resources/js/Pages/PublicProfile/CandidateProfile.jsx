@@ -2,19 +2,23 @@ import '../../../css/pages/public-profile.css';
 import '../../../css/pages/forum.css';
 import '../../../css/pages/home.css';
 import '../../../css/pages/dashboard-company.css';
-import { Head, Link, usePage } from '@inertiajs/react';
+import '../../../css/pages/interests.css';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import LoadingButton from '@/Components/LoadingButton';
 
 export default function CandidateProfile() {
-    const { user, topics_count, replies_count, likes_received, recent_answers } = usePage().props;
+    const { user, topics_count, replies_count, likes_received, recent_answers, interestStatus, auth } = usePage().props;
     const [activeTab, setActiveTab] = useState('ranking');
 
     function getInitials(name) {
         if (!name) return '?';
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
+
+    const isCompany = auth?.user?.roles?.some(r => r.name === 'company');
 
     return (
         <MainLayout>
@@ -30,17 +34,23 @@ export default function CandidateProfile() {
                                     {user.open_to_work && <span className="open-to-work">Open to Work</span>}
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    {/* Name + Subtitle */}
-                                    <h2 style={{ marginTop: 0, marginBottom: '4px', fontSize: 'clamp(1.8rem, 3.5vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15 }}>{user.name}</h2>
+                                    {/* Name + Buttons row */}
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                                        <h2 style={{ marginTop: 0, marginBottom: 0, fontSize: 'clamp(1.8rem, 3.5vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+                                            {user.name}
+                                        </h2>
+                                        {/* Only show interest button to company users, not to the candidate themselves */}
+                                        {isCompany && auth.user.id !== user.id && (
+                                            <SendInterestButton candidateId={user.id} existingStatus={interestStatus} />
+                                        )}
+                                    </div>
+
+                                    {/* Subtitle */}
                                     <div style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '12px' }}>
                                         {user.headline || 'Developer'} · {user.location || 'India'}
                                     </div>
-                                    {/* Buttons */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                                        <Link href="/account" className="profile-btn-primary">Send Outreach</Link>
-                                        <button className="profile-btn-outline">Request Full Profile</button>
-                                    </div>
-                                    {/* Row 2: Badges */}
+
+                                    {/* Badges */}
                                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                                         <div className="human-score">
                                             <div className="hs-bar"><div className="hs-fill" style={{ width: `${user.human_score || 0}%` }}></div></div>
@@ -50,7 +60,8 @@ export default function CandidateProfile() {
                                         {user.github_url && <span className="badge badge-green">GitHub Verified</span>}
                                         <span className="badge badge-amber">AWS Certified</span>
                                     </div>
-                                    {/* Row 3: Bio */}
+
+                                    {/* Bio */}
                                     <p style={{ fontSize: '14px', color: 'var(--text2)', lineHeight: '1.7', margin: 0 }}>
                                         {user.bio || 'Passionate developer contributing to the DevRank community. Currently building rank through forum contributions and skill verification.'}
                                     </p>
@@ -98,42 +109,22 @@ export default function CandidateProfile() {
                                         <div className="pillar-row"><span className="pillar-label">Demand Signals</span><div className="pillar-bar"><div className="pillar-fill" style={{ width: '68%' }}></div></div><span className="pillar-score">530</span></div>
                                     </div>
                                 </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
-                                    <div className="stat-card"><div className="stat-label">Forum Answers</div><div className="stat-value" style={{ fontSize: '1.5rem' }}>{replies_count}</div><div className="stat-change">{likes_received} liked</div></div>
-                                    <div className="stat-card"><div className="stat-label">Quizzes Passed</div><div className="stat-value" style={{ fontSize: '1.5rem' }}>8</div><div className="stat-change">6 with distinction</div></div>
-                                    <div className="stat-card"><div className="stat-label">Companies Outreached</div><div className="stat-value" style={{ fontSize: '1.5rem' }}>12</div><div className="stat-change">Demand signal</div></div>
-                                </div>
-
-                                <div className="dash-card">
-                                    <h4 style={{ marginBottom: '14px' }}>Verified Skill Badges</h4>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                        <div className="badge badge-cyan" style={{ padding: '8px 14px', fontSize: '13px' }}>⚛️ React — Distinction</div>
-                                        <div className="badge badge-cyan" style={{ padding: '8px 14px', fontSize: '13px' }}>📘 TypeScript — Passed</div>
-                                        <div className="badge badge-cyan" style={{ padding: '8px 14px', fontSize: '13px' }}>🧪 Testing — Passed</div>
-                                        <div className="badge badge-muted" style={{ padding: '8px 14px', fontSize: '13px' }}>🏗️ System Design — Not taken</div>
-                                    </div>
-                                </div>
                             </div>
                         )}
 
-                        {/* Answers Tab */}
+                        {/* Forum Answers Tab */}
                         {activeTab === 'answers' && (
                             <div>
-                                {recent_answers?.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>No forum answers yet.</div>
+                                {!recent_answers || recent_answers.length === 0 ? (
+                                    <div className="dash-card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
+                                        No forum answers yet.
+                                    </div>
                                 ) : (
                                     recent_answers.map(answer => (
-                                        <div key={answer.id} className="answer-preview">
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                <Link href={`/forum/${answer.topic_slug}`} className="answer-preview-title">{answer.topic_title}</Link>
-                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                    {answer.is_accepted && <span className="badge badge-green">Accepted</span>}
-                                                    <span style={{ color: 'var(--cyan)', fontSize: '13px' }}>+{answer.likes_count} ❤️</span>
-                                                </div>
-                                            </div>
-                                            <p className="answer-preview-body">{answer.body_preview}</p>
-                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                        <div key={answer.id} className="dash-card" style={{ marginBottom: '12px' }}>
+                                            <div style={{ fontWeight: 600, marginBottom: '6px' }}>{answer.topic?.title}</div>
+                                            <div style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '10px' }} dangerouslySetInnerHTML={{ __html: answer.body?.slice(0, 200) + '...' }} />
+                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                                 {answer.tags?.map(tag => (
                                                     <span key={tag.id} className="tag">{tag.name}</span>
                                                 ))}
@@ -196,8 +187,19 @@ export default function CandidateProfile() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 <a href={user.github_url || '#'} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>🐙 GitHub {user.github_url ? '(verified)' : ''}</a>
                                 <a href={user.linkedin_url || '#'} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>💼 LinkedIn {user.linkedin_url ? '(linked)' : ''}</a>
-                                <div style={{ padding: '8px 14px', fontSize: '13px', color: 'var(--text3)' }}>📧 Email — unlocked after outreach accepted</div>
-                                <div style={{ padding: '8px 14px', fontSize: '13px', color: 'var(--text3)' }}>📄 Resume — unlocked after outreach accepted</div>
+                                {interestStatus === 'accepted' ? (
+                                    <>
+                                        <a href={`mailto:${user.email}`} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>📧 {user.email}</a>
+                                        {user.resume_url && (
+                                            <a href={user.resume_url} target="_blank" className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>📄 Download Resume</a>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div style={{ padding: '8px 14px', fontSize: '13px', color: 'var(--text3)' }}>📧 Email — unlocked after interest accepted</div>
+                                        <div style={{ padding: '8px 14px', fontSize: '13px', color: 'var(--text3)' }}>📄 Resume — unlocked after interest accepted</div>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -220,6 +222,84 @@ export default function CandidateProfile() {
     );
 }
 
+/* ── Send Interest Button + Modal ──────────────────────────── */
+function SendInterestButton({ candidateId, existingStatus }) {
+    const [open, setOpen] = useState(false);
+
+    const { data, setData, post, processing, errors, reset } = useForm({ message: '' });
+
+    function submit(e) {
+        e.preventDefault();
+        post(`/interests/send/${candidateId}`, {
+            onSuccess: () => {
+                reset();
+                setOpen(false);
+            },
+            preserveScroll: true,
+        });
+    }
+
+    // Already sent — show status pill only
+    if (existingStatus) {
+        const labels = {
+            pending:  '⏳ Interest Sent',
+            accepted: '✅ Connected',
+            declined: '✗ Declined',
+        };
+        return (
+            <span className={`interest-status ${existingStatus}`} style={{ padding: '8px 16px', fontSize: '13px', alignSelf: 'flex-start' }}>
+                {labels[existingStatus]}
+            </span>
+        );
+    }
+
+    return (
+        <>
+            <button className="profile-btn-primary" style={{ alignSelf: 'flex-start' }} onClick={() => setOpen(true)}>
+                Send Interest
+            </button>
+
+            {open && (
+                <div className="interest-modal-overlay" onClick={() => setOpen(false)}>
+                    <div className="interest-modal" onClick={e => e.stopPropagation()}>
+                        <h3 style={{ marginBottom: '6px' }}>Send Interest Request</h3>
+                        <p className="modal-sub">
+                            Introduce yourself and explain why you're interested. The candidate will review
+                            your company profile before accepting.
+                        </p>
+
+                        <form onSubmit={submit}>
+                            <div className="form-group">
+                                <label className="form-label">Your Message *</label>
+                                <textarea
+                                    className={`form-input${errors.message ? ' is-error' : ''}`}
+                                    rows={5}
+                                    maxLength={500}
+                                    placeholder="Hi! We came across your profile on DevRank and were impressed by your contributions in..."
+                                    value={data.message}
+                                    onChange={e => setData('message', e.target.value)}
+                                />
+                                <div className="char-count">{data.message.length} / 500</div>
+                                {errors.message && <div className="form-error">{errors.message}</div>}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                                <LoadingButton type="submit" className="btn btn-primary" loading={processing}>
+                                    Send Request
+                                </LoadingButton>
+                                <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+/* ── Cert Item ─────────────────────────────────────────────── */
 function CertItem({ icon, name, issuer, status }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>

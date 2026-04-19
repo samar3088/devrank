@@ -5,8 +5,10 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForumController;
+use App\Http\Controllers\InterestController;
 use App\Http\Controllers\JobBoardController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\PublicProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -49,8 +51,8 @@ Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 
 // Public profiles
-Route::get('/candidate/{id}', [\App\Http\Controllers\PublicProfileController::class, 'candidateProfile'])->name('profile.candidate');
-Route::get('/company/{id}', [\App\Http\Controllers\PublicProfileController::class, 'companyProfile'])->name('profile.company');
+Route::get('/candidate/{id}', [PublicProfileController::class, 'candidateProfile'])->name('profile.candidate');
+Route::get('/company/{id}', [PublicProfileController::class, 'companyProfile'])->name('profile.company');
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
@@ -72,6 +74,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/forum/{topic}/reply', [ForumController::class, 'storeReply'])->name('forum.reply');
     Route::post('/forum/reply/{reply}/like', [ForumController::class, 'toggleLike'])->name('forum.like');
 
+    // Job apply (candidates only)
+    Route::post('/jobs/{job}/apply', [JobBoardController::class, 'apply'])->name('jobs.apply');
+
+    // Interest Flow — Candidate
+    Route::middleware('role:candidate')->group(function () {
+        Route::get('/interests', [InterestController::class, 'candidateIndex'])->name('interests.candidate');
+        Route::post('/interests/{interestRequest}/respond', [InterestController::class, 'respond'])->name('interests.respond');
+    });
+
     // Company routes
     Route::middleware('role:company')->prefix('company')->name('company.')->group(function () {
         Route::get('/jobs', [\App\Http\Controllers\Company\JobController::class, 'index'])->name('jobs.index');
@@ -84,5 +95,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile', [\App\Http\Controllers\Company\CompanyProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [\App\Http\Controllers\Company\CompanyProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/logo', [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
+
+        // Interest Flow — Company
+        Route::get('/interests', [InterestController::class, 'companyIndex'])->name('interests.index');
     });
+
+    // Interest send — company only, outside prefix so URL stays /interests/send/{candidate}
+    Route::post('/interests/send/{candidate}', [InterestController::class, 'send'])
+        ->middleware('role:company')
+        ->name('interests.send');
 });

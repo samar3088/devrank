@@ -79,32 +79,35 @@ class JobService
     }
 
     /**
-     * Update a job listing
+     * Update an existing job listing (company edits their job).
      */
-    public function updateJob(JobListing $job, array $data): JobListing
+    public function updateJob(JobListing $job, array $validated): JobListing
     {
         $job->update([
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'requirements' => $data['requirements'] ?? null,
-            'benefits' => $data['benefits'] ?? null,
-            'job_type' => $data['job_type'],
-            'work_mode' => $data['work_mode'],
-            'location' => $data['location'] ?? null,
-            'experience_level' => $data['experience_level'] ?? null,
-            'experience_range' => $data['experience_range'] ?? null,
-            'salary_min' => $data['salary_min'] ?? null,
-            'salary_max' => $data['salary_max'] ?? null,
-            'salary_currency' => $data['salary_currency'] ?? 'INR',
-            'salary_period' => $data['salary_period'] ?? 'yearly',
+            'title'            => $validated['title'],
+            'description'      => $validated['description'],
+            'requirements'     => $validated['requirements'],
+            'benefits'         => $validated['benefits'] ?? null,
+            'job_type'         => $validated['job_type'],
+            'work_mode'        => $validated['work_mode'],
+            'location'         => $validated['location'] ?? null,
+            'experience_level' => $validated['experience_level'] ?? null,
+            'experience_range' => $validated['experience_range'] ?? null,
+            'salary_min'       => $validated['salary_min'] ?? null,
+            'salary_max'       => $validated['salary_max'] ?? null,
+            'salary_currency'  => $validated['salary_currency'] ?? 'INR',
+            'salary_period'    => $validated['salary_period'] ?? 'yearly',
+            'status'           => $validated['status'],
         ]);
-
-        if (isset($data['tags'])) {
-            $tagIds = array_slice($data['tags'], 0, 10);
-            $job->tags()->sync($tagIds);
+    
+        // Sync tags (replaces existing tags entirely)
+        if (isset($validated['tags'])) {
+            $job->tags()->sync($validated['tags']);
+        } else {
+            $job->tags()->detach();
         }
-
-        return $job->fresh('tags');
+    
+        return $job->fresh();
     }
 
     /**
@@ -184,4 +187,57 @@ class JobService
         ->where('status', 'active')
         ->firstOrFail();
     }
+
+    /**
+     * Apply to a job
+     */
+    public function applyToJob($user, int $jobId, array $data): array
+    {
+        $job = \App\Models\JobListing::where('id', $jobId)
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->firstOrFail();
+
+        // Check monthly limit
+        if (!$user->canApplyToJob()) {
+            return ['success' => false, 'message' => 'You have reached your monthly application limit (5).'];
+        }
+
+        // Check duplicate
+        $exists = \App\Models\JobApplication::where('jobs_listing_id', $jobId)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($exists) {
+            return ['success' => false, 'message' => 'You have already applied to this job.'];
+        }
+
+        // Create application
+        $application = \App\Models\JobApplication::create([
+            'jobs_listing_id' => $jobId,
+            'user_id' => $user->id,
+            'cover_letter' => $data['cover_letter'] ?? null,
+            'resume_path' => $data['resume_path'] ?? null,
+            'status' => 'applied',
+        ]);
+
+        // Increment monthly counter
+        $user->increment('monthly_job_applications');
+
+        // Update job application count
+        $job->increment('applications_count');
+
+        return ['success' => true, 'message' => 'Application submitted successfully!', 'application' => $application];
+    }
+
+    /**
+     * Check if user has applied to a job
+     */
+    public function hasApplied(int $userId, int $jobId): bool
+    {
+        return \App\Models\JobApplication::where('jobs_listing_id', $jobId)
+            ->where('user_id', $userId)
+            ->exists();
+    }
+
 }
