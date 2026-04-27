@@ -32,22 +32,34 @@ class QuizController extends Controller
  
     public function show(string $slug)
     {
-        $quiz           = $this->quizService->getQuizForAttempt($slug);
-        $existingAttempt = null;
- 
-        if (auth()->check()) {
-            $existingAttempt = $this->quizService->getExistingAttempt(
-                auth()->id(),
-                $quiz['id']
-            );
+        $quiz = Quiz::published()
+            ->with(['tag:id,name,slug', 'questions:id,quiz_id'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+    
+        // Build attempt summary for authenticated candidates
+        $summary = null;
+        if (auth()->check() && auth()->user()->hasRole('candidate')) {
+            $summary = $this->quizService->getAttemptsSummary(auth()->id(), $quiz);
         }
- 
+    
+        // Prepare quiz data for the view (without correct answers)
+        $quizData = [
+            'id'                 => $quiz->id,
+            'title'              => $quiz->title,
+            'description'        => $quiz->description,
+            'difficulty'         => $quiz->difficulty,
+            'time_limit_minutes' => $quiz->time_limit_minutes,
+            'passing_score'      => $quiz->passing_score,
+            'total_marks'        => $quiz->total_marks,
+            'max_attempts'       => $quiz->max_attempts,
+            'tag'                => $quiz->tag,
+            'questions'          => $quiz->questions,  // just IDs for count
+        ];
+    
         return Inertia::render('Quiz/Show', [
-            'quiz'            => $quiz,
-            'existingAttempt' => $existingAttempt ? [
-                'id'     => $existingAttempt->id,
-                'status' => $existingAttempt->status,
-            ] : null,
+            'quiz'    => $quizData,
+            'summary' => $summary,
         ]);
     }
 }

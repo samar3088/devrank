@@ -74,15 +74,16 @@ class QuizController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'               => ['required', 'string', 'max:255'],
-            'tag_id'              => ['nullable', 'exists:tags,id'],
-            'description'         => ['nullable', 'string'],
-            'difficulty'          => ['required', 'in:easy,medium,hard'],
-            'time_limit_minutes'  => ['required', 'integer', 'min:5', 'max:180'],
-            'passing_score'       => ['required', 'integer', 'min:1', 'max:100'],
-            'status'              => ['required', 'in:draft,published'],
+            'title'              => ['required', 'string', 'max:255'],
+            'tag_id'             => ['nullable', 'exists:tags,id'],
+            'description'        => ['nullable', 'string'],
+            'difficulty'         => ['required', 'in:easy,medium,hard'],
+            'time_limit_minutes' => ['required', 'integer', 'min:5', 'max:180'],
+            'passing_score'      => ['required', 'integer', 'min:1', 'max:100'],
+            'max_attempts'       => ['required', 'integer', 'min:0', 'max:5'],  // ← ADD
+            'status'             => ['required', 'in:draft,published'],
         ]);
- 
+         
         $quiz = Quiz::create([
             ...$validated,
             'slug'       => Str::slug($validated['title']),
@@ -110,9 +111,10 @@ class QuizController extends Controller
             'difficulty'         => ['required', 'in:easy,medium,hard'],
             'time_limit_minutes' => ['required', 'integer', 'min:5', 'max:180'],
             'passing_score'      => ['required', 'integer', 'min:1', 'max:100'],
+            'max_attempts'       => ['required', 'integer', 'min:0', 'max:5'],  // ← ADD
             'status'             => ['required', 'in:draft,published'],
         ]);
- 
+         
         $quiz->update($validated);
  
         return back()->with('success', 'Quiz updated.');

@@ -7,13 +7,14 @@ export default function AdminQuizCreate() {
     const isEdit = !!quiz;
 
     const form = useForm({
-        title:              quiz?.title              ?? '',
-        tag_id:             quiz?.tag_id             ?? '',
-        description:        quiz?.description        ?? '',
-        difficulty:         quiz?.difficulty         ?? 'medium',
-        time_limit_minutes: quiz?.time_limit_minutes ?? 30,
-        passing_score:      quiz?.passing_score      ?? 60,
-        status:             quiz?.status             ?? 'draft',
+        title:               quiz?.title               ?? '',
+        tag_id:              quiz?.tag_id              ?? '',
+        description:         quiz?.description         ?? '',
+        difficulty:          quiz?.difficulty          ?? 'medium',
+        time_limit_minutes:  quiz?.time_limit_minutes  ?? 30,
+        passing_score:       quiz?.passing_score       ?? 60,
+        max_attempts:        quiz?.max_attempts        ?? 1,
+        status:              quiz?.status              ?? 'draft',
     });
 
     function submit(e) {
@@ -29,6 +30,12 @@ export default function AdminQuizCreate() {
         }
     }
 
+    const attemptsLabel = form.data.max_attempts == 0
+        ? 'Unlimited'
+        : form.data.max_attempts == 1
+            ? '1 — one attempt only (default)'
+            : `${form.data.max_attempts} attempts`;
+
     return (
         <AdminLayout title={isEdit ? `Edit: ${quiz.title}` : 'Create Quiz'}>
             <div className="admin-page-header">
@@ -41,7 +48,6 @@ export default function AdminQuizCreate() {
                 </div>
             </div>
 
-            {/* Error summary */}
             {Object.keys(form.errors).length > 0 && (
                 <div style={{ background: 'var(--coral-soft)', border: '1px solid var(--coral-border)', borderRadius: 'var(--r)', padding: '12px 16px', marginBottom: 24, fontSize: 13, color: 'var(--coral)' }}>
                     Please fix the errors below.
@@ -53,9 +59,7 @@ export default function AdminQuizCreate() {
 
                     {/* Basic info */}
                     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 20 }}>
-                            Quiz Details
-                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 20 }}>Quiz Details</div>
 
                         <div className="form-group">
                             <label className="form-label">Title <span style={{ color: 'var(--coral)' }}>*</span></label>
@@ -71,19 +75,14 @@ export default function AdminQuizCreate() {
                             <select className="form-select" value={form.data.tag_id}
                                 onChange={e => form.setData('tag_id', e.target.value)}>
                                 <option value="">No specific tag</option>
-                                {tags.map(tag => (
-                                    <option key={tag.id} value={tag.id}>{tag.name}</option>
-                                ))}
+                                {tags.map(tag => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
                             </select>
-                            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>
-                                Links this quiz to a tag so candidates can find it from tag pages.
-                            </div>
                         </div>
 
                         <div className="form-group" style={{ marginBottom: 0 }}>
                             <label className="form-label">Description</label>
                             <textarea className="form-input" rows={3}
-                                placeholder="What will candidates learn or be tested on?"
+                                placeholder="What will candidates be tested on?"
                                 value={form.data.description}
                                 onChange={e => form.setData('description', e.target.value)} />
                         </div>
@@ -91,9 +90,7 @@ export default function AdminQuizCreate() {
 
                     {/* Settings */}
                     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 20 }}>
-                            Settings
-                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 20 }}>Settings</div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                             <div className="form-group">
@@ -115,7 +112,7 @@ export default function AdminQuizCreate() {
                                 </select>
                             </div>
 
-                            <div className="form-group" style={{ marginBottom: 0 }}>
+                            <div className="form-group">
                                 <label className="form-label">Time Limit (minutes) <span style={{ color: 'var(--coral)' }}>*</span></label>
                                 <input type="number" className={`form-input${form.errors.time_limit_minutes ? ' is-error' : ''}`}
                                     min={5} max={180}
@@ -124,21 +121,45 @@ export default function AdminQuizCreate() {
                                 {form.errors.time_limit_minutes && <div className="form-error">{form.errors.time_limit_minutes}</div>}
                             </div>
 
-                            <div className="form-group" style={{ marginBottom: 0 }}>
+                            <div className="form-group">
                                 <label className="form-label">Passing Score (%) <span style={{ color: 'var(--coral)' }}>*</span></label>
                                 <input type="number" className={`form-input${form.errors.passing_score ? ' is-error' : ''}`}
                                     min={1} max={100}
                                     value={form.data.passing_score}
                                     onChange={e => form.setData('passing_score', e.target.value)} />
                                 {form.errors.passing_score && <div className="form-error">{form.errors.passing_score}</div>}
-                                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>
-                                    Candidates scoring ≥ this % are marked as passed.
-                                </div>
+                            </div>
+                        </div>
+
+                        {/* Max attempts — full row with slider */}
+                        <div className="form-group" style={{ marginBottom: 0, marginTop: 4 }}>
+                            <label className="form-label">
+                                Max Attempts
+                                <span style={{ marginLeft: 8, fontWeight: 400, color: 'var(--cyan)' }}>{attemptsLabel}</span>
+                            </label>
+                            <input
+                                type="range"
+                                min={0} max={5} step={1}
+                                value={form.data.max_attempts}
+                                onChange={e => form.setData('max_attempts', parseInt(e.target.value))}
+                                style={{ width: '100%', accentColor: 'var(--violet-bright)', cursor: 'pointer', marginBottom: 4 }}
+                            />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text4)' }}>
+                                <span>∞ Unlimited</span>
+                                <span>1</span>
+                                <span>2</span>
+                                <span>3</span>
+                                <span>4</span>
+                                <span>5</span>
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 8, lineHeight: 1.5 }}>
+                                {form.data.max_attempts === 0 && '⚠ Unlimited — candidates can retake as many times as they want. Only score improvements earn additional rank points.'}
+                                {form.data.max_attempts === 1 && 'Default. One attempt per candidate. Strictest integrity.'}
+                                {form.data.max_attempts > 1 && `Candidates can attempt up to ${form.data.max_attempts} times. Only improvements over their previous best score earn additional rank points.`}
                             </div>
                         </div>
                     </div>
 
-                    {/* Actions */}
                     <div style={{ display: 'flex', gap: 12 }}>
                         <LoadingButton type="submit" className="btn btn-primary" loading={form.processing}>
                             {isEdit ? 'Save Changes' : 'Create Quiz'}
