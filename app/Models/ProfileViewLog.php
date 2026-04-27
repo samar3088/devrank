@@ -37,4 +37,7 @@ class ProfileViewLog extends Model
     {
         return $this->belongsTo(InterestRequest::class);
     }
+
+    public function viewer()  { return $this->belongsTo(User::class, 'viewer_id'); }
+    public function profile() { return $this->belongsTo(User::class, 'profile_id'); }
 }

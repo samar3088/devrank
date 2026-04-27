@@ -21,6 +21,7 @@
 @import './pages/company/jobs.css';
 @import './pages/company/job-form.css';
 @import './pages/company/profile.css';
+@import './layouts/admin.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

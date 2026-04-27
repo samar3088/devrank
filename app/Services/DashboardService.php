@@ -15,14 +15,10 @@ class DashboardService
      */
     public function getDashboardView(User $user): string
     {
-        if ($user->hasRole(['super_admin', 'sub_admin'])) {
-            return 'Dashboard/AdminDashboard';
-        }
-
         if ($user->hasRole('company')) {
             return 'Dashboard/CompanyDashboard';
         }
-
+    
         return 'Dashboard/CandidateDashboard';
     }
 

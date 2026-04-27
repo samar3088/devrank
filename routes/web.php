@@ -11,6 +11,7 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\QuizAttemptController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -132,5 +133,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/profile/logo',   [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
 
         Route::get('/interests',       [InterestController::class, 'companyIndex'])->name('interests.index');
+    });
+
+    Route::middleware('role:super_admin|sub_admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard',                          [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/users',                              [AdminController::class, 'users'])->name('users');
+        Route::post('/users/{user}/toggle',               [AdminController::class, 'toggleUser'])->name('users.toggle');
+        Route::get('/companies',                          [AdminController::class, 'companies'])->name('companies');
+        Route::post('/companies/{company}/toggle',        [AdminController::class, 'toggleCompany'])->name('companies.toggle');
+        Route::get('/jobs',                               [AdminController::class, 'jobs'])->name('jobs');
+        Route::post('/jobs/{job}/featured',               [AdminController::class, 'toggleJobFeatured'])->name('jobs.featured');
+        Route::post('/jobs/{job}/status',                 [AdminController::class, 'updateJobStatus'])->name('jobs.status');
+        Route::get('/topics',                             [AdminController::class, 'topics'])->name('topics');
+        Route::get('/moderation',                         [AdminController::class, 'moderation'])->name('moderation');
+        Route::post('/moderation/{reply}',                [AdminController::class, 'moderateReply'])->name('moderation.action');
+        Route::get('/tags',                               [AdminController::class, 'tags'])->name('tags');
+        Route::post('/tags/{tag}/approve',                [AdminController::class, 'approveTag'])->name('tags.approve');
+        Route::post('/tags/{tag}/reject',                 [AdminController::class, 'rejectTag'])->name('tags.reject');
+        Route::get('/profile-logs',                       [AdminController::class, 'profileLogs'])->name('profile-logs');
     });
 });

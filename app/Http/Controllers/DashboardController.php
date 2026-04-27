@@ -15,15 +15,18 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $view = $this->dashboardService->getDashboardView($user);
-
-        // Get role-specific stats
+    
+        // Admin redirect — handled here, not in the service
+        if ($user->hasRole(['super_admin', 'sub_admin'])) {
+            return redirect()->route('admin.dashboard');
+        }
+    
+        $view  = $this->dashboardService->getDashboardView($user);
         $stats = match (true) {
-            $user->hasRole(['super_admin', 'sub_admin']) => $this->dashboardService->getAdminStats(),
             $user->hasRole('company') => $this->dashboardService->getCompanyStats($user),
-            default => $this->dashboardService->getCandidateStats($user),
+            default                   => $this->dashboardService->getCandidateStats($user),
         };
-
+    
         return Inertia::render($view, [
             'stats' => $stats,
         ]);
