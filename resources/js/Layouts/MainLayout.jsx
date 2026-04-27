@@ -5,13 +5,14 @@ import PageLoader from '@/Components/PageLoader';
 
 export default function MainLayout({ children }) {
     const { auth } = usePage().props;
-    const user = auth?.user;
+    const user  = auth?.user;
     const roles = user?.roles || [];
+
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    const isAdmin = roles.includes('super_admin') || roles.includes('sub_admin');
-    const isCompany = roles.includes('company');
+    const isAdmin     = roles.includes('super_admin') || roles.includes('sub_admin');
+    const isCompany   = roles.includes('company');
     const isCandidate = roles.includes('candidate');
 
     function getInitials(name) {
@@ -20,12 +21,11 @@ export default function MainLayout({ children }) {
     }
 
     function getAvatarBorderColor() {
-        if (isAdmin) return 'var(--coral)';
+        if (isAdmin)   return 'var(--coral)';
         if (isCompany) return 'var(--champagne)';
         return 'var(--cyan)';
     }
 
-    // Close dropdown on outside click
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -36,29 +36,32 @@ export default function MainLayout({ children }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Nav links based on role
     function getNavLinks() {
-        if (isAdmin) return []; // Admin has no top nav links
+        if (isAdmin) return []; // Admin uses sidebar
 
-        const links = [
-            { href: '/forum', label: 'Forum' },
-            { href: '/leaderboard', label: 'Leaderboard' },
-            { href: '/jobs', label: 'Jobs' },
-            { href: '/interviews', label: 'Interviews' },
-        ];
-
-        // Company doesn't see Quizzes
-        if (!isCompany) {
-            links.push({ href: '/quizzes', label: 'Quizzes' });
+        if (isCompany) {
+            return [
+                { href: '/forum',       label: 'Forum' },
+                { href: '/leaderboard', label: 'Leaderboard' },
+                { href: '/jobs',        label: 'Jobs' },
+                { href: '/interviews',  label: 'Interviews' },
+            ];
         }
 
-        return links;
+        // Candidate + guest
+        return [
+            { href: '/forum',       label: 'Forum' },
+            { href: '/leaderboard', label: 'Leaderboard' },
+            { href: '/jobs',        label: 'Jobs' },
+            { href: '/quiz',        label: 'Quizzes' },
+            { href: '/interviews',  label: 'Interviews' },
+        ];
     }
 
     function isActive(href) {
-        const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-        if (href === '/') return currentPath === '/';
-        return currentPath.startsWith(href);
+        const p = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (href === '/') return p === '/';
+        return p.startsWith(href);
     }
 
     function handleLogout(e) {
@@ -73,6 +76,7 @@ export default function MainLayout({ children }) {
             <PageLoader />
             <nav className="navbar">
                 <div className="navbar-inner">
+
                     {/* Logo */}
                     <Link href="/" className="nav-logo">
                         <span className="nav-logo-mark">DR</span>
@@ -96,76 +100,74 @@ export default function MainLayout({ children }) {
                     <div className="nav-actions">
                         {user ? (
                             <>
-                                {/* Admin Mode Badge */}
                                 {isAdmin && (
                                     <span className="nav-admin-badge">🔴 Admin Mode</span>
                                 )}
-
-                                {/* Company Name (for company users) */}
                                 {isCompany && user.company_name && (
                                     <span className="nav-company-name">{user.company_name}</span>
                                 )}
 
-                                {/* Avatar */}
                                 <div style={{ position: 'relative' }} ref={dropdownRef}>
                                     <div
                                         className="nav-user-pill"
-                                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                                        onClick={() => setDropdownOpen(o => !o)}
                                     >
-                                        <div
-                                            className="nav-avatar"
-                                            style={{ borderColor: getAvatarBorderColor() }}
-                                        >
+                                        <div className="nav-avatar" style={{ borderColor: getAvatarBorderColor() }}>
                                             {getInitials(isCompany ? user.company_name : user.name)}
                                         </div>
                                         <span className="nav-user-name">
-                                            {isAdmin ? (roles.includes('super_admin') ? 'Super Admin' : 'Sub Admin') : user.name}
+                                            {isAdmin
+                                                ? (roles.includes('super_admin') ? 'Super Admin' : 'Sub Admin')
+                                                : user.name}
                                         </span>
                                     </div>
 
-                                    {/* Dropdown */}
                                     {dropdownOpen && (
                                         <div className="nav-dropdown">
-                                            <Link
-                                                href="/dashboard"
-                                                className="nav-dropdown-item"
-                                                onClick={() => setDropdownOpen(false)}
-                                            >
+                                            <Link href="/dashboard" className="nav-dropdown-item"
+                                                onClick={() => setDropdownOpen(false)}>
                                                 📊 Dashboard
                                             </Link>
+
                                             {isCompany && (
-                                                <Link
-                                                    href="/company/profile"
-                                                    className="nav-dropdown-item"
-                                                    onClick={() => setDropdownOpen(false)}
-                                                >
+                                                <Link href="/company/profile" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
                                                     🏢 Company Profile
                                                 </Link>
                                             )}
+
+                                            {isCompany && (
+                                                <Link href="/company/interests" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
+                                                    💌 Sent Interests
+                                                </Link>
+                                            )}
+
                                             {isCandidate && (
-                                                <Link
-                                                    href="/profile"
-                                                    className="nav-dropdown-item"
-                                                    onClick={() => setDropdownOpen(false)}
-                                                >
+                                                <Link href={`/candidate/${user.id}`} className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
                                                     👤 My Profile
                                                 </Link>
                                             )}
+
+                                            {isCandidate && (
+                                                <Link href="/interests" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
+                                                    💌 Interests
+                                                </Link>
+                                            )}
+
                                             {isAdmin && (
-                                                <Link
-                                                    href="/admin"
-                                                    className="nav-dropdown-item"
-                                                    onClick={() => setDropdownOpen(false)}
-                                                >
+                                                <Link href="/admin/dashboard" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
                                                     ⚙️ Admin Panel
                                                 </Link>
                                             )}
+
                                             <hr className="nav-dropdown-divider" />
-                                            <button
-                                                onClick={handleLogout}
-                                                className="nav-dropdown-item"
-                                                style={{ color: 'var(--coral)' }}
-                                            >
+
+                                            <button onClick={handleLogout} className="nav-dropdown-item"
+                                                style={{ color: 'var(--coral)' }}>
                                                 🚪 Log Out
                                             </button>
                                         </div>

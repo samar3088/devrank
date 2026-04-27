@@ -22,6 +22,7 @@
 @import './pages/company/job-form.css';
 @import './pages/company/profile.css';
 @import './layouts/admin.css';
+@import './pages/interview-board.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

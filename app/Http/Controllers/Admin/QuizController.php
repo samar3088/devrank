@@ -24,13 +24,43 @@ class QuizController extends Controller
     // ── Quiz CRUD ────────────────────────────────────────────────
     public function index()
     {
-        $quizzes = Quiz::with(['tag:id,name', 'creator:id,name'])
+        $quizzes = Quiz::with(['tag:id,name,slug', 'creator:id,name'])
             ->withCount(['questions', 'attempts'])
             ->latest()
             ->paginate(20);
- 
+    
+        // Attach per-quiz pass_rate and ai_flag_count
+        $quizzes->getCollection()->transform(function ($quiz) {
+            $completed = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+                ->where('status', 'completed');
+    
+            $total     = $completed->count();
+            $passed    = $completed->where('passed', true)->count();
+            $aiFlagged = $completed->where('ai_flagged', true)->count();
+    
+            $quiz->pass_rate      = $total > 0 ? round(($passed / $total) * 100) : 0;
+            $quiz->ai_flag_count  = $aiFlagged;
+    
+            return $quiz;
+        });
+    
+        // Global stats across all quizzes
+        $allAttempts  = \App\Models\QuizAttempt::where('status', 'completed');
+        $totalAttempts = $allAttempts->count();
+        $totalPassed   = $allAttempts->where('passed', true)->count();
+    
+        $stats = [
+            'total_attempts'   => $totalAttempts,
+            'total_passed'     => $totalPassed,
+            'total_ai_flagged' => $allAttempts->where('ai_flagged', true)->count(),
+            'avg_pass_rate'    => $totalAttempts > 0
+                ? round(($totalPassed / $totalAttempts) * 100)
+                : 0,
+        ];
+    
         return Inertia::render('Admin/Quiz/Index', [
             'quizzes' => $quizzes,
+            'stats'   => $stats,
         ]);
     }
  
@@ -165,16 +195,20 @@ class QuizController extends Controller
     // ── Attempts: review AI-flagged ──────────────────────────────
     public function attempts(Quiz $quiz)
     {
-        $attempts = QuizAttempt::with(['user:id,name,total_rank_score'])
-            ->where('quiz_id', $quiz->id)
-            ->where('status', 'completed')
-            ->latest('completed_at')
-            ->paginate(25);
- 
+        $attempts = QuizAttempt::with([
+            'user:id,name,total_rank_score',
+            'answers.question:id,body,type,language,marks',
+            'answers.selectedOption:id,option_text',
+        ])
+        ->where('quiz_id', $quiz->id)
+        ->where('status', 'completed')
+        ->latest('completed_at')
+        ->paginate(25);
+    
         $stats = $this->quizService->getQuizStats($quiz);
- 
+    
         return Inertia::render('Admin/Quiz/Attempts', [
-            'quiz'     => $quiz,
+            'quiz'     => $quiz->load('tag:id,name'),
             'attempts' => $attempts,
             'stats'    => $stats,
         ]);
