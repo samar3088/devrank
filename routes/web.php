@@ -133,6 +133,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ── Admin general (super_admin + sub_admin) ───────────────────
     Route::middleware('role:super_admin|sub_admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard',                          [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/analytics',                          [AdminController::class, 'analytics'])->name('analytics');
         Route::get('/users',                              [AdminController::class, 'users'])->name('users');
         Route::post('/users/{user}/toggle',               [AdminController::class, 'toggleUser'])->name('users.toggle');
         Route::get('/companies',                          [AdminController::class, 'companies'])->name('companies');

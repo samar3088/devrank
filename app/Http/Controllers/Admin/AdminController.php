@@ -129,4 +129,11 @@ class AdminController extends Controller
             'filters' => $request->only(['search']),
         ]);
     }
+
+    public function analytics()
+    {
+        return Inertia::render('Admin/Analytics', [
+            'data' => $this->adminService->getAnalyticsData(),
+        ]);
+    }
 }

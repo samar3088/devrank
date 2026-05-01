@@ -185,4 +185,97 @@ class AdminService
     {
         $job->update(['status' => $status]);
     }
+
+    public function getAnalyticsData(): array
+    {
+        // Last 8 weeks — new candidates per week
+        $candidatesPerWeek = \DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'candidate')
+            ->where('users.created_at', '>=', now()->subWeeks(8))
+            ->select(\DB::raw('YEARWEEK(users.created_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
+            ->groupBy('yw')
+            ->orderBy('yw')
+            ->pluck('count', 'yw');
+    
+        // Last 8 weeks — new companies per week
+        $companiesPerWeek = \DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'company')
+            ->where('users.created_at', '>=', now()->subWeeks(8))
+            ->select(\DB::raw('YEARWEEK(users.created_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
+            ->groupBy('yw')
+            ->orderBy('yw')
+            ->pluck('count', 'yw');
+    
+        // Last 8 weeks — job applications per week
+        $applicationsPerWeek = \DB::table('job_applications')
+            ->where('created_at', '>=', now()->subWeeks(8))
+            ->select(\DB::raw('YEARWEEK(created_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
+            ->groupBy('yw')
+            ->orderBy('yw')
+            ->pluck('count', 'yw');
+    
+        // Last 8 weeks — forum topics per week
+        $topicsPerWeek = \DB::table('topics')
+            ->whereNull('deleted_at')
+            ->where('created_at', '>=', now()->subWeeks(8))
+            ->select(\DB::raw('YEARWEEK(created_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
+            ->groupBy('yw')
+            ->orderBy('yw')
+            ->pluck('count', 'yw');
+    
+        // Last 8 weeks — quiz attempts per week
+        $quizAttemptsPerWeek = \DB::table('quiz_attempts')
+            ->where('status', 'completed')
+            ->where('completed_at', '>=', now()->subWeeks(8))
+            ->select(\DB::raw('YEARWEEK(completed_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
+            ->groupBy('yw')
+            ->orderBy('yw')
+            ->pluck('count', 'yw');
+    
+        // Top 5 tags by topic count
+        $topTags = \DB::table('tags')
+            ->leftJoin('topic_tag', 'tags.id', '=', 'topic_tag.tag_id')
+            ->where('tags.status', 'approved')
+            ->select('tags.name', \DB::raw('COUNT(topic_tag.topic_id) as topic_count'))
+            ->groupBy('tags.id', 'tags.name')
+            ->orderByDesc('topic_count')
+            ->limit(5)
+            ->get();
+    
+        // Build 8-week labels
+        $weeks = [];
+        for ($i = 7; $i >= 0; $i--) {
+            $date  = now()->subWeeks($i);
+            $yw    = $date->format('oW');
+            $weeks[] = [
+                'label'        => $date->format('M d'),
+                'yw'           => $yw,
+                'candidates'   => $candidatesPerWeek[$yw]   ?? 0,
+                'companies'    => $companiesPerWeek[$yw]    ?? 0,
+                'applications' => $applicationsPerWeek[$yw] ?? 0,
+                'topics'       => $topicsPerWeek[$yw]       ?? 0,
+                'quiz_attempts'=> $quizAttemptsPerWeek[$yw] ?? 0,
+            ];
+        }
+    
+        return [
+            'weeks'    => $weeks,
+            'top_tags' => $topTags,
+            // Summary totals
+            'totals'   => [
+                'candidates'   => \App\Models\User::role('candidate')->count(),
+                'companies'    => \App\Models\User::role('company')->count(),
+                'jobs_active'  => \App\Models\JobListing::where('status', 'active')->count(),
+                'applications' => \App\Models\JobApplication::count(),
+                'topics'       => \App\Models\Topic::count(),
+                'replies'      => \App\Models\Reply::count(),
+                'quiz_attempts'=> \App\Models\QuizAttempt::where('status', 'completed')->count(),
+                'ai_flagged'   => \App\Models\QuizAttempt::where('status', 'completed')->where('ai_flagged', true)->count(),
+            ],
+        ];
+    }
 }
