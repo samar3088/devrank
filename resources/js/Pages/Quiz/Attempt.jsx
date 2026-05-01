@@ -1,30 +1,30 @@
 import { Head, usePage } from '@inertiajs/react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Editor from '@monaco-editor/react';
 import MainLayout from '@/Layouts/MainLayout';
 
 export default function QuizAttempt() {
-    const { quiz, attemptId } = usePage().props;
-    const questions            = quiz.questions;
-    const totalSeconds         = quiz.time_limit_minutes * 60;
+    const { quiz, attemptId, attemptNumber } = usePage().props;
+    const questions   = quiz.questions;
+    const totalSeconds = quiz.time_limit_minutes * 60;
 
     const [currentIndex, setCurrentIndex]   = useState(0);
-    const [answers, setAnswers]             = useState({});         // { questionId: { selectedOptionId, answerText } }
+    const [answers, setAnswers]             = useState({});
     const [timeLeft, setTimeLeft]           = useState(totalSeconds);
     const [submitting, setSubmitting]       = useState(false);
-    const [submitted, setSubmitted]         = useState({});         // { questionId: true }
+    const [submitted, setSubmitted]         = useState({});
     const [aiFlagWarning, setAiFlagWarning] = useState(false);
 
-    // Per-question tracking
-    const pasteCount        = useRef({});    // { questionId: count }
-    const questionStartTime = useRef({});    // { questionId: timestamp }
+    const pasteCount        = useRef({});
+    const questionStartTime = useRef({});
     const startedAt         = useRef(Date.now());
 
     const currentQ = questions[currentIndex];
 
-    // ── Timer ───────────────────────────────────────────────────
+    // ── Timer ────────────────────────────────────────────────────
     useEffect(() => {
         if (timeLeft <= 0) { handleSubmitAll(); return; }
-        const t = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+        const t = setTimeout(() => setTimeLeft(s => s - 1), 1000);
         return () => clearTimeout(t);
     }, [timeLeft]);
 
@@ -33,13 +33,13 @@ export default function QuizAttempt() {
         questionStartTime.current[currentQ.id] = Date.now();
     }, [currentIndex]);
 
-    // ── Answer handlers ──────────────────────────────────────────
+    // ── Handlers ─────────────────────────────────────────────────
     function setOptionAnswer(questionId, optionId) {
         setAnswers(prev => ({ ...prev, [questionId]: { selectedOptionId: optionId, answerText: null } }));
     }
 
     function setCodeAnswer(questionId, code) {
-        setAnswers(prev => ({ ...prev, [questionId]: { selectedOptionId: null, answerText: code } }));
+        setAnswers(prev => ({ ...prev, [questionId]: { selectedOptionId: null, answerText: code ?? '' } }));
     }
 
     function handlePaste(questionId) {
@@ -48,13 +48,13 @@ export default function QuizAttempt() {
         setTimeout(() => setAiFlagWarning(false), 4000);
     }
 
-    // ── Submit single question ───────────────────────────────────
+    // ── Submit single question answer ─────────────────────────────
     async function submitCurrentQuestion() {
-        if (submitted[currentQ.id]) return true; // already submitted
+        if (submitted[currentQ.id]) return true;
 
-        const answer          = answers[currentQ.id] || {};
-        const timeSpent       = Math.round((Date.now() - (questionStartTime.current[currentQ.id] || Date.now())) / 1000);
-        const pasteCountForQ  = pasteCount.current[currentQ.id] || 0;
+        const answer         = answers[currentQ.id] || {};
+        const timeSpent      = Math.round((Date.now() - (questionStartTime.current[currentQ.id] || Date.now())) / 1000);
+        const pasteCountForQ = pasteCount.current[currentQ.id] || 0;
 
         setSubmitting(true);
         try {
@@ -64,12 +64,11 @@ export default function QuizAttempt() {
                 body: JSON.stringify({
                     question_id:        currentQ.id,
                     selected_option_id: answer.selectedOptionId ?? null,
-                    answer_text:        answer.answerText ?? null,
+                    answer_text:        answer.answerText        ?? null,
                     paste_count:        pasteCountForQ,
                     time_spent_seconds: timeSpent,
                 }),
             });
-
             const data = await res.json();
             setSubmitted(prev => ({ ...prev, [currentQ.id]: true }));
             if (data.ai_flagged) setAiFlagWarning(true);
@@ -83,54 +82,38 @@ export default function QuizAttempt() {
 
     async function goNext() {
         await submitCurrentQuestion();
-        if (currentIndex < questions.length - 1) {
-            setCurrentIndex(i => i + 1);
-        }
+        if (currentIndex < questions.length - 1) setCurrentIndex(i => i + 1);
     }
 
     async function goPrev() {
         setCurrentIndex(i => i - 1);
     }
 
-    // ── Submit all + complete ────────────────────────────────────
     async function handleSubmitAll() {
         if (submitting) return;
-
-        // Submit current question first if not yet submitted
         await submitCurrentQuestion();
-
         setSubmitting(true);
+
         const timeTaken = Math.round((Date.now() - startedAt.current) / 1000);
+        const form      = document.createElement('form');
+        form.method     = 'POST';
+        form.action     = `/quiz/attempt/${attemptId}/complete`;
 
-        // Use form POST to complete (Inertia redirect to result page)
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/quiz/attempt/${attemptId}/complete`;
-
-        const csrfInput    = document.createElement('input');
-        csrfInput.type     = 'hidden';
-        csrfInput.name     = '_token';
-        csrfInput.value    = getCsrf();
-
-        const timeInput    = document.createElement('input');
-        timeInput.type     = 'hidden';
-        timeInput.name     = 'time_taken_seconds';
-        timeInput.value    = timeTaken;
-
-        form.appendChild(csrfInput);
-        form.appendChild(timeInput);
+        const csrf      = Object.assign(document.createElement('input'), { type: 'hidden', name: '_token',             value: getCsrf() });
+        const time      = Object.assign(document.createElement('input'), { type: 'hidden', name: 'time_taken_seconds', value: timeTaken });
+        form.appendChild(csrf);
+        form.appendChild(time);
         document.body.appendChild(form);
         form.submit();
     }
 
     function formatTime(s) {
         const m = Math.floor(s / 60);
-        const sec = s % 60;
-        return `${m}:${sec.toString().padStart(2, '0')}`;
+        return `${m}:${(s % 60).toString().padStart(2, '0')}`;
     }
 
     function getCsrf() {
-        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        return document.querySelector('meta[name="csrf-token"]')?.content || '';
     }
 
     const answeredCount   = Object.keys(answers).length;
@@ -142,10 +125,15 @@ export default function QuizAttempt() {
             <Head title={`${quiz.title} — Quiz`} />
             <div className="quiz-attempt-wrapper">
 
-                {/* ── Top Bar ─────────────────────────────────────── */}
+                {/* ── Top bar ─────────────────────────────────── */}
                 <div className="quiz-topbar">
                     <div className="quiz-topbar-left">
                         <span className="quiz-title-sm">{quiz.title}</span>
+                        {attemptNumber > 1 && (
+                            <span style={{ fontSize: 11, color: 'var(--champagne)', background: 'var(--champagne-soft)', border: '1px solid var(--champagne-border)', padding: '2px 8px', borderRadius: 999 }}>
+                                Attempt {attemptNumber}
+                            </span>
+                        )}
                         <span style={{ color: 'var(--text3)', fontSize: 13 }}>
                             Q {currentIndex + 1} / {questions.length}
                         </span>
@@ -172,17 +160,21 @@ export default function QuizAttempt() {
                     </div>
                 )}
 
-                {/* ── Question Area ────────────────────────────────── */}
+                {/* ── Question area ────────────────────────────── */}
                 <div className="quiz-content">
                     <div className="quiz-question-card">
 
-                        {/* Question header */}
+                        {/* Header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)' }}>
                                 Question {currentIndex + 1}
                             </span>
-                            <span className={`quiz-type-badge ${currentQ.type}`}>{currentQ.type === 'mcq' ? '📋 Multiple Choice' : '💻 Coding'}</span>
-                            <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--champagne)', fontWeight: 600 }}>{currentQ.marks} marks</span>
+                            <span className={`quiz-type-badge ${currentQ.type}`}>
+                                {currentQ.type === 'mcq' ? '📋 Multiple Choice' : '💻 Coding'}
+                            </span>
+                            <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--champagne)', fontWeight: 600 }}>
+                                {currentQ.marks} marks
+                            </span>
                         </div>
 
                         {/* Question body */}
@@ -190,7 +182,7 @@ export default function QuizAttempt() {
                             {currentQ.body}
                         </div>
 
-                        {/* MCQ Options */}
+                        {/* ── MCQ options ──────────────────────── */}
                         {currentQ.type === 'mcq' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                 {currentQ.options.map((opt, i) => {
@@ -200,20 +192,14 @@ export default function QuizAttempt() {
                                             key={opt.id}
                                             onClick={() => setOptionAnswer(currentQ.id, opt.id)}
                                             style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 14,
-                                                padding: '14px 18px',
-                                                borderRadius: 'var(--r)',
+                                                display: 'flex', alignItems: 'center', gap: 14,
+                                                padding: '14px 18px', borderRadius: 'var(--r)',
                                                 border: selected ? '2px solid var(--violet-bright)' : '1px solid var(--border)',
                                                 background: selected ? 'color-mix(in srgb, var(--violet) 12%, transparent)' : 'var(--surface)',
-                                                cursor: 'pointer',
-                                                textAlign: 'left',
-                                                transition: 'all 0.15s',
-                                                width: '100%',
+                                                cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s', width: '100%',
                                             }}
                                         >
-                                            <span style={{ width: 28, height: 28, borderRadius: '50%', background: selected ? 'var(--violet-bright)' : 'var(--surface2)', color: selected ? '#fff' : 'var(--text3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                                            <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, background: selected ? 'var(--violet-bright)' : 'var(--surface2)', color: selected ? '#fff' : 'var(--text3)' }}>
                                                 {String.fromCharCode(65 + i)}
                                             </span>
                                             <span style={{ fontSize: 14, color: selected ? 'var(--text)' : 'var(--text2)', lineHeight: 1.5 }}>
@@ -225,7 +211,7 @@ export default function QuizAttempt() {
                             </div>
                         )}
 
-                        {/* Coding — Monaco-like textarea (real Monaco via npm in Phase 2) */}
+                        {/* ── Coding — Monaco Editor ───────────── */}
                         {currentQ.type === 'coding' && (
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -234,17 +220,31 @@ export default function QuizAttempt() {
                                     </span>
                                     <span style={{ fontSize: 11, color: 'var(--coral)' }}>⚠ Do not paste from external sources</span>
                                 </div>
-                                <textarea
-                                    className="quiz-code-editor"
-                                    placeholder={currentQ.starter_code || `// Write your ${currentQ.language || 'JavaScript'} solution here...`}
-                                    value={answers[currentQ.id]?.answerText || ''}
-                                    onChange={e => setCodeAnswer(currentQ.id, e.target.value)}
+
+                                {/* Monaco Editor */}
+                                <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r)', overflow: 'hidden' }}
                                     onPaste={() => handlePaste(currentQ.id)}
-                                    rows={16}
-                                    spellCheck={false}
-                                    autoComplete="off"
-                                    autoCorrect="off"
-                                />
+                                >
+                                    <Editor
+                                        height="320px"
+                                        language={currentQ.language || 'javascript'}
+                                        theme="vs-dark"
+                                        value={answers[currentQ.id]?.answerText ?? (currentQ.starter_code || '')}
+                                        onChange={val => setCodeAnswer(currentQ.id, val)}
+                                        options={{
+                                            fontSize:            14,
+                                            fontFamily:          "'JetBrains Mono', 'Fira Code', monospace",
+                                            minimap:             { enabled: false },
+                                            scrollBeyondLastLine: false,
+                                            wordWrap:            'on',
+                                            lineNumbers:         'on',
+                                            tabSize:             2,
+                                            automaticLayout:     true,
+                                            padding:             { top: 12, bottom: 12 },
+                                        }}
+                                    />
+                                </div>
+
                                 <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 6 }}>
                                     {(answers[currentQ.id]?.answerText || '').length} characters
                                 </div>
@@ -252,16 +252,13 @@ export default function QuizAttempt() {
                         )}
                     </div>
 
-                    {/* ── Navigation ───────────────────────────────── */}
+                    {/* ── Navigation ───────────────────────────── */}
                     <div className="quiz-nav">
-                        <button
-                            className="btn btn-ghost"
-                            onClick={goPrev}
-                            disabled={currentIndex === 0 || submitting}
-                        >
+                        <button className="btn btn-ghost" onClick={goPrev} disabled={currentIndex === 0 || submitting}>
                             ← Previous
                         </button>
 
+                        {/* Question dots */}
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
                             {questions.map((q, i) => (
                                 <button
@@ -270,8 +267,14 @@ export default function QuizAttempt() {
                                     style={{
                                         width: 32, height: 32, borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
                                         border: i === currentIndex ? '2px solid var(--violet-bright)' : '1px solid var(--border)',
-                                        background: answers[q.id] ? 'color-mix(in srgb, var(--emerald) 20%, transparent)' : i === currentIndex ? 'color-mix(in srgb, var(--violet) 15%, transparent)' : 'var(--surface)',
-                                        color: answers[q.id] ? 'var(--emerald)' : i === currentIndex ? 'var(--violet-bright)' : 'var(--text3)',
+                                        background: answers[q.id]
+                                            ? 'color-mix(in srgb, var(--emerald) 20%, transparent)'
+                                            : i === currentIndex
+                                                ? 'color-mix(in srgb, var(--violet) 15%, transparent)'
+                                                : 'var(--surface)',
+                                        color: answers[q.id]
+                                            ? 'var(--emerald)'
+                                            : i === currentIndex ? 'var(--violet-bright)' : 'var(--text3)',
                                     }}
                                 >
                                     {i + 1}
