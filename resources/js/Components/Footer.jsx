@@ -18,7 +18,7 @@ export function FullFooter() {
                             <li><Link href="/forum">Forum</Link></li>
                             <li><Link href="/leaderboard">Leaderboard</Link></li>
                             <li><Link href="/jobs">Job Board</Link></li>
-                            <li><Link href="/quizzes">Skill Quizzes</Link></li>
+                            <li><Link href="/quiz">Skill Quizzes</Link></li>
                             <li><Link href="/interviews">Interview Board</Link></li>
                         </ul>
                     </div>

@@ -1,140 +1,230 @@
+import '../../../css/pages/forum.css';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 
-const DIFFICULTY_COLORS = {
-    easy:   { bg: 'color-mix(in srgb, var(--emerald) 12%, transparent)', color: 'var(--emerald)',   border: 'color-mix(in srgb, var(--emerald) 30%, transparent)' },
-    medium: { bg: 'color-mix(in srgb, var(--champagne) 12%, transparent)', color: 'var(--champagne)', border: 'color-mix(in srgb, var(--champagne) 30%, transparent)' },
-    hard:   { bg: 'color-mix(in srgb, var(--coral) 12%, transparent)',   color: 'var(--coral)',     border: 'color-mix(in srgb, var(--coral) 30%, transparent)' },
-};
+export default function ForumIndex() {
+    const { topics, categories, topContributors, trendingTags, filters, auth, flash } = usePage().props;
+    const [search, setSearch] = useState(filters?.search || '');
+    const user = auth?.user;
+    const isCompany = user?.roles?.includes('company');
 
-export default function QuizIndex() {
-    const { quizzes, filters, auth } = usePage().props;
-    const [difficulty, setDifficulty] = useState(filters.difficulty || '');
+    function handleSearch(e) {
+        e.preventDefault();
+        router.get('/forum', { search, category: filters?.category, filter: filters?.filter }, {
+            preserveState: true,
+            replace: true,
+        });
+    }
 
-    const isCandidate = auth?.user?.roles?.some(r => r.name === 'candidate');
+    function handleFilter(filter) {
+        router.get('/forum', { search: filters?.search, category: filters?.category, filter }, {
+            preserveState: true,
+            replace: true,
+        });
+    }
 
-    function applyDifficulty(val) {
-        setDifficulty(val);
-        router.get('/quiz', { ...filters, difficulty: val || undefined }, { preserveScroll: true });
+    function handleCategory(categoryId) {
+        router.get('/forum', { search: filters?.search, category: categoryId || '', filter: filters?.filter }, {
+            preserveState: true,
+            replace: true,
+        });
+    }
+
+    function getInitials(name) {
+        if (!name) return '?';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+
+    function timeAgo(date) {
+        if (!date) return '';
+        const now = new Date();
+        const d = new Date(date);
+        const diff = Math.floor((now - d) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+        return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     }
 
     return (
         <MainLayout>
-            <Head title="Skill Quizzes — DevRank" />
-            <div className="container" style={{ paddingTop: 36, paddingBottom: 80 }}>
-
+            <Head title="Developer Forum" />
+            <div className="forum-container">
                 {/* Header */}
-                <div style={{ marginBottom: 36 }}>
-                    <h1 style={{ marginBottom: 8 }}>Skill Quizzes</h1>
-                    <p style={{ color: 'var(--text3)', fontSize: 14, maxWidth: 560 }}>
-                        Prove your knowledge. Quizzes are AI-proctored, time-limited, and contribute directly to your DevRank score.
-                    </p>
+                <div className="forum-page-header">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                        <div>
+                            <h1>Developer Forum</h1>
+                            <p>Real questions. Verified human answers. Knowledge that builds your rank.</p>
+                        </div>
+                        {user && !isCompany && (
+                            <Link href="/forum/create" className="btn-sm btn-primary-sm" style={{ padding: '10px 20px', fontSize: '14px' }}>+ New Topic</Link>
+                        )}
+                    </div>
                 </div>
 
+                {/* Flash */}
+                {flash?.error && (
+                    <div style={{ background: 'var(--coral-soft)', border: '1px solid var(--coral-border)', color: 'var(--coral)', padding: '12px 18px', borderRadius: 'var(--r)', marginBottom: '16px', fontSize: '14px' }}>
+                        {flash.error}
+                    </div>
+                )}
+
                 {/* Filters */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
-                    {['', 'easy', 'medium', 'hard'].map(d => (
+                <div className="forum-filters">
+                    <form onSubmit={handleSearch}>
+                        <input
+                            type="text"
+                            className="forum-search-input"
+                            placeholder="🔍  Search topics…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </form>
+                    {['all', 'latest', 'hot', 'unanswered', 'solved'].map(f => (
                         <button
-                            key={d}
-                            onClick={() => applyDifficulty(d)}
-                            style={{
-                                padding: '6px 16px',
-                                borderRadius: 999,
-                                fontSize: 13,
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                border: difficulty === d ? '1px solid var(--violet-bright)' : '1px solid var(--border)',
-                                background: difficulty === d ? 'color-mix(in srgb, var(--violet) 15%, transparent)' : 'var(--surface)',
-                                color: difficulty === d ? 'var(--violet-bright)' : 'var(--text3)',
-                                transition: 'all 0.15s',
-                                textTransform: 'capitalize',
-                            }}
+                            key={f}
+                            className={`filter-btn ${(filters?.filter || 'all') === f ? 'active' : ''}`}
+                            onClick={() => handleFilter(f === 'all' ? '' : f)}
                         >
-                            {d || 'All Levels'}
+                            {f === 'all' ? 'All' : f === 'hot' ? 'Hot 🔥' : f.charAt(0).toUpperCase() + f.slice(1)}
                         </button>
                     ))}
                 </div>
 
-                {/* Grid */}
-                {quizzes.data.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--text3)' }}>
-                        <div style={{ fontSize: 40, marginBottom: 16 }}>🎯</div>
-                        <h3 style={{ color: 'var(--text2)', marginBottom: 8 }}>No quizzes published yet.</h3>
-                        <p style={{ fontSize: 14 }}>Check back soon — new quizzes are added regularly.</p>
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-                        {quizzes.data.map(quiz => (
-                            <QuizCard key={quiz.id} quiz={quiz} isCandidate={isCandidate} />
-                        ))}
-                    </div>
-                )}
-
-                {/* Pagination */}
-                {quizzes.last_page > 1 && (
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 40 }}>
-                        {quizzes.links.map((link, i) => link.url ? (
-                            <Link key={i} href={link.url} className={`btn btn-sm ${link.active ? 'btn-primary' : 'btn-ghost'}`}
-                                dangerouslySetInnerHTML={{ __html: link.label }} />
+                {/* Main Layout */}
+                <div className="forum-layout" style={{ marginTop: '24px' }}>
+                    {/* Topics List */}
+                    <div>
+                        {topics.data.length === 0 ? (
+                            <div className="forum-empty">
+                                <h3>No topics found</h3>
+                                <p>Try adjusting your search or filters, or be the first to start a discussion!</p>
+                            </div>
                         ) : (
-                            <span key={i} className="btn btn-sm btn-ghost" style={{ opacity: 0.4, cursor: 'default' }}
-                                dangerouslySetInnerHTML={{ __html: link.label }} />
-                        ))}
+                            topics.data.map(topic => (
+                                <div
+                                    key={topic.id}
+                                    className={`topic-card ${topic.is_pinned ? 'pinned' : ''} ${topic.is_hot ? 'hot' : ''} ${topic.accepted_reply_id ? 'solved' : ''}`}
+                                >
+                                    <div>
+                                        {/* Badges */}
+                                        {(topic.is_pinned || topic.is_hot || topic.accepted_reply_id) && (
+                                            <div className="topic-badges">
+                                                {topic.is_pinned && <span className="badge badge-amber">📌 Pinned</span>}
+                                                {topic.is_hot && <span className="badge badge-red">🔥 Hot</span>}
+                                                {topic.accepted_reply_id && <span className="badge badge-green">✅ Solved</span>}
+                                            </div>
+                                        )}
+                                        <Link href={`/forum/${topic.slug}`} className="topic-title">
+                                            {topic.title}
+                                        </Link>
+                                        <div className="topic-meta">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div className="avatar-sm">{getInitials(topic.user?.name)}</div>
+                                                <strong style={{ color: 'var(--text2)' }}>{topic.user?.name}</strong>
+                                            </div>
+                                            <span>{timeAgo(topic.created_at)}</span>
+                                            {topic.tags && topic.tags.length > 0 && (
+                                                <div className="tags">
+                                                    {topic.tags.map(tag => (
+                                                        <span key={tag.id} className="tag">{tag.name}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="topic-stats">
+                                        <div className="topic-stat">💬 <strong>{topic.replies_count}</strong></div>
+                                        {topic.likes_count > 0 && (
+                                            <div className="topic-stat">❤️ <strong>{topic.likes_count}</strong></div>
+                                        )}
+                                        <div className="topic-stat">👁 <strong>{topic.views_count?.toLocaleString() || 0}</strong></div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+
+                        {/* Pagination */}
+                        {topics.last_page > 1 && (
+                            <div className="forum-pagination">
+                                {topics.links.map((link, i) => (
+                                    <Link
+                                        key={i}
+                                        href={link.url || '#'}
+                                        className={`page-btn ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
-                )}
+
+                    {/* Sidebar */}
+                    <div style={{ position: 'sticky', top: 'calc(var(--nav-h) + 24px)' }}>
+                        {/* Categories */}
+                        <div className="sidebar-card">
+                            <h4>Categories</h4>
+                            <div className="category-list">
+                                <div
+                                    className={`category-item ${!filters?.category ? 'active' : ''}`}
+                                    onClick={() => handleCategory('')}
+                                >
+                                    All Topics
+                                    <span className="category-count">
+                                        {categories.reduce((sum, c) => sum + (c.topics_count || 0), 0)}
+                                    </span>
+                                </div>
+                                {categories.map(cat => (
+                                    <div
+                                        key={cat.id}
+                                        className={`category-item ${parseInt(filters?.category) === cat.id ? 'active' : ''}`}
+                                        onClick={() => handleCategory(cat.id)}
+                                    >
+                                        {cat.icon} {cat.name}
+                                        <span className="category-count">{cat.topics_count || 0}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Top Contributors */}
+                        <div className="sidebar-card">
+                            <h4>Top Contributors</h4>
+                            <div>
+                                {topContributors.map((user, i) => (
+                                    <div key={user.id} className="top-contributor">
+                                        <span className="contributor-rank">#{i + 1}</span>
+                                        <div className="avatar-sm">{getInitials(user.name)}</div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '13px', fontWeight: 600 }}>{user.name}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                                                {user.total_rank_score?.toLocaleString()} pts
+                                            </div>
+                                        </div>
+                                        {i < 2 && <span className="badge badge-cyan">Expert</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Trending Tags */}
+                        <div className="sidebar-card">
+                            <h4>Trending Tags</h4>
+                            <div className="tags">
+                                {trendingTags.map(tag => (
+                                    <span key={tag.id} className="tag">{tag.name}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <FullFooter />
             </div>
         </MainLayout>
     );
-}
-
-function QuizCard({ quiz, isCandidate }) {
-    const dc = DIFFICULTY_COLORS[quiz.difficulty] || DIFFICULTY_COLORS.medium;
-
-    return (
-        <div className="quiz-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontSize: 32 }}>{quiz.tag?.name ? tagEmoji(quiz.tag.name) : '🎯'}</div>
-                <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', background: dc.bg, color: dc.color, border: `1px solid ${dc.border}` }}>
-                    {quiz.difficulty}
-                </span>
-            </div>
-
-            <h3 style={{ fontSize: '1.05rem', marginBottom: 6, lineHeight: 1.3 }}>{quiz.title}</h3>
-
-            {quiz.tag && (
-                <div style={{ fontSize: 12, color: 'var(--cyan)', marginBottom: 8 }}>#{quiz.tag.name}</div>
-            )}
-
-            <p style={{ fontSize: 13, color: 'var(--text3)', lineHeight: 1.6, marginBottom: 16, minHeight: 40 }}>
-                {quiz.description?.slice(0, 100) || 'Test your knowledge and earn rank points.'}
-                {quiz.description?.length > 100 ? '…' : ''}
-            </p>
-
-            {/* Meta */}
-            <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--text3)', marginBottom: 18 }}>
-                <span>📝 {quiz.questions_count} questions</span>
-                <span>⏱ {quiz.time_limit_minutes} min</span>
-                <span>🏆 {quiz.total_marks} marks</span>
-            </div>
-
-            {isCandidate ? (
-                <Link href={`/quiz/${quiz.slug}`} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
-                    Start Quiz →
-                </Link>
-            ) : (
-                <Link href="/account" className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
-                    Login to Attempt
-                </Link>
-            )}
-        </div>
-    );
-}
-
-function tagEmoji(tagName) {
-    const map = { React: '⚛️', JavaScript: '🟨', TypeScript: '🔷', Laravel: '🐘', PHP: '🐘', Python: '🐍', Node: '🟢', 'Node.js': '🟢', 'System Design': '🏗️', AWS: '☁️', Docker: '🐳', SQL: '🗄️', MySQL: '🗄️' };
-    return Object.entries(map).find(([k]) => tagName.includes(k))?.[1] || '🎯';
 }

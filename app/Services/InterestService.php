@@ -120,9 +120,10 @@ class InterestService
         // Log profile view when accepted
         if ($action === 'accepted') {
             \App\Models\ProfileViewLog::create([
-                'viewer_id'  => $request->company_id,
-                'profile_id' => $candidate->id,
-                'source'     => 'interest_accept',
+                'company_id'          => $request->company_id,
+                'candidate_id'        => $candidate->id,
+                'interest_request_id' => $request->id,
+                'view_type'           => 'interest_accept',
             ]);
         }
 

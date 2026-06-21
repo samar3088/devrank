@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\JobListing;
 use App\Services\JobService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class JobController extends Controller
@@ -104,9 +105,10 @@ class JobController extends Controller
             'tags' => $tags,
         ]);
     }
-    
-    // Also verify your update() method does a tag sync. It should look like this:
-    
+
+    /**
+     * Update job (with tag sync)
+     */
     public function update(Request $request, JobListing $job)
     {
         if ($job->user_id !== Auth::id()) {

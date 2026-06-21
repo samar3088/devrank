@@ -24,7 +24,7 @@ export default function CandidateProfile() {
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
 
-    const isCompany   = auth?.user?.roles?.some(r => r.name === 'company');
+    const isCompany   = auth?.user?.roles?.includes('company');
     const tagRankings = tag_rankings ?? [];
 
     // Derive pillar bar widths from real data

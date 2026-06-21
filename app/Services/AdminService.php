@@ -135,11 +135,11 @@ class AdminService
     public function getProfileLogs(Request $request)
     {
         return ProfileViewLog::with([
-            'viewer:id,name,company_name',
-            'profile:id,name',
+            'company:id,name,company_name',
+            'candidate:id,name',
         ])
         ->when($request->search, fn ($q) =>
-            $q->whereHas('viewer', fn ($v) =>
+            $q->whereHas('company', fn ($v) =>
                 $v->where('company_name', 'like', "%{$request->search}%")
             )
         )

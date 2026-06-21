@@ -8,7 +8,7 @@ export default function ForumTopic() {
     const { topic, replies, auth, flash } = usePage().props;
     const user       = auth?.user;
     const isGuest    = !user;
-    const isCandidate = user?.roles?.some(r => r.name === 'candidate');
+    const isCandidate = user?.roles?.includes('candidate');
     const isTopicOwner = user?.id === topic.user_id;
 
     const replyForm = useForm({ body: '' });

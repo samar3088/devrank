@@ -61,7 +61,7 @@ class DashboardService
         $interestsAccepted = $user->receivedInterests()->where('status', 'accepted')->count();
 
         // Profile views (how many companies viewed)
-        $profileViews = \App\Models\ProfileViewLog::where('profile_id', $user->id)->count();
+        $profileViews = \App\Models\ProfileViewLog::where('candidate_id', $user->id)->count();
 
         // Weekly rank score history (last 8 weeks)
         // We track score snapshots — if no snapshot table, we estimate from attempts

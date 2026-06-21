@@ -13,7 +13,7 @@ export default function QuizIndex() {
     const { quizzes, filters, auth } = usePage().props;
     const [difficulty, setDifficulty] = useState(filters.difficulty || '');
 
-    const isCandidate = auth?.user?.roles?.some(r => r.name === 'candidate');
+    const isCandidate = auth?.user?.roles?.includes('candidate');
 
     function applyDifficulty(val) {
         setDifficulty(val);

@@ -25,20 +25,20 @@ export default function AdminProfileLogs() {
                         ) : logs.data.map(log => (
                             <tr key={log.id}>
                                 <td>
-                                    <a href={`/company/${log.viewer_id}`} target="_blank"
+                                    <a href={`/company/${log.company_id}`} target="_blank"
                                         style={{ fontWeight: 600, color: 'var(--text)', textDecoration: 'none' }}>
-                                        {log.viewer?.company_name || log.viewer?.name}
+                                        {log.company?.company_name || log.company?.name}
                                     </a>
                                 </td>
                                 <td>
-                                    <a href={`/candidate/${log.profile_id}`} target="_blank"
+                                    <a href={`/candidate/${log.candidate_id}`} target="_blank"
                                         style={{ color: 'var(--cyan)', textDecoration: 'none' }}>
-                                        {log.profile?.name}
+                                        {log.candidate?.name}
                                     </a>
                                 </td>
                                 <td>
-                                    <span className={`admin-badge admin-badge-${log.source === 'interest_accept' ? 'violet' : 'gray'}`}>
-                                        {log.source || 'direct'}
+                                    <span className={`admin-badge admin-badge-${log.view_type === 'interest_accept' ? 'violet' : 'gray'}`}>
+                                        {log.view_type || 'direct'}
                                     </span>
                                 </td>
                                 <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>

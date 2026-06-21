@@ -15,7 +15,7 @@ export default function QuizShow() {
     const [starting, setStarting] = useState(false);
 
     const user        = auth?.user;
-    const isCandidate = user?.roles?.some(r => r.name === 'candidate');
+    const isCandidate = user?.roles?.includes('candidate');
     const dc          = DIFFICULTY_COLORS[quiz.difficulty] || DIFFICULTY_COLORS.medium;
 
     const maxLabel = quiz.max_attempts === 0

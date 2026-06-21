@@ -13,7 +13,7 @@ const OUTCOME_CONFIG = {
 export default function InterviewBoardIndex() {
     const { reviews, topCompanies, filters, auth } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
-    const isCandidate = auth?.user?.roles?.some(r => r.name === 'candidate');
+    const isCandidate = auth?.user?.roles?.includes('candidate');
 
     function applyFilter(key, val) {
         router.get('/interviews', { ...filters, [key]: val || undefined }, { preserveScroll: true });

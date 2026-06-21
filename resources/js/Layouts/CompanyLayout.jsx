@@ -20,16 +20,14 @@ export default function CompanyLayout({ children, fullWidthHeader }) {
     const navItems = [
         { section: 'Overview' },
         { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
-        { href: '/company/trust-score', icon: '⭐', label: 'Trust Score' },
 
         { section: 'Hiring' },
-        { href: '/company/applicants', icon: '👥', label: 'Applicants' },
         { href: '/company/jobs', icon: '💼', label: 'My Jobs' },
         { href: '/company/jobs/create', icon: '➕', label: 'Post New Job' },
 
         { section: 'Discovery' },
-        { href: '/company/outreach', icon: '📤', label: 'Outreach Sent' },
-        { href: '/company/browse-talent', icon: '🏆', label: 'Browse Talent' },
+        { href: '/company/interests', icon: '📤', label: 'Outreach Sent' },
+        { href: '/leaderboard', icon: '🏆', label: 'Browse Talent' },
 
         { section: 'Account' },
         { href: '/company/profile', icon: '🏢', label: 'Company Profile' },
@@ -82,9 +80,6 @@ export default function CompanyLayout({ children, fullWidthHeader }) {
                                     style={{ width: `${(postsUsed / monthlyJobPosts) * 100}%` }}
                                 ></div>
                             </div>
-                            <Link href="/company/upgrade" className="company-plan-upgrade-btn">
-                                Upgrade Plan
-                            </Link>
                         </div>
                     </div>
 
