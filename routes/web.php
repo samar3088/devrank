@@ -46,8 +46,8 @@ Route::get('/jobs/{slug}', [JobBoardController::class, 'show'])->name('jobs.show
 
 // ── Public leaderboard + profiles ────────────────────────────────
 Route::get('/leaderboard',    [LeaderboardController::class, 'index'])->name('leaderboard.index');
-Route::get('/candidate/{id}', [PublicProfileController::class, 'candidateProfile'])->name('profile.candidate');
-Route::get('/company/{id}',   [PublicProfileController::class, 'companyProfile'])->name('profile.company');
+Route::get('/candidate/{id}', [PublicProfileController::class, 'candidateProfile'])->whereNumber('id')->name('profile.candidate');
+Route::get('/company/{id}',   [PublicProfileController::class, 'companyProfile'])->whereNumber('id')->name('profile.company');
 
 // ── Public interview board ────────────────────────────────────────
 Route::get('/interviews', [InterviewController::class, 'index'])->name('interviews.index');

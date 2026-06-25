@@ -18,7 +18,7 @@ class PublicProfileService
                 'id', 'name', 'headline', 'location', 'bio',
                 'years_of_experience', 'open_to_work', 'total_rank_score',
                 'human_score', 'github_url', 'linkedin_url',
-                'resume_url', 'email', 'avatar',
+                'resume_path as resume_url', 'email', 'avatar',
             ])
             ->firstOrFail();
 

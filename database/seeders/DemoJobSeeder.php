@@ -23,12 +23,14 @@ class DemoJobSeeder extends Seeder
             $companyJobs = $jobTemplates[$company->company_name] ?? $jobTemplates['default'];
             $jobIndex = 0;
 
-            // 3 jobs per month from Oct 2025 to Apr 2026 = 21 jobs, take 20
+            // 3 jobs per month for the last 7 months (relative to today) = 21, take 20.
+            // Anchored to now() so recent postings stay active and older ones expire.
+            $base = Carbon::now()->startOfMonth();
             $months = [
-                Carbon::parse('2025-10-01'), Carbon::parse('2025-11-01'),
-                Carbon::parse('2025-12-01'), Carbon::parse('2026-01-01'),
-                Carbon::parse('2026-02-01'), Carbon::parse('2026-03-01'),
-                Carbon::parse('2026-04-01'),
+                $base->copy()->subMonths(6), $base->copy()->subMonths(5),
+                $base->copy()->subMonths(4), $base->copy()->subMonths(3),
+                $base->copy()->subMonths(2), $base->copy()->subMonths(1),
+                $base->copy(),
             ];
 
             foreach ($months as $month) {
