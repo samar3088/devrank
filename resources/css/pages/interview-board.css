@@ -6,6 +6,42 @@
 /* Most styles reuse existing design tokens.
    This file adds only interview-specific overrides. */
 
+/* ── Review card (matches design template) ──────────────────── */
+.interview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+}
+.interview-card:hover { border-color: var(--border2); }
+
+.interview-avatar {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* ── Outcome badges ─────────────────────────────────────────── */
+.outcome-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.outcome-selected { background: rgba(52,235,160,.12); color: var(--green); border: 1px solid rgba(52,235,160,.25); }
+.outcome-rejected { background: rgba(255,92,77,.1);  color: var(--red);   border: 1px solid rgba(255,92,77,.22); }
+.outcome-ghosted  { background: rgba(240,201,110,.1); color: var(--amber); border: 1px solid rgba(240,201,110,.22); }
+.outcome-pending  { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+
+/* ── Round meta pills ───────────────────────────────────────── */
+.round-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 11px; color: var(--text2);
+}
+
    .interview-round-card {
     background: var(--bg);
     border: 1px solid var(--border);

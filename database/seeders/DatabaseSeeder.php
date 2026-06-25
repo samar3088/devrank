@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             DemoForumSeeder::class,
             DemoInteractionSeeder::class,
             QuizSeeder::class,
+            DemoInterviewSeeder::class,
         ]);
     }
 }

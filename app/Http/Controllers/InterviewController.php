@@ -15,8 +15,15 @@ class InterviewController extends Controller
         return Inertia::render('InterviewBoard/Index', [
             'reviews'      => $this->interviewService->getReviews($request),
             'topCompanies' => $this->interviewService->getTopCompanies(),
-            'filters'      => $request->only(['search', 'outcome', 'company']),
+            'stats'        => $this->interviewService->getStats(),
+            'filters'      => $request->only(['search', 'outcome', 'company', 'difficulty', 'period']),
         ]);
+    }
+
+    public function report(InterviewReview $review)
+    {
+        $this->interviewService->reportReview($review);
+        return back()->with('success', 'Thank you — this review has been flagged for moderation.');
     }
  
     public function create()

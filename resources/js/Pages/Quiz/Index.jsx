@@ -26,10 +26,12 @@ export default function QuizIndex() {
             <div className="container" style={{ paddingTop: 36, paddingBottom: 80 }}>
 
                 {/* Header */}
-                <div style={{ marginBottom: 36 }}>
-                    <h1 style={{ marginBottom: 8 }}>Skill Quizzes</h1>
-                    <p style={{ color: 'var(--text3)', fontSize: 14, maxWidth: 560 }}>
-                        Prove your knowledge. Quizzes are AI-proctored, time-limited, and contribute directly to your DevRank score.
+                <div style={{ maxWidth: 640, marginBottom: 36 }}>
+                    <span className="eyebrow">Skill Verification</span>
+                    <h1 style={{ marginTop: 4, marginBottom: 16 }}>Prove What You Know</h1>
+                    <p style={{ color: 'var(--text3)', fontSize: 15 }}>
+                        Pass a quiz with ≥ 70% to earn a Verified Skill Badge on your profile and rank points in that tag.
+                        All answers AI-checked — only genuine human knowledge counts.
                     </p>
                 </div>
 

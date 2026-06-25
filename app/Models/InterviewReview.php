@@ -11,7 +11,7 @@ class InterviewReview extends Model
     protected $fillable = [
         'user_id', 'company_name', 'role_applied', 'interview_date',
         'rounds_count', 'rounds_detail', 'outcome',
-        'difficulty_rating', 'experience_rating', 'tips', 'status', 'likes_count',
+        'difficulty_rating', 'experience_rating', 'tips', 'status', 'likes_count', 'reports_count',
     ];
  
     protected function casts(): array

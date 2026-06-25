@@ -72,6 +72,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Report an interview review (any authenticated user)
+    Route::post('/interviews/{review}/report', [InterviewController::class, 'report'])->name('interviews.report');
+
     // ── Candidate-only ────────────────────────────────────────────
     Route::middleware('role:candidate')->group(function () {
         // Forum

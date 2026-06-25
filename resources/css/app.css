@@ -155,3 +155,34 @@ h3 { font-size: clamp(1.15rem, 2vw, 1.6rem); font-weight: 600; }
 h4 { font-size: 1.05rem; font-weight: 600; }
 h5 { font-size: 0.9rem; font-weight: 600; }
 p  { color: var(--text2); line-height: 1.75; }
+
+/* ── Centered page container (matches .forum-container / .jobs-container etc.) ── */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 28px;
+    padding-right: 28px;
+}
+
+/* ── Shared layout utilities ─────────────────────────────────── */
+.eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--violet-bright); margin-bottom: 14px;
+    background: var(--violet-soft); border: 1px solid var(--violet-border);
+    padding: 5px 12px; border-radius: 999px;
+}
+
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+.layout-sidebar-right {
+    display: grid; grid-template-columns: 1fr 300px;
+    gap: 32px; align-items: start;
+}
+
+@media (max-width: 900px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .layout-sidebar-right { grid-template-columns: 1fr; }
+}
