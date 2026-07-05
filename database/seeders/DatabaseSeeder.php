@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             DemoInteractionSeeder::class,
             QuizSeeder::class,
             DemoInterviewSeeder::class,
+            DemoScoreVariationSeeder::class,
         ]);
     }
 }

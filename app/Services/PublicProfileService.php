@@ -96,56 +96,6 @@ class PublicProfileService
      */
     public function getCandidateTagRankings(int $userId, int $limit = 6): array
     {
-        // Step 1: Candidate's likes per tag
-        $myTagScores = DB::table('replies')
-            ->join('topics',    'replies.topic_id',    '=', 'topics.id')
-            ->join('topic_tag', 'topics.id',           '=', 'topic_tag.topic_id')
-            ->join('tags',      'topic_tag.tag_id',    '=', 'tags.id')
-            ->where('replies.user_id', $userId)
-            ->where('replies.status', 'visible')
-            ->whereNull('replies.deleted_at')
-            ->whereNull('topics.deleted_at')
-            ->where('tags.status', 'approved')
-            ->select(
-                'tags.id   as tag_id',
-                'tags.name as tag_name',
-                'tags.slug as tag_slug',
-                DB::raw('SUM(replies.likes_count) as total_likes')
-            )
-            ->groupBy('tags.id', 'tags.name', 'tags.slug')
-            ->orderByDesc('total_likes')
-            ->limit($limit)
-            ->get();
-
-        if ($myTagScores->isEmpty()) {
-            return [];
-        }
-
-        // Step 2: For each tag, count candidates ranked above this user
-        return $myTagScores->map(function ($tag) use ($userId) {
-            $rank = DB::table('replies')
-                ->join('topics',    'replies.topic_id',  '=', 'topics.id')
-                ->join('topic_tag', 'topics.id',         '=', 'topic_tag.topic_id')
-                ->where('topic_tag.tag_id', $tag->tag_id)
-                ->where('replies.user_id',  '!=', $userId)
-                ->where('replies.status',   'visible')
-                ->whereNull('replies.deleted_at')
-                ->whereNull('topics.deleted_at')
-                ->select(
-                    'replies.user_id',
-                    DB::raw('SUM(replies.likes_count) as total_likes')
-                )
-                ->groupBy('replies.user_id')
-                ->having('total_likes', '>', (int) $tag->total_likes)
-                ->count() + 1;
-
-            return [
-                'tag_id'      => $tag->tag_id,
-                'tag_name'    => $tag->tag_name,
-                'tag_slug'    => $tag->tag_slug,
-                'total_likes' => (int) $tag->total_likes,
-                'rank'        => $rank,
-            ];
-        })->toArray();
+        return app(TagRankingService::class)->forCandidate($userId, $limit);
     }
 }
