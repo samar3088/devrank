@@ -43,7 +43,7 @@ class InterestService
             ->whereYear('created_at', now()->year)
             ->count();
 
-        $monthlyLimit = config('devrank.company_interest_limit', 10);
+        $monthlyLimit = config('devrank.limits.monthly_outreach', 10);
 
         return [
             'requests'      => $sent,
@@ -80,7 +80,7 @@ class InterestService
             ->whereYear('created_at', now()->year)
             ->count();
 
-        $limit = config('devrank.company_interest_limit', 10);
+        $limit = config('devrank.limits.monthly_outreach', 10);
 
         if ($sentThisMonth >= $limit) {
             return ['success' => false, 'message' => "Monthly interest limit ({$limit}) reached. Resets on the 1st of next month."];

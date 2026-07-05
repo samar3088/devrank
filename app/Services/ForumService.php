@@ -143,6 +143,24 @@ class ForumService
         $topic->delete();
     }
 
+    // ── Rank point helpers ───────────────────────────────────────
+    private function awardPoints(int $userId, int $points): void
+    {
+        if ($points !== 0) {
+            User::where('id', $userId)->increment('total_rank_score', $points);
+        }
+    }
+
+    private function deductPoints(int $userId, int $points): void
+    {
+        if ($points !== 0) {
+            // GREATEST guards against a negative total_rank_score
+            User::where('id', $userId)->update([
+                'total_rank_score' => \DB::raw('GREATEST(total_rank_score - ' . (int) $points . ', 0)'),
+            ]);
+        }
+    }
+
     // ── Create reply ─────────────────────────────────────────────
     public function createReply(User $user, int $topicId, array $data): Reply
     {
@@ -159,6 +177,9 @@ class ForumService
             'last_reply_at' => now(),
         ]);
 
+        // Award rank points for contributing an answer
+        $this->awardPoints($user->id, config('devrank.points.reply_posted', 5));
+
         return $reply;
     }
 
@@ -171,6 +192,12 @@ class ForumService
     // ── Delete reply (soft) ──────────────────────────────────────
     public function deleteReply(Reply $reply): void
     {
+        // Reverse the rank points this reply earned (posting + accepted answer)
+        $this->deductPoints($reply->user_id, config('devrank.points.reply_posted', 5));
+        if ($reply->is_accepted) {
+            $this->deductPoints($reply->user_id, config('devrank.points.answer_accepted', 50));
+        }
+
         $reply->delete();
 
         Topic::where('id', $reply->topic_id)->update([
@@ -181,14 +208,27 @@ class ForumService
     // ── Accept answer ─────────────────────────────────────────────
     public function acceptReply(Topic $topic, Reply $reply): void
     {
+        $points      = (int) config('devrank.points.answer_accepted', 50);
+        $wasAccepted = (bool) $reply->is_accepted;   // capture before any change
+
+        // Remove points from the currently-accepted answer's author (if any)
+        $prev = Reply::where('topic_id', $topic->id)->where('is_accepted', true)->first();
+        if ($prev) {
+            $this->deductPoints($prev->user_id, $points);
+        }
+
         // Un-accept any previously accepted reply on this topic
         Reply::where('topic_id', $topic->id)
             ->where('is_accepted', true)
             ->update(['is_accepted' => false]);
 
-        // Toggle: if same reply is accepted again, just unaccept
-        $newValue = !$reply->is_accepted;
+        // Toggle: if this reply was already accepted, leave it off; otherwise accept it
+        $newValue = ! $wasAccepted;
         $reply->update(['is_accepted' => $newValue]);
+
+        if ($newValue) {
+            $this->awardPoints($reply->user_id, $points);
+        }
     }
 
     // ── Toggle like ───────────────────────────────────────────────

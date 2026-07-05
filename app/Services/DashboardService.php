@@ -26,11 +26,13 @@ class DashboardService
     // ── Candidate stats ──────────────────────────────────────────
     public function getCandidateStats(User $user): array
     {
-        // Forum stats
-        $totalReplies     = $user->replies()->where('status', 'visible')->count();
+        // Forum stats — fetch replies once instead of 3 count/sum passes
+        $replies          = $user->replies()->get(['status', 'is_accepted', 'likes_count']);
+        $visibleReplies   = $replies->where('status', 'visible');
+        $totalReplies     = $visibleReplies->count();
         $totalTopics      = $user->topics()->count();
-        $totalLikes       = (int) $user->replies()->where('status', 'visible')->sum('likes_count');
-        $acceptedAnswers  = $user->replies()->where('is_accepted', true)->count();
+        $totalLikes       = (int) $visibleReplies->sum('likes_count');
+        $acceptedAnswers  = $replies->where('is_accepted', true)->count();
 
         // Global rank position
         $rankPosition = User::role('candidate')
@@ -43,17 +45,19 @@ class DashboardService
         // Top tag rankings — likes on replies grouped by tag
         $tagRankings = $this->getCandidateTagRankings($user->id);
 
-        // Quiz stats
-        $quizAttempts   = QuizAttempt::where('user_id', $user->id)->where('status', 'completed')->count();
-        $quizzesPassed  = QuizAttempt::where('user_id', $user->id)->where('status', 'completed')->where('passed', true)->count();
-        $totalQuizPts   = QuizAttempt::where('user_id', $user->id)->where('status', 'completed')->sum('rank_points_awarded');
+        // Quiz stats — fetch completed attempts once instead of 3 count/sum passes
+        $completedAttempts = QuizAttempt::where('user_id', $user->id)->where('status', 'completed')
+            ->get(['passed', 'rank_points_awarded']);
+        $quizAttempts   = $completedAttempts->count();
+        $quizzesPassed  = $completedAttempts->where('passed', true)->count();
+        $totalQuizPts   = (int) $completedAttempts->sum('rank_points_awarded');
 
         // Job applications
         $totalApplications = $user->jobApplications()->count();
         $pendingApplications = $user->jobApplications()
             ->whereIn('status', ['applied', 'reviewing'])->count();
         $monthlyAppRemaining = max(0,
-            config('devrank.candidate_apply_limit', 5) - $user->monthly_job_applications
+            config('devrank.limits.monthly_applications', 5) - $user->monthly_job_applications
         );
 
         // Interest requests
@@ -117,30 +121,37 @@ class DashboardService
     // ── Company stats ────────────────────────────────────────────
     public function getCompanyStats(User $user): array
     {
-        $jobIds = $user->jobListings()->pluck('id');
+        // Fetch jobs once (id + status) instead of 3 separate queries
+        $jobs   = $user->jobListings()->get(['id', 'status']);
+        $jobIds = $jobs->pluck('id');
+
+        // One grouped query for all application statuses instead of 7 separate counts
+        $appCounts = JobApplication::whereIn('jobs_listing_id', $jobIds)
+            ->selectRaw('status, COUNT(*) as c')
+            ->groupBy('status')
+            ->pluck('c', 'status');
+        $appCount = fn ($status) => (int) ($appCounts[$status] ?? 0);
 
         return [
-            'total_jobs'               => $user->jobListings()->count(),
-            'active_jobs'              => $user->jobListings()->where('status', 'active')->count(),
-            'total_applications'       => JobApplication::whereIn('jobs_listing_id', $jobIds)->count(),
-            'new_applications'         => JobApplication::whereIn('jobs_listing_id', $jobIds)
-                                            ->where('status', 'applied')
-                                            ->count(),
+            'total_jobs'               => $jobs->count(),
+            'active_jobs'              => $jobs->where('status', 'active')->count(),
+            'total_applications'       => (int) $appCounts->sum(),
+            'new_applications'         => $appCount('applied'),
             'interests_sent'           => $user->sentInterests()->count(),
             'interests_accepted'       => $user->sentInterests()->where('status', 'accepted')->count(),
             'monthly_posts_remaining'  => max(0,
-                config('devrank.company_job_limit', 5) - $user->monthly_job_posts
+                config('devrank.limits.monthly_job_posts', 5) - $user->monthly_job_posts
             ),
             'monthly_interest_remaining' => max(0,
-                config('devrank.company_interest_limit', 10) - $user->monthly_outreach_sent
+                config('devrank.limits.monthly_outreach', 10) - $user->monthly_outreach_sent
             ),
             // Pipeline stages
             'pipeline' => [
-                'applied'     => JobApplication::whereIn('jobs_listing_id', $jobIds)->where('status', 'applied')->count(),
-                'reviewing'   => JobApplication::whereIn('jobs_listing_id', $jobIds)->where('status', 'reviewing')->count(),
-                'shortlisted' => JobApplication::whereIn('jobs_listing_id', $jobIds)->where('status', 'shortlisted')->count(),
-                'interview'   => JobApplication::whereIn('jobs_listing_id', $jobIds)->where('status', 'interview')->count(),
-                'offered'     => JobApplication::whereIn('jobs_listing_id', $jobIds)->where('status', 'offered')->count(),
+                'applied'     => $appCount('applied'),
+                'reviewing'   => $appCount('reviewing'),
+                'shortlisted' => $appCount('shortlisted'),
+                'interview'   => $appCount('interview'),
+                'offered'     => $appCount('offered'),
             ],
         ];
     }

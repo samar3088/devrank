@@ -96,7 +96,8 @@ class QuizController extends Controller
  
     public function edit(Quiz $quiz)
     {
-        return Inertia::render('Admin/Quiz/Edit', [
+        // Create.jsx is the combined create/edit form (isEdit = !!quiz).
+        return Inertia::render('Admin/Quiz/Create', [
             'quiz' => $quiz,
             'tags' => Tag::where('status', 'approved')->orderBy('name')->get(['id', 'name']),
         ]);

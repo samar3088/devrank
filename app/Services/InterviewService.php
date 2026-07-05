@@ -43,7 +43,7 @@ class InterviewService
  
     public function createReview(User $user, array $data): InterviewReview
     {
-        return InterviewReview::create([
+        $review = InterviewReview::create([
             'user_id'           => $user->id,
             'company_name'      => $data['company_name'],
             'role_applied'      => $data['role_applied'],
@@ -56,6 +56,11 @@ class InterviewService
             'tips'              => $data['tips'] ?? null,
             'status'            => 'visible',
         ]);
+
+        // A new review (esp. a ghosting report) changes the company's trust score
+        app(ScoreService::class)->updateTrustScoreForCompany($review->company_name);
+
+        return $review;
     }
  
     public function deleteReview(InterviewReview $review): void
@@ -72,6 +77,8 @@ class InterviewService
 
         if ($review->fresh()->reports_count >= 5 && $review->status === 'visible') {
             $review->update(['status' => 'moderated']);
+            // Hiding a review changes the visible set → recompute the company's trust
+            app(ScoreService::class)->updateTrustScoreForCompany($review->company_name);
         }
     }
  

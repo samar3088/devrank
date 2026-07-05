@@ -2,12 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
-
-const DIFFICULTY_COLORS = {
-    easy:   { bg: 'color-mix(in srgb, var(--emerald) 12%, transparent)', color: 'var(--emerald)',   border: 'color-mix(in srgb, var(--emerald) 30%, transparent)' },
-    medium: { bg: 'color-mix(in srgb, var(--champagne) 12%, transparent)', color: 'var(--champagne)', border: 'color-mix(in srgb, var(--champagne) 30%, transparent)' },
-    hard:   { bg: 'color-mix(in srgb, var(--coral) 12%, transparent)',   color: 'var(--coral)',     border: 'color-mix(in srgb, var(--coral) 30%, transparent)' },
-};
+import { DIFFICULTY_COLORS } from '@/constants';
 
 export default function QuizIndex() {
     const { quizzes, filters, auth } = usePage().props;

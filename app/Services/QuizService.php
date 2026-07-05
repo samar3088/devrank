@@ -230,6 +230,9 @@ class QuizService
             }
         });
 
+        // Recompute the candidate's quiz-integrity score from their coding answers
+        app(ScoreService::class)->updateHumanScore($attempt->user_id);
+
         return $attempt->fresh();
     }
 

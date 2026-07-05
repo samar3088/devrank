@@ -98,7 +98,7 @@
     /* Text */
     --text: #ffffff;
     --text2: #c8cce8;
-    --text3: #7880a8;
+    --text3: #9aa1c4;
     --text4: #4a5070;
 
     /* Shape */
@@ -132,6 +132,7 @@ body {
     color: var(--text);
     font-family: 'Geist', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
     background-image:
         radial-gradient(ellipse 140% 70% at 65% -5%, rgba(124,109,250,.16) 0%, transparent 55%),
         radial-gradient(ellipse 90% 50% at -10% 75%, rgba(52,235,160,.06) 0%, transparent 50%),
@@ -186,3 +187,38 @@ p  { color: var(--text2); line-height: 1.75; }
     .grid-4 { grid-template-columns: repeat(2, 1fr); }
     .layout-sidebar-right { grid-template-columns: 1fr; }
 }
+
+/* ── Buttons (ported from the design system; base .btn/.btn-* were missing) ── */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px 20px;
+    border-radius: var(--r);
+    font-size: 14px; font-weight: 600;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    transition: all .18s cubic-bezier(.4, 0, .2, 1);
+    white-space: nowrap; cursor: pointer; border: none;
+    text-decoration: none;
+}
+.btn-primary {
+    background: var(--violet); color: #fff;
+    box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 4px 16px var(--violet-glow);
+}
+.btn-primary:hover {
+    background: var(--violet-bright); color: #fff; transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 8px 24px var(--violet-glow);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.btn-outline:hover { border-color: var(--border3); color: var(--text); background: rgba(255,255,255,.04); }
+.btn-ghost { background: transparent; color: var(--text3); padding: 8px 14px; }
+.btn-ghost:hover { color: var(--text2); background: rgba(255,255,255,.05); }
+.btn-danger { background: var(--coral); color: #fff; }
+.btn-danger:hover { filter: brightness(1.1); transform: translateY(-1px); color: #fff; }
+.btn-success { background: var(--emerald); color: #041a10; font-weight: 700; }
+.btn-success:hover { filter: brightness(1.05); }
+.btn-gold, .btn-amber { background: var(--champagne); color: #0a0805; font-weight: 700; }
+.btn-gold:hover, .btn-amber:hover { background: #f5d484; color: #0a0805; transform: translateY(-1px); }
+.btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 6px; }
+.btn-lg { padding: 12px 28px; font-size: 15px; border-radius: var(--r-lg); }
+.btn-xl { padding: 15px 36px; font-size: 16px; border-radius: var(--r-lg); }
