@@ -162,7 +162,7 @@ export default function QuizAttempt() {
 
                 {/* ── Question area ────────────────────────────── */}
                 <div className="quiz-content">
-                    <div className="quiz-question-card">
+                    <div className="quiz-question-card" data-reveal="fade">
 
                         {/* Header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -283,12 +283,12 @@ export default function QuizAttempt() {
                         </div>
 
                         {currentIndex < questions.length - 1 ? (
-                            <button className="btn btn-primary" onClick={goNext} disabled={submitting}>
+                            <button className="btn btn-primary pop-on-active" onClick={goNext} disabled={submitting}>
                                 {submitting ? 'Saving…' : 'Next →'}
                             </button>
                         ) : (
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary pop-on-active"
                                 style={{ background: 'var(--emerald)', borderColor: 'var(--emerald)' }}
                                 onClick={handleSubmitAll}
                                 disabled={submitting}

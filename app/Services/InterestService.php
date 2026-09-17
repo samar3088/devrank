@@ -93,6 +93,16 @@ class InterestService
             'status'       => 'pending',
         ]);
 
+        app(NotificationService::class)->notify(
+            user:    $candidate->id,
+            type:    'outreach',
+            title:   ($company->company_name ?: $company->name) . ' is interested in you',
+            body:    \Illuminate\Support\Str::limit($message, 120),
+            url:     '/interests',
+            icon:    '🏢',
+            actorId: $company->id,
+        );
+
         return ['success' => true, 'message' => 'Interest request sent successfully.'];
     }
 
@@ -126,6 +136,16 @@ class InterestService
                 'view_type'           => 'interest_accept',
             ]);
         }
+
+        app(NotificationService::class)->notify(
+            user:    $request->company_id,
+            type:    'interest_response',
+            title:   $candidate->name . ' ' . $action . ' your interest',
+            body:    $action === 'accepted' ? 'You can now view their full profile.' : null,
+            url:     '/company/interests',
+            icon:    $action === 'accepted' ? '✅' : '↩️',
+            actorId: $candidate->id,
+        );
 
         $msg = $action === 'accepted'
             ? 'Interest accepted. The company can now view your full profile.'

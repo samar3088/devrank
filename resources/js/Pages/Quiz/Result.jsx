@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 export default function QuizResult() {
     const { attempt, summary } = usePage().props;
@@ -24,7 +25,7 @@ export default function QuizResult() {
             <div className="container" style={{ paddingTop: 40, paddingBottom: 80, maxWidth: 760 }}>
 
                 {/* Hero */}
-                <div className="quiz-result-hero" style={{ borderColor: passed ? 'color-mix(in srgb, var(--emerald) 40%, transparent)' : 'color-mix(in srgb, var(--coral) 40%, transparent)' }}>
+                <div className="quiz-result-hero" data-reveal="scale" style={{ borderColor: passed ? 'color-mix(in srgb, var(--emerald) 40%, transparent)' : 'color-mix(in srgb, var(--coral) 40%, transparent)' }}>
                     <div className="quiz-result-icon">{passed ? '🏆' : '📚'}</div>
 
                     {/* Attempt label */}
@@ -34,7 +35,10 @@ export default function QuizResult() {
                         </div>
                     )}
 
-                    <h1 style={{ marginBottom: 6 }}>{passed ? 'Quiz Passed!' : 'Keep Practising'}</h1>
+                    <h1 style={{ marginBottom: 6 }}>
+                        {passed && <span className="dr-live-dot" style={{ marginRight: 10, verticalAlign: 'middle' }}></span>}
+                        {passed ? 'Quiz Passed!' : 'Keep Practising'}
+                    </h1>
                     <p style={{ color: 'var(--text3)', marginBottom: 24 }}>{quiz.title}</p>
 
                     {/* Score ring */}
@@ -52,7 +56,7 @@ export default function QuizResult() {
                         </svg>
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span style={{ fontSize: '1.6rem', fontWeight: 800, color: passed ? 'var(--emerald)' : 'var(--coral)' }}>
-                                {Math.round(pct)}%
+                                <CountUp end={Math.round(pct)} suffix="%" />
                             </span>
                         </div>
                     </div>
@@ -60,8 +64,8 @@ export default function QuizResult() {
                     {/* Stats */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, background: 'var(--border)', borderRadius: 'var(--r)', overflow: 'hidden', marginBottom: 20 }}>
                         {[
-                            { label: 'Score',    value: `${attempt.score}/${quiz.total_marks}`, color: 'var(--cyan)' },
-                            { label: 'Correct',  value: `${correctCount}/${answers.length}`,    color: 'var(--emerald)' },
+                            { label: 'Score',    value: <><CountUp end={attempt.score} />/{quiz.total_marks}</>, color: 'var(--cyan)' },
+                            { label: 'Correct',  value: <><CountUp end={correctCount} />/{answers.length}</>,    color: 'var(--emerald)' },
                             { label: 'Time',     value: timeTaken,                              color: 'var(--text)' },
                             {
                                 label: deltaPoints > 0 ? 'Rank +pts' : (isRetake ? 'No new pts' : 'Rank +pts'),
@@ -103,11 +107,13 @@ export default function QuizResult() {
                 </div>
 
                 {/* Answer Breakdown */}
-                <h3 style={{ margin: '32px 0 16px' }}>Answer Breakdown</h3>
+                <h3 data-reveal="fade" style={{ margin: '32px 0 16px' }}>Answer Breakdown</h3>
 
-                {answers.map((answer, i) => (
-                    <AnswerRow key={answer.id} answer={answer} index={i} />
-                ))}
+                <div data-reveal-stagger="70">
+                    {answers.map((answer, i) => (
+                        <AnswerRow key={answer.id} answer={answer} index={i} />
+                    ))}
+                </div>
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
@@ -143,7 +149,7 @@ function AnswerRow({ answer, index }) {
     if (isFlagged)               borderColor = 'color-mix(in srgb, var(--champagne) 40%, transparent)';
 
     return (
-        <div style={{ background: 'var(--surface)', border: `1px solid ${borderColor}`, borderLeft: `3px solid ${borderColor}`, borderRadius: 'var(--r-lg)', padding: 20, marginBottom: 12 }}>
+        <div className="hover-lift" data-reveal style={{ background: 'var(--surface)', border: `1px solid ${borderColor}`, borderLeft: `3px solid ${borderColor}`, borderRadius: 'var(--r-lg)', padding: 20, marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
                 <div style={{ fontSize: 13, color: 'var(--text2)', flex: 1 }}>
                     <span style={{ color: 'var(--text3)', marginRight: 8, fontWeight: 700 }}>Q{index + 1}.</span>

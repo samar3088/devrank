@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminFilterBar, AdminPagination, AdminBadge, fmtDate } from '@/Pages/Admin/AdminShared';
 
 const STATUS_MAP = {
@@ -16,10 +17,10 @@ export default function AdminUsers() {
 
     return (
         <AdminLayout title="Manage Candidates" stats={stats}>
-            <div className="admin-page-header">
+            <div className="admin-page-header" data-reveal="fade">
                 <div>
                     <h1>Candidates</h1>
-                    <p>{users.total} registered candidates</p>
+                    <p><CountUp end={users.total} /> registered candidates</p>
                 </div>
             </div>
 
@@ -34,7 +35,7 @@ export default function AdminUsers() {
                 ]}
             />
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead>
                         <tr>

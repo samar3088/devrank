@@ -60,11 +60,24 @@ class InterviewService
         // A new review (esp. a ghosting report) changes the company's trust score
         app(ScoreService::class)->updateTrustScoreForCompany($review->company_name);
 
+        // Reward the contributor for sharing a real interview experience.
+        $points = (int) config('devrank.points.interview_review', 15);
+        if ($points > 0) {
+            User::where('id', $user->id)->increment('total_rank_score', $points);
+        }
+
         return $review;
     }
- 
+
     public function deleteReview(InterviewReview $review): void
     {
+        // Reverse the contribution reward (floored at 0).
+        $points = (int) config('devrank.points.interview_review', 15);
+        if ($points > 0) {
+            User::where('id', $review->user_id)
+                ->update(['total_rank_score' => \DB::raw("GREATEST(total_rank_score - {$points}, 0)")]);
+        }
+
         $review->delete();
     }
 

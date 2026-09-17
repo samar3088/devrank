@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS = [
 ];
 
 export default function AdminQuizQuestions() {
-    const { quiz } = usePage().props;
+    const { quiz, aiEnabled } = usePage().props;
     const [showForm, setShowForm] = useState(false);
 
     const form = useForm({
@@ -76,22 +76,22 @@ export default function AdminQuizQuestions() {
                     <h1>Questions</h1>
                     <p>{quiz.questions.length} questions · {quiz.total_marks} total marks</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
+                <button className="btn btn-primary pop-on-active" onClick={() => setShowForm(v => !v)}>
                     {showForm ? '× Cancel' : '+ Add Question'}
                 </button>
             </div>
 
             {/* Add question form */}
             {showForm && (
-                <div style={{ background: 'var(--surface)', border: '1px solid var(--violet-border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 24 }}>
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--violet-border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 24 }} data-reveal="scale">
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 20, color: 'var(--violet-bright)' }}>
                         New Question
                     </div>
                     <form onSubmit={submit}>
 
                         {/* Type toggle */}
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-                            {['mcq', 'coding'].map(t => (
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+                            {(aiEnabled ? ['mcq', 'coding'] : ['mcq']).map(t => (
                                 <button key={t} type="button"
                                     onClick={() => form.setData('type', t)}
                                     style={{
@@ -103,6 +103,11 @@ export default function AdminQuizQuestions() {
                                     {t === 'mcq' ? '📋 Multiple Choice' : '💻 Coding'}
                                 </button>
                             ))}
+                            {!aiEnabled && (
+                                <span style={{ fontSize: 12, color: 'var(--text3)' }}>
+                                    Coding questions are disabled while AI grading is off (MCQ only).
+                                </span>
+                            )}
                         </div>
 
                         <div className="form-group">
@@ -166,7 +171,7 @@ export default function AdminQuizQuestions() {
                                             onChange={e => setOption(i, 'option_text', e.target.value)}
                                         />
                                         {form.data.options.length > 2 && (
-                                            <button type="button" onClick={() => removeOption(i)}
+                                            <button type="button" onClick={() => removeOption(i)} className="pop-on-active"
                                                 style={{ background: 'none', border: 'none', color: 'var(--coral)', cursor: 'pointer', fontSize: 16, padding: '0 4px' }}>
                                                 ×
                                             </button>
@@ -174,7 +179,7 @@ export default function AdminQuizQuestions() {
                                     </div>
                                 ))}
                                 {form.data.options.length < 4 && (
-                                    <button type="button" onClick={addOption}
+                                    <button type="button" onClick={addOption} className="pop-on-active"
                                         style={{ fontSize: 12, color: 'var(--violet-bright)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 4 }}>
                                         + Add option
                                     </button>
@@ -207,7 +212,7 @@ export default function AdminQuizQuestions() {
                         </div>
 
                         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                            <LoadingButton type="submit" className="btn btn-primary" loading={form.processing}>
+                            <LoadingButton type="submit" className="btn btn-primary pop-on-active" loading={form.processing}>
                                 Add Question
                             </LoadingButton>
                             <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>
@@ -222,9 +227,9 @@ export default function AdminQuizQuestions() {
             {quiz.questions.length === 0 ? (
                 <div className="admin-empty">No questions yet. Click "+ Add Question" to start.</div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }} data-reveal-stagger="70">
                     {quiz.questions.map((q, i) => (
-                        <div key={q.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20 }}>
+                        <div key={q.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20 }} data-reveal>
                             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -258,7 +263,7 @@ export default function AdminQuizQuestions() {
                                         </div>
                                     )}
                                 </div>
-                                <button onClick={() => deleteQuestion(q.id)} className="admin-action-btn red" style={{ flexShrink: 0 }}>
+                                <button onClick={() => deleteQuestion(q.id)} className="admin-action-btn red pop-on-active" style={{ flexShrink: 0 }}>
                                     Delete
                                 </button>
                             </div>

@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 const OUTCOME_CONFIG = {
     selected: { label: 'Selected', cls: 'outcome-selected', icon: '✅' },
@@ -47,11 +48,11 @@ export default function InterviewBoardIndex() {
 
     return (
         <MainLayout>
-            <Head title="Interview Board — DevRank" />
+            <Head title="Interview Board" />
             <div className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 8 }}>
+                <div data-reveal style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 8 }}>
                     <div>
                         <h1 style={{ fontSize: '2rem', marginBottom: 6 }}>Interview Experience Board</h1>
                         <p style={{ color: 'var(--text3)', fontSize: 14, maxWidth: 520 }}>Real, verified interview experiences. Know what to expect before you walk in.</p>
@@ -60,28 +61,28 @@ export default function InterviewBoardIndex() {
                 </div>
 
                 {/* Stats row */}
-                <div className="grid-4" style={{ marginTop: 24, marginBottom: 32 }}>
-                    <div className="stat-card">
+                <div className="grid-4" data-reveal-stagger="80" style={{ marginTop: 24, marginBottom: 32 }}>
+                    <div className="stat-card" data-reveal="scale">
                         <div className="stat-label">Total Reviews</div>
-                        <div className="stat-value">{stats.total.toLocaleString()}</div>
+                        <div className="stat-value"><CountUp end={stats.total} /></div>
                     </div>
-                    <div className="stat-card">
+                    <div className="stat-card" data-reveal="scale">
                         <div className="stat-label">Companies Covered</div>
-                        <div className="stat-value">{stats.companies.toLocaleString()}</div>
+                        <div className="stat-value"><CountUp end={stats.companies} /></div>
                     </div>
-                    <div className="stat-card">
+                    <div className="stat-card" data-reveal="scale">
                         <div className="stat-label">Avg Difficulty</div>
-                        <div className="stat-value">{stats.avg_difficulty}<span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/5</span></div>
+                        <div className="stat-value"><CountUp end={stats.avg_difficulty} decimals={1} /><span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/5</span></div>
                     </div>
-                    <div className="stat-card">
+                    <div className="stat-card" data-reveal="scale">
                         <div className="stat-label">Selection Rate</div>
-                        <div className="stat-value">{stats.selection_rate}<span style={{ fontSize: '1rem' }}>%</span></div>
+                        <div className="stat-value"><CountUp end={stats.selection_rate} /><span style={{ fontSize: '1rem' }}>%</span></div>
                     </div>
                 </div>
 
                 <div className="layout-sidebar-right">
                     {/* Main column */}
-                    <div>
+                    <div data-reveal-stagger="80">
                         {/* Filters */}
                         <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
                             <form onSubmit={submitSearch} style={{ display: 'flex', gap: 8, flex: 1, minWidth: 220 }}>
@@ -142,9 +143,9 @@ export default function InterviewBoardIndex() {
                             {topCompanies.length === 0 ? (
                                 <div style={{ fontSize: 13, color: 'var(--text3)' }}>No reviews yet.</div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} data-reveal-stagger="60">
                                     {topCompanies.slice(0, 6).map((c) => (
-                                        <button key={c.company_name} onClick={() => applyFilter('company', filters.company === c.company_name ? '' : c.company_name)}
+                                        <button key={c.company_name} data-reveal="left" onClick={() => applyFilter('company', filters.company === c.company_name ? '' : c.company_name)}
                                             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>
                                             <span style={{ color: filters.company === c.company_name ? 'var(--violet-bright)' : 'var(--text2)' }}>{c.company_name}</span>
                                             <span className="badge badge-muted">{c.review_count} reviews</span>
@@ -182,7 +183,7 @@ function DistRow({ label, pct, color }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 13, color: 'var(--text2)', width: 64, flexShrink: 0 }}>{label}</span>
             <div style={{ flex: 1, height: 8, background: 'var(--bg2)', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 999 }} />
+                <div className="bar-grow" data-reveal="none" style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 999, '--bar-w': `${pct}%` }} />
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color, width: 36, textAlign: 'right' }}>{pct}%</span>
         </div>
@@ -208,7 +209,7 @@ function ReviewCard({ review, authUserId }) {
     }
 
     return (
-        <div className="interview-card">
+        <div className="interview-card hover-lift" data-reveal>
             {/* Header row */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 10, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

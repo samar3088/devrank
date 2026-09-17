@@ -3,6 +3,7 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 import LoadingButton from '@/Components/LoadingButton';
+import CountUp from '@/Components/CountUp';
 
 export default function CandidateProfile() {
     const {
@@ -15,7 +16,12 @@ export default function CandidateProfile() {
         rank_position,
         interestStatus,
         auth,
+        aiEnabled,
+        contact_unlocked,
     } = usePage().props;
+
+    const isCompanyViewer = auth?.user?.roles?.includes('company');
+    const firstName = user?.name?.split(' ')[0] || 'this candidate';
 
     const [activeTab, setActiveTab] = useState('ranking');
 
@@ -34,13 +40,13 @@ export default function CandidateProfile() {
 
     return (
         <MainLayout>
-            <Head title={`${user.name} — DevRank Profile`} />
+            <Head title={user.name} />
             <div className="profile-container">
                 <div className="profile-layout">
-                    <div>
+                    <div data-reveal-stagger="80">
 
                         {/* ── Profile Hero ──────────────────────────── */}
-                        <div className="profile-hero">
+                        <div className="profile-hero" data-reveal>
                             <div className="profile-header" style={{ alignItems: 'flex-start' }}>
                                 <div className="profile-avatar-wrap">
                                     <div className="avatar-xl">{getInitials(user.name)}</div>
@@ -64,12 +70,14 @@ export default function CandidateProfile() {
 
                                     {/* Badges */}
                                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                                        <div className="human-score">
-                                            <div className="hs-bar">
-                                                <div className="hs-fill" style={{ width: `${user.human_score || 0}%` }} />
+                                        {aiEnabled && (
+                                            <div className="human-score">
+                                                <div className="hs-bar">
+                                                    <div className="hs-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${user.human_score || 0}%` }} />
+                                                </div>
+                                                <CountUp end={user.human_score || 0} suffix="% Human Score" />
                                             </div>
-                                            {user.human_score || 0}% Human Score
-                                        </div>
+                                        )}
                                         {user.years_of_experience && (
                                             <span className="badge badge-cyan">{user.years_of_experience} Years Exp.</span>
                                         )}
@@ -121,7 +129,7 @@ export default function CandidateProfile() {
                         </div>
 
                         {/* ── Tabs ──────────────────────────────────── */}
-                        <div className="profile-tabs">
+                        <div className="profile-tabs" data-reveal="fade">
                             <button className={`profile-tab ${activeTab === 'ranking'   ? 'active' : ''}`} onClick={() => setActiveTab('ranking')}>📊 Ranking</button>
                             <button className={`profile-tab ${activeTab === 'answers'   ? 'active' : ''}`} onClick={() => setActiveTab('answers')}>💬 Forum Answers</button>
                             <button className={`profile-tab ${activeTab === 'certs'     ? 'active' : ''}`} onClick={() => setActiveTab('certs')}>🏅 Certifications</button>
@@ -130,12 +138,12 @@ export default function CandidateProfile() {
 
                         {/* ── Ranking Tab — REAL DATA ───────────────── */}
                         {activeTab === 'ranking' && (
-                            <div>
+                            <div data-reveal>
                                 <div className="dash-card" style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                         <h4>Rank Overview</h4>
                                         <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--cyan)' }}>
-                                            {user.total_rank_score?.toLocaleString() ?? 0} pts
+                                            <CountUp end={user.total_rank_score ?? 0} suffix=" pts" />
                                         </span>
                                     </div>
 
@@ -150,7 +158,7 @@ export default function CandidateProfile() {
                                                     <div key={tr.tag_id} className="pillar-row">
                                                         <span className="pillar-label">{tr.tag_name}</span>
                                                         <div className="pillar-bar">
-                                                            <div className="pillar-fill" style={{ width: `${pct}%` }} />
+                                                            <div className="pillar-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${pct}%` }} />
                                                         </div>
                                                         <span className="pillar-score">
                                                             #{tr.rank} · {tr.total_likes} likes
@@ -175,13 +183,13 @@ export default function CandidateProfile() {
                                         </div>
                                         <div style={{ textAlign: 'center' }}>
                                             <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--violet-bright)' }}>
-                                                {replies_count ?? 0}
+                                                <CountUp end={replies_count ?? 0} />
                                             </div>
                                             <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>Answers Posted</div>
                                         </div>
                                         <div style={{ textAlign: 'center' }}>
                                             <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--emerald)' }}>
-                                                {likes_received ?? 0}
+                                                <CountUp end={likes_received ?? 0} />
                                             </div>
                                             <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>Likes Received</div>
                                         </div>
@@ -192,14 +200,14 @@ export default function CandidateProfile() {
 
                         {/* ── Forum Answers Tab — REAL DATA ─────────── */}
                         {activeTab === 'answers' && (
-                            <div>
+                            <div data-reveal-stagger="70">
                                 {!recent_answers || recent_answers.length === 0 ? (
                                     <div className="dash-card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
                                         No forum answers yet.
                                     </div>
                                 ) : (
                                     recent_answers.map(answer => (
-                                        <div key={answer.id} className="dash-card" style={{ marginBottom: '12px' }}>
+                                        <div key={answer.id} className="dash-card hover-lift" data-reveal style={{ marginBottom: '12px' }}>
                                             <Link
                                                 href={`/forum/${answer.topic?.slug}`}
                                                 style={{ fontWeight: 600, marginBottom: '6px', display: 'block', textDecoration: 'none', color: 'var(--text)' }}
@@ -259,8 +267,8 @@ export default function CandidateProfile() {
                     <div style={{ position: 'sticky', top: 'calc(var(--nav-h) + 24px)' }}>
 
                         {/* Rank Score */}
-                        <div className="profile-sidebar-card" style={{ textAlign: 'center' }}>
-                            <div className="profile-rank-big">{user.total_rank_score?.toLocaleString() || 0}</div>
+                        <div className="profile-sidebar-card" data-reveal="right" style={{ textAlign: 'center' }}>
+                            <div className="profile-rank-big"><CountUp end={user.total_rank_score || 0} /></div>
                             <div className="profile-rank-label">Total Rank Score</div>
                             <hr className="profile-divider" />
 
@@ -280,43 +288,56 @@ export default function CandidateProfile() {
                                 </div>
                             ))}
 
-                            <hr className="profile-divider" />
-                            <div className="human-score" style={{ justifyContent: 'center' }}>
-                                <div className="hs-bar">
-                                    <div className="hs-fill" style={{ width: `${user.human_score || 0}%` }} />
-                                </div>
-                                {user.human_score || 0}% Human Score
-                            </div>
+                            {aiEnabled && (
+                                <>
+                                    <hr className="profile-divider" />
+                                    <div className="human-score" style={{ justifyContent: 'center' }}>
+                                        <div className="hs-bar">
+                                            <div className="hs-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${user.human_score || 0}%` }} />
+                                        </div>
+                                        <CountUp end={user.human_score || 0} suffix="% Human Score" />
+                                    </div>
+                                </>
+                            )}
                         </div>
 
-                        {/* Contact & Links */}
+                        {/* Contact & Links — gated behind interest acceptance */}
                         <div className="profile-sidebar-card">
-                            <h4 style={{ marginBottom: '14px' }}>Contact & Links</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <a href={user.github_url || '#'} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>
-                                    🐙 GitHub {user.github_url ? '(verified)' : ''}
-                                </a>
-                                <a href={user.linkedin_url || '#'} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>
-                                    💼 LinkedIn {user.linkedin_url ? '(linked)' : ''}
-                                </a>
-                                {interestStatus === 'accepted' ? (
-                                    <>
-                                        <a href={`mailto:${user.email}`} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>
-                                            📧 {user.email}
-                                        </a>
-                                        {user.resume_url && (
-                                            <a href={user.resume_url} target="_blank" className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>
-                                                📄 Download Resume
-                                            </a>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <div style={{ padding: '8px 14px', fontSize: '13px', color: 'var(--text3)' }}>📧 Email — unlocked after interest accepted</div>
-                                        <div style={{ padding: '8px 14px', fontSize: '13px', color: 'var(--text3)' }}>📄 Resume — unlocked after interest accepted</div>
-                                    </>
-                                )}
-                            </div>
+                            <h4 style={{ marginBottom: '14px' }}>Contact &amp; Links</h4>
+                            {contact_unlocked ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    {user.github_url && (
+                                        <a href={user.github_url} target="_blank" rel="noreferrer" className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>🐙 GitHub</a>
+                                    )}
+                                    {user.linkedin_url && (
+                                        <a href={user.linkedin_url} target="_blank" rel="noreferrer" className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>💼 LinkedIn</a>
+                                    )}
+                                    {user.email && (
+                                        <a href={`mailto:${user.email}`} className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>📧 {user.email}</a>
+                                    )}
+                                    {user.resume_url && (
+                                        <a href={user.resume_url} target="_blank" rel="noreferrer" className="profile-btn-outline" style={{ justifyContent: 'flex-start' }}>📄 Download Résumé</a>
+                                    )}
+                                    {!user.github_url && !user.linkedin_url && !user.email && !user.resume_url && (
+                                        <div style={{ fontSize: 13, color: 'var(--text3)' }}>No contact details provided.</div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--text2)' }}>
+                                        🔒 Contact details are private
+                                    </div>
+                                    <p style={{ fontSize: 13, color: 'var(--text3)', marginTop: 8, lineHeight: 1.6 }}>
+                                        {isCompanyViewer
+                                            ? (interestStatus === 'pending'
+                                                ? `Email, résumé, GitHub and LinkedIn unlock once ${firstName} accepts your interest request (currently pending).`
+                                                : interestStatus === 'declined'
+                                                    ? `${firstName} declined your interest, so their contact details stay private.`
+                                                    : `Send an interest request — email, résumé and links unlock once ${firstName} accepts.`)
+                                            : `Email, résumé and links are shared only with companies after ${firstName} accepts their interest request.`}
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Recent Activity — real data */}

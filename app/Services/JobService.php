@@ -240,4 +240,91 @@ class JobService
             ->exists();
     }
 
+    /**
+     * All applicants for one job (company view), pipeline-ordered.
+     */
+    public function getJobApplicants(JobListing $job)
+    {
+        return $job->applications()
+            ->with('candidate:id,name,email,total_rank_score,human_score,resume_path,headline,location')
+            ->orderByRaw("FIELD(status,'applied','reviewing','shortlisted','interview','offered','rejected','withdrawn')")
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($app) {
+                $c = $app->candidate;
+
+                return [
+                    'id'            => $app->id,
+                    'status'        => $app->status,
+                    'cover_letter'  => $app->cover_letter,
+                    'rejection_reason' => $app->rejection_reason,
+                    'resume_path'   => $app->resume_path ?: ($c->resume_path ?? null),
+                    'applied_at'    => optional($app->created_at)->diffForHumans(),
+                    'candidate'     => $c ? [
+                        'id'          => $c->id,
+                        'name'        => $c->name,
+                        'initials'    => $this->initials($c->name),
+                        'headline'    => $c->headline,
+                        'location'    => $c->location,
+                        'rank_score'  => (int) $c->total_rank_score,
+                        'human_score' => (float) $c->human_score,
+                    ] : null,
+                ];
+            });
+    }
+
+    /**
+     * Recent applicants across all of a company's jobs (dashboard widget).
+     */
+    public function getRecentApplicants(User $company, int $limit = 6)
+    {
+        $jobIds = $company->jobListings()->pluck('id');
+
+        if ($jobIds->isEmpty()) {
+            return collect();
+        }
+
+        return \App\Models\JobApplication::whereIn('jobs_listing_id', $jobIds)
+            ->with(['candidate:id,name,total_rank_score', 'jobListing:id,title'])
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($app) => [
+                'id'                 => $app->id,
+                'job_id'             => $app->jobs_listing_id,
+                'candidate_name'     => $app->candidate->name ?? 'Unknown',
+                'candidate_initials' => $this->initials($app->candidate->name ?? '?'),
+                'candidate_score'    => (int) ($app->candidate->total_rank_score ?? 0),
+                'job_title'          => $app->jobListing->title ?? '—',
+                'applied_at'         => optional($app->created_at)->diffForHumans(),
+                'status'             => $app->status,
+            ]);
+    }
+
+    /**
+     * Move an applicant through the hiring pipeline.
+     */
+    public function updateApplicationStatus(\App\Models\JobApplication $application, string $status, ?string $rejectionReason = null): void
+    {
+        $data = ['status' => $status];
+
+        if ($status === 'rejected') {
+            $data['rejection_reason'] = $rejectionReason;
+        }
+
+        $application->update($data);
+    }
+
+    /**
+     * Two-letter initials from a display name.
+     */
+    private function initials(?string $name): string
+    {
+        return Str::of($name ?? '?')
+            ->explode(' ')
+            ->filter()
+            ->map(fn ($p) => Str::substr($p, 0, 1))
+            ->take(2)
+            ->implode('') ?: '?';
+    }
 }

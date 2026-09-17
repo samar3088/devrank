@@ -58,7 +58,7 @@ export default function AdminQuizCreate() {
                 <form onSubmit={submit}>
 
                     {/* Basic info */}
-                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }}>
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }} data-reveal>
                         <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 20 }}>Quiz Details</div>
 
                         <div className="form-group">
@@ -89,7 +89,7 @@ export default function AdminQuizCreate() {
                     </div>
 
                     {/* Settings */}
-                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }}>
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }} data-reveal>
                         <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 20 }}>Settings</div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -161,7 +161,7 @@ export default function AdminQuizCreate() {
                     </div>
 
                     <div style={{ display: 'flex', gap: 12 }}>
-                        <LoadingButton type="submit" className="btn btn-primary" loading={form.processing}>
+                        <LoadingButton type="submit" className="btn btn-primary pop-on-active" loading={form.processing}>
                             {isEdit ? 'Save Changes' : 'Create Quiz'}
                         </LoadingButton>
                         <Link href="/admin/quiz" className="btn btn-ghost">Cancel</Link>

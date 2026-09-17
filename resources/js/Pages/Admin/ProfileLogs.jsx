@@ -7,7 +7,7 @@ export default function AdminProfileLogs() {
 
     return (
         <AdminLayout title="Profile Access Logs" stats={stats}>
-            <div className="admin-page-header">
+            <div className="admin-page-header" data-reveal="fade">
                 <div>
                     <h1>Profile Access Logs</h1>
                     <p>Every company profile view is recorded here.</p>
@@ -16,7 +16,7 @@ export default function AdminProfileLogs() {
 
             <AdminFilterBar route="/admin/profile-logs" filters={filters} placeholder="Search by company name..." />
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead><tr><th>Company</th><th>Candidate Viewed</th><th>Source</th><th>Date & Time</th></tr></thead>
                     <tbody>

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\JobApplication;
 use App\Models\JobListing;
 use App\Models\ProfileViewLog;
@@ -10,6 +11,7 @@ use App\Models\Tag;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AdminService
 {
@@ -131,6 +133,81 @@ class AdminService
             ->withQueryString();
     }
 
+    // ── Forum: categories ────────────────────────────────────────
+    public function getCategories()
+    {
+        return Category::ordered()
+            ->withCount('topics')
+            ->get();
+    }
+
+    public function createCategory(array $data): Category
+    {
+        return Category::create([
+            'name'        => $data['name'],
+            'slug'        => $this->uniqueCategorySlug($data['name']),
+            'description' => $data['description'] ?? null,
+            'icon'        => $data['icon'] ?? null,
+            'color'       => $data['color'] ?? null,
+            'sort_order'  => $data['sort_order'] ?? 0,
+            'is_active'   => true,
+        ]);
+    }
+
+    public function updateCategory(Category $category, array $data): Category
+    {
+        $update = [
+            'description' => $data['description'] ?? null,
+            'icon'        => $data['icon'] ?? null,
+            'color'       => $data['color'] ?? null,
+            'sort_order'  => $data['sort_order'] ?? 0,
+        ];
+
+        // Regenerate a unique slug only when the name actually changes.
+        if (isset($data['name']) && $data['name'] !== $category->name) {
+            $update['name'] = $data['name'];
+            $update['slug'] = $this->uniqueCategorySlug($data['name'], $category->id);
+        }
+
+        $category->update($update);
+
+        return $category;
+    }
+
+    /**
+     * Soft-delete a category. Refuses when topics still reference it,
+     * since topic.category_id is required and orphaning breaks the forum.
+     *
+     * @return bool true on delete, false when the category still has topics.
+     */
+    public function deleteCategory(Category $category): bool
+    {
+        if ($category->topics()->count() > 0) {
+            return false;
+        }
+
+        $category->delete();
+
+        return true;
+    }
+
+    public function toggleCategory(Category $category): bool
+    {
+        $category->update(['is_active' => !$category->is_active]);
+        return $category->is_active;
+    }
+
+    private function uniqueCategorySlug(string $name, ?int $ignoreId = null): string
+    {
+        $slug = Str::slug($name);
+        $count = Category::withTrashed()
+            ->where('slug', 'like', "{$slug}%")
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->count();
+
+        return $count ? "{$slug}-{$count}" : $slug;
+    }
+
     // ── Profile access logs ───────────────────────────────────────
     public function getProfileLogs(Request $request)
     {
@@ -188,28 +265,24 @@ class AdminService
 
     public function getAnalyticsData(): array
     {
-        // Last 8 weeks — new candidates per week
-        $candidatesPerWeek = \DB::table('users')
+        // Last 8 weeks — new candidates & companies per week, in ONE query
+        // (grouped by role) instead of two near-identical joins.
+        $usersPerWeek = \DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', 'candidate')
+            ->whereIn('roles.name', ['candidate', 'company'])
             ->where('users.created_at', '>=', now()->subWeeks(8))
-            ->select(\DB::raw('YEARWEEK(users.created_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
-            ->groupBy('yw')
-            ->orderBy('yw')
-            ->pluck('count', 'yw');
-    
-        // Last 8 weeks — new companies per week
-        $companiesPerWeek = \DB::table('users')
-            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', 'company')
-            ->where('users.created_at', '>=', now()->subWeeks(8))
-            ->select(\DB::raw('YEARWEEK(users.created_at, 1) as yw'), \DB::raw('COUNT(*) as count'))
-            ->groupBy('yw')
-            ->orderBy('yw')
-            ->pluck('count', 'yw');
-    
+            ->select(
+                \DB::raw('YEARWEEK(users.created_at, 1) as yw'),
+                'roles.name as role',
+                \DB::raw('COUNT(*) as count')
+            )
+            ->groupBy('yw', 'roles.name')
+            ->get();
+
+        $candidatesPerWeek = $usersPerWeek->where('role', 'candidate')->pluck('count', 'yw');
+        $companiesPerWeek  = $usersPerWeek->where('role', 'company')->pluck('count', 'yw');
+
         // Last 8 weeks — job applications per week
         $applicationsPerWeek = \DB::table('job_applications')
             ->where('created_at', '>=', now()->subWeeks(8))

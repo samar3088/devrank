@@ -9,6 +9,7 @@ use App\Http\Controllers\InterestController;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\JobBoardController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\QuizAttemptController;
@@ -72,6 +73,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // In-app notifications (any authenticated user)
+    Route::get('/notifications',                  [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/feed',             [NotificationController::class, 'feed'])->name('notifications.feed');
+    Route::post('/notifications/read-all',        [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+
     // Report an interview review (any authenticated user)
     Route::post('/interviews/{review}/report', [InterviewController::class, 'report'])->name('interviews.report');
 
@@ -79,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:candidate')->group(function () {
         // Forum
         Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
+        Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->name('forum.upload-image');
         Route::delete('/forum/{topic}',              [ForumController::class, 'destroyTopic'])->name('forum.destroy');
         Route::post('/forum/{topic}/reply',          [ForumController::class, 'storeReply'])->name('forum.reply');
         Route::put('/forum/reply/{reply}',           [ForumController::class, 'updateReply'])->name('forum.reply.update');
@@ -117,6 +125,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/profile',         [\App\Http\Controllers\Company\CompanyProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/logo',   [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
         Route::get('/interests',       [InterestController::class, 'companyIndex'])->name('interests.index');
+        // Applicants (view who applied + move them through the pipeline)
+        Route::get('/jobs/{job}/applicants',             [\App\Http\Controllers\Company\JobController::class, 'applicants'])->name('jobs.applicants');
+        Route::put('/applications/{application}/status', [\App\Http\Controllers\Company\JobController::class, 'updateApplicationStatus'])->name('applications.status');
     });
 
     // ── Admin quiz (super_admin only) ─────────────────────────────
@@ -151,5 +162,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/tags/{tag}/approve',                [AdminController::class, 'approveTag'])->name('tags.approve');
         Route::post('/tags/{tag}/reject',                 [AdminController::class, 'rejectTag'])->name('tags.reject');
         Route::get('/profile-logs',                       [AdminController::class, 'profileLogs'])->name('profile-logs');
+        // Forum categories (CRUD)
+        Route::get('/categories',                         [AdminController::class, 'categories'])->name('categories');
+        Route::post('/categories',                        [AdminController::class, 'storeCategory'])->name('categories.store');
+        Route::put('/categories/{category}',              [AdminController::class, 'updateCategory'])->name('categories.update');
+        Route::delete('/categories/{category}',           [AdminController::class, 'destroyCategory'])->name('categories.destroy');
+        Route::post('/categories/{category}/toggle',      [AdminController::class, 'toggleCategory'])->name('categories.toggle');
     });
 });

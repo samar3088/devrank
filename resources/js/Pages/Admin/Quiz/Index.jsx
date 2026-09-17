@@ -1,5 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminPagination } from '@/Pages/Admin/AdminShared';
 
 const DIFFICULTY_COLOR = { easy: 'green', medium: 'amber', hard: 'red' };
@@ -18,30 +19,30 @@ export default function AdminQuizIndex() {
 
     return (
         <AdminLayout title="Quiz Management">
-            <div className="admin-page-header">
+            <div className="admin-page-header" data-reveal="fade">
                 <div>
                     <h1>Quiz Management</h1>
-                    <p>{quizzes.total} quizzes · {stats.total_attempts} total attempts</p>
+                    <p><CountUp end={quizzes.total} /> quizzes · <CountUp end={stats.total_attempts} /> total attempts</p>
                 </div>
                 <Link href="/admin/quiz/create" className="btn btn-primary">+ Create Quiz</Link>
             </div>
 
             {/* Integrity stats */}
-            <div className="admin-stats-grid" style={{ marginBottom: 28 }}>
+            <div className="admin-stats-grid" style={{ marginBottom: 28 }} data-reveal-stagger="80">
                 {[
                     { label: 'Total Attempts', value: stats.total_attempts,   color: 'var(--text)' },
                     { label: 'Total Passed',   value: stats.total_passed,     color: 'var(--emerald)' },
                     { label: 'AI Flagged',     value: stats.total_ai_flagged, color: 'var(--coral)' },
-                    { label: 'Avg Pass Rate',  value: `${stats.avg_pass_rate}%`, color: 'var(--cyan)' },
+                    { label: 'Avg Pass Rate',  value: stats.avg_pass_rate, suffix: '%', color: 'var(--cyan)' },
                 ].map(s => (
-                    <div key={s.label} className="admin-stat-card">
+                    <div key={s.label} className="admin-stat-card hover-lift" data-reveal>
                         <div className="admin-stat-label">{s.label}</div>
-                        <div className="admin-stat-value" style={{ color: s.color }}>{s.value ?? 0}</div>
+                        <div className="admin-stat-value" style={{ color: s.color }}><CountUp end={s.value ?? 0} suffix={s.suffix ?? ''} /></div>
                     </div>
                 ))}
             </div>
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead>
                         <tr>

@@ -44,7 +44,7 @@ export default function InterviewBoardCreate() {
 
     return (
         <MainLayout>
-            <Head title="Share Interview Experience — DevRank" />
+            <Head title="Share Interview Experience" />
             <div className="container" style={{ paddingTop: 36, paddingBottom: 80, maxWidth: 720 }}>
 
                 {/* Header */}
@@ -65,7 +65,7 @@ export default function InterviewBoardCreate() {
                     </div>
                 )}
 
-                <form onSubmit={submit}>
+                <form onSubmit={submit} data-reveal-stagger="70">
                     {/* Company + Role */}
                     <Section title="Company & Role">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -189,7 +189,7 @@ export default function InterviewBoardCreate() {
 
                     {/* Submit */}
                     <div style={{ display: 'flex', gap: 12 }}>
-                        <LoadingButton type="submit" className="btn btn-primary" loading={form.processing}
+                        <LoadingButton type="submit" className="btn btn-primary pop-on-active" loading={form.processing}
                             style={{ padding: '12px 28px', fontSize: 15 }}>
                             Post Review
                         </LoadingButton>
@@ -203,7 +203,7 @@ export default function InterviewBoardCreate() {
 
 function Section({ title, children, last }) {
     return (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: last ? 24 : 16 }}>
+        <div data-reveal style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: last ? 24 : 16 }}>
             <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 18 }}>
                 {title}
             </div>

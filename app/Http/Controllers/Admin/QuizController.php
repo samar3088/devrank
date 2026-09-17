@@ -151,6 +151,11 @@ class QuizController extends Controller
             'options.*.is_correct'  => ['required', 'boolean'],
         ]);
  
+        // Phase-1 (AI off): coding questions can't be graded, so block creating them.
+        if ($validated['type'] === 'coding' && ! config('devrank.ai.enabled', false)) {
+            return back()->withErrors(['type' => 'Coding questions are disabled while AI grading is off. Add MCQ questions only.']);
+        }
+
         // Exactly one correct option for MCQ
         if ($validated['type'] === 'mcq') {
             $correctCount = collect($validated['options'])->where('is_correct', true)->count();

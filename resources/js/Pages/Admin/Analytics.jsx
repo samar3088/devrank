@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 
 export default function AdminAnalytics() {
     const { data } = usePage().props;
@@ -28,7 +29,7 @@ export default function AdminAnalytics() {
             </div>
 
             {/* ── Platform Totals ──────────────────────────────── */}
-            <div className="admin-stats-grid" style={{ marginBottom: 32 }}>
+            <div className="admin-stats-grid" style={{ marginBottom: 32 }} data-reveal-stagger="80">
                 {[
                     { label: 'Total Candidates',   value: totals.candidates,    color: 'var(--violet-bright)' },
                     { label: 'Total Companies',    value: totals.companies,     color: 'var(--cyan)' },
@@ -39,10 +40,10 @@ export default function AdminAnalytics() {
                     { label: 'Quiz Attempts',      value: totals.quiz_attempts, color: 'var(--text2)' },
                     { label: 'AI Flagged',         value: totals.ai_flagged,    color: totals.ai_flagged > 0 ? 'var(--coral)' : 'var(--text3)' },
                 ].map(s => (
-                    <div key={s.label} className="admin-stat-card">
+                    <div key={s.label} className="admin-stat-card hover-lift" data-reveal>
                         <div className="admin-stat-label">{s.label}</div>
                         <div className="admin-stat-value" style={{ color: s.color, fontSize: '1.5rem' }}>
-                            {s.value?.toLocaleString()}
+                            <CountUp end={s.value} />
                         </div>
                     </div>
                 ))}
@@ -105,7 +106,7 @@ export default function AdminAnalytics() {
             </div>
 
             {/* ── Top Tags ─────────────────────────────────────── */}
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14 }}>
                     Top 5 Tags by Forum Activity
                 </div>
@@ -143,7 +144,7 @@ export default function AdminAnalytics() {
 
 function ChartCard({ title, children }) {
     return (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20 }} data-reveal>
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>{title}</div>
             {children}
         </div>

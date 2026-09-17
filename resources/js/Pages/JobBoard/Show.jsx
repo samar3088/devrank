@@ -1,6 +1,7 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
+import CountUp from '@/Components/CountUp';
 import { FullFooter } from '@/Components/Footer';
 
 export default function JobShow() {
@@ -67,7 +68,7 @@ export default function JobShow() {
                     {/* Main Content */}
                     <div>
                         {/* Job Hero */}
-                        <div className="job-hero">
+                        <div className="job-hero" data-reveal>
                             <div className="job-hero-top">
                                 <div>
                                     <div className="job-hero-company">
@@ -88,7 +89,7 @@ export default function JobShow() {
                                         <span>⏱ {job.job_type}</span>
                                         {job.experience_range && <span>🧑‍💼 {job.experience_range}</span>}
                                         <span>⏳ Posted {new Date(job.published_at || job.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                                        <span>👥 {job.applications_count} applicants</span>
+                                        <span>👥 <CountUp end={job.applications_count} /> applicants</span>
                                     </div>
                                 </div>
                                 {salary && (
@@ -138,7 +139,7 @@ export default function JobShow() {
                     </div>
 
                     {/* Apply Sidebar */}
-                    <div className="apply-box">
+                    <div className="apply-box" data-reveal="right">
                         {salary && (
                             <>
                                 <div className="apply-salary">{salary}</div>
@@ -165,7 +166,7 @@ export default function JobShow() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div className="apply-stat-row"><span className="apply-stat-label">Deadline</span><span className="apply-stat-value">{daysLeft(job.expires_at)}</span></div>
-                            <div className="apply-stat-row"><span className="apply-stat-label">Applicants</span><span className="apply-stat-value">{job.applications_count}</span></div>
+                            <div className="apply-stat-row"><span className="apply-stat-label">Applicants</span><span className="apply-stat-value"><CountUp end={job.applications_count} /></span></div>
                             <div className="apply-stat-row"><span className="apply-stat-label">Work Mode</span><span className="apply-stat-value">{job.work_mode}</span></div>
                             <div className="apply-stat-row"><span className="apply-stat-label">Experience</span><span className="apply-stat-value">{job.experience_range || job.experience_level || '—'}</span></div>
                         </div>
@@ -227,7 +228,7 @@ function ApplyForm({ jobId, canApply }) {
             {form.errors.cover_letter && (
                 <div style={{ color: 'var(--coral)', fontSize: '12px', marginBottom: '8px' }}>{form.errors.cover_letter}</div>
             )}
-            <LoadingButton type="submit" loading={form.processing} className="apply-btn-full">
+            <LoadingButton type="submit" loading={form.processing} className="apply-btn-full pop-on-active">
                 {form.processing ? 'Submitting...' : 'Apply Now'}
             </LoadingButton>
         </form>

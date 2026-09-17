@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
+use App\Models\JobApplication;
 use App\Models\JobListing;
 use App\Services\JobService;
 use Illuminate\Http\Request;
@@ -153,5 +154,53 @@ class JobController extends Controller
 
         return redirect()->route('company.jobs.index')
             ->with('success', 'Job deleted successfully.');
+    }
+
+    /**
+     * View everyone who applied to a job + move them through the pipeline.
+     */
+    public function applicants(JobListing $job)
+    {
+        if ($job->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $job->load('tags:id,name,slug');
+
+        return Inertia::render('Company/Jobs/Applicants', [
+            'job' => [
+                'id'       => $job->id,
+                'title'    => $job->title,
+                'slug'     => $job->slug,
+                'status'   => $job->status,
+                'location' => $job->location,
+                'job_type' => $job->job_type,
+            ],
+            'applicants' => $this->jobService->getJobApplicants($job),
+            'statuses'   => ['applied', 'reviewing', 'shortlisted', 'interview', 'offered', 'rejected'],
+        ]);
+    }
+
+    /**
+     * Update an applicant's pipeline status (owner-scoped).
+     */
+    public function updateApplicationStatus(Request $request, JobApplication $application)
+    {
+        if ($application->jobListing->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'status'           => ['required', 'in:applied,reviewing,shortlisted,interview,offered,rejected'],
+            'rejection_reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $this->jobService->updateApplicationStatus(
+            $application,
+            $validated['status'],
+            $validated['rejection_reason'] ?? null
+        );
+
+        return back()->with('success', 'Applicant status updated.');
     }
 }

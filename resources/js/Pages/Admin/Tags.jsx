@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminFilterBar, AdminPagination, fmtDate } from '@/Pages/Admin/AdminShared';
 
 export default function AdminTags() {
@@ -12,8 +13,8 @@ export default function AdminTags() {
 
     return (
         <AdminLayout title="Tag Approval" stats={stats}>
-            <div className="admin-page-header">
-                <div><h1>Tags</h1><p>{stats?.pending_tags || 0} pending approval</p></div>
+            <div className="admin-page-header" data-reveal="fade">
+                <div><h1>Tags</h1><p><CountUp end={stats?.pending_tags || 0} /> pending approval</p></div>
             </div>
 
             <AdminFilterBar route="/admin/tags" filters={filters} placeholder="Search tags..."
@@ -23,7 +24,7 @@ export default function AdminTags() {
                     { value: 'rejected', label: 'Rejected' },
                 ]} />
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead><tr><th>Tag</th><th>Suggested By</th><th>Topics</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
@@ -45,10 +46,10 @@ export default function AdminTags() {
                                 <td>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                         {tag.status !== 'approved' && (
-                                            <button onClick={() => approve(tag.id)} className="admin-action-btn green">Approve</button>
+                                            <button onClick={() => approve(tag.id)} className="admin-action-btn green pop-on-active">Approve</button>
                                         )}
                                         {tag.status !== 'rejected' && (
-                                            <button onClick={() => reject(tag.id)} className="admin-action-btn red">Reject</button>
+                                            <button onClick={() => reject(tag.id)} className="admin-action-btn red pop-on-active">Reject</button>
                                         )}
                                     </div>
                                 </td>

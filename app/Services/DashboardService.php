@@ -71,9 +71,10 @@ class DashboardService
         // We track score snapshots — if no snapshot table, we estimate from attempts
         $weeklyHistory = $this->getWeeklyRankHistory($user->id, $user->total_rank_score);
 
-        // Pending actions — quizzes not yet taken
+        // Pending actions — quizzes not yet taken (whereDoesntHave avoids
+        // pulling every attempted quiz_id into PHP for a whereNotIn).
         $untakenQuizCount = \App\Models\Quiz::published()
-            ->whereNotIn('id', QuizAttempt::where('user_id', $user->id)->pluck('quiz_id'))
+            ->whereDoesntHave('attempts', fn ($q) => $q->where('user_id', $user->id))
             ->count();
 
         return [
@@ -131,28 +132,55 @@ class DashboardService
             ->groupBy('status')
             ->pluck('c', 'status');
         $appCount = fn ($status) => (int) ($appCounts[$status] ?? 0);
+        $totalApplications = (int) $appCounts->sum();
+
+        // Outreach breakdown in one pass instead of repeated queries
+        $sentInterests     = $user->sentInterests()->get(['status']);
+        $interestsSent     = $sentInterests->count();
+        $interestsAccepted = $sentInterests->where('status', 'accepted')->count();
+        $interestsPending  = $sentInterests->where('status', 'pending')->count();
+
+        // Active jobs expiring within the next 7 days
+        $expiringJobs = $user->jobListings()
+            ->where('status', 'active')
+            ->whereBetween('expires_at', [now(), now()->addDays(7)])
+            ->count();
 
         return [
             'total_jobs'               => $jobs->count(),
             'active_jobs'              => $jobs->where('status', 'active')->count(),
-            'total_applications'       => (int) $appCounts->sum(),
+            'expiring_jobs'            => $expiringJobs,
+            'total_applications'       => $totalApplications,
+            'total_applicants'         => $totalApplications, // alias for the dashboard card
             'new_applications'         => $appCount('applied'),
-            'interests_sent'           => $user->sentInterests()->count(),
-            'interests_accepted'       => $user->sentInterests()->where('status', 'accepted')->count(),
+            'trust_score'              => (int) ($user->trust_score ?? 0),
+
+            // Outreach / interest
+            'interests_sent'           => $interestsSent,
+            'interests_accepted'       => $interestsAccepted,
+            'outreach_sent'            => $interestsSent,
+            'outreach_accepted'        => $interestsAccepted,
+            'outreach_pending'         => $interestsPending,
+
             'monthly_posts_remaining'  => max(0,
                 config('devrank.limits.monthly_job_posts', 5) - $user->monthly_job_posts
             ),
             'monthly_interest_remaining' => max(0,
                 config('devrank.limits.monthly_outreach', 10) - $user->monthly_outreach_sent
             ),
-            // Pipeline stages
+
+            // Pipeline stages (real counts)
             'pipeline' => [
                 'applied'     => $appCount('applied'),
                 'reviewing'   => $appCount('reviewing'),
                 'shortlisted' => $appCount('shortlisted'),
                 'interview'   => $appCount('interview'),
                 'offered'     => $appCount('offered'),
+                'rejected'    => $appCount('rejected'),
             ],
+
+            // Recent applicants across all jobs
+            'recent_applicants' => app(JobService::class)->getRecentApplicants($user, 6),
         ];
     }
 

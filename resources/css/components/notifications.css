@@ -1,0 +1,87 @@
+/* ================================================================
+   Notification bell + dropdown (nav) and notifications page
+   ================================================================ */
+.notif { position: relative; display: flex; align-items: center; }
+
+.notif-bell {
+    position: relative;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 16px; cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, transform .12s ease;
+}
+.notif-bell:hover { border-color: var(--border3); background: var(--surface2); }
+.notif-bell:active { transform: scale(.94); }
+
+.notif-badge {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--coral); color: #fff;
+    font-size: 10px; font-weight: 700; line-height: 1;
+    border-radius: 999px; border: 2px solid var(--bg);
+}
+
+.notif-panel {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    width: 360px; max-width: calc(100vw - 32px);
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-lg);
+    z-index: 200; overflow: hidden;
+    animation: notif-in .16s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes notif-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.notif-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 700; color: var(--text);
+}
+.notif-markall {
+    background: none; border: none; cursor: pointer;
+    color: var(--violet-bright); font-size: 12px; font-weight: 600; padding: 0;
+}
+.notif-markall:hover { color: #fff; }
+
+.notif-list { max-height: 380px; overflow-y: auto; }
+
+.notif-item {
+    width: 100%; text-align: left;
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 12px 16px; border: none; cursor: pointer;
+    background: transparent; border-bottom: 1px solid var(--border);
+    transition: background .12s ease;
+}
+.notif-item:hover { background: var(--surface2); }
+.notif-item.is-unread { background: color-mix(in srgb, var(--violet) 7%, transparent); }
+.notif-item.is-unread:hover { background: color-mix(in srgb, var(--violet) 11%, transparent); }
+
+.notif-icon { font-size: 17px; line-height: 1.4; flex-shrink: 0; }
+.notif-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.notif-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; }
+.notif-sub { font-size: 12px; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notif-time { font-size: 11px; color: var(--text4); margin-top: 2px; }
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--violet-bright); flex-shrink: 0; margin-top: 5px; }
+
+.notif-empty { padding: 32px 16px; text-align: center; color: var(--text3); font-size: 13px; }
+
+.notif-foot {
+    display: block; text-align: center; padding: 11px;
+    font-size: 12px; font-weight: 600; color: var(--violet-bright);
+    text-decoration: none; border-top: 1px solid var(--border); background: var(--surface2);
+}
+.notif-foot:hover { color: #fff; background: var(--surface3); }
+
+/* ── Notifications page ── */
+.notif-page-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 16px 18px; border: 1px solid var(--border);
+    border-radius: var(--r-lg); background: var(--surface); margin-bottom: 10px;
+    text-decoration: none; transition: border-color .15s ease, transform .15s ease;
+}
+.notif-page-item:hover { border-color: var(--border3); transform: translateY(-1px); }
+.notif-page-item.is-unread { border-left: 3px solid var(--violet-bright); }
+.notif-page-item .notif-icon { font-size: 22px; }

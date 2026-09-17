@@ -67,9 +67,9 @@ export default function CreateJob() {
                     <p>Fill in the details below. Posts remaining this month: {monthlyPostsRemaining}</p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} data-reveal-stagger="70">
                     {/* Basic Info */}
-                    <div className="job-form-section">
+                    <div className="job-form-section" data-reveal>
                         <div className="job-form-section-title">Basic Information</div>
 
                         <div className="form-group">
@@ -121,7 +121,7 @@ export default function CreateJob() {
                     </div>
 
                     {/* Job Details */}
-                    <div className="job-form-section">
+                    <div className="job-form-section" data-reveal>
                         <div className="job-form-section-title">Job Details</div>
 
                         <div className="form-row">
@@ -194,7 +194,7 @@ export default function CreateJob() {
                     </div>
 
                     {/* Salary */}
-                    <div className="job-form-section">
+                    <div className="job-form-section" data-reveal>
                         <div className="job-form-section-title">Compensation</div>
 
                         <div className="form-row-3">
@@ -236,7 +236,7 @@ export default function CreateJob() {
                     </div>
 
                     {/* Tags */}
-                    <div className="job-form-section">
+                    <div className="job-form-section" data-reveal>
                         <div className="job-form-section-title">Technology Tags</div>
                         <div className="tag-selector">
                             {tags.map(tag => (
@@ -260,7 +260,7 @@ export default function CreateJob() {
                         <LoadingButton
                             type="submit"
                             loading={form.processing}
-                            className="btn-submit"
+                            className="btn-submit pop-on-active"
                         >
                             {form.processing ? 'Publishing...' : 'Publish Job'}
                         </LoadingButton>

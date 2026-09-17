@@ -18,7 +18,7 @@ export default function ResetPassword({ token, email }) {
             <Head title="Reset Password" />
 
             <div className="password-wrapper">
-                <div className="password-card">
+                <div className="password-card" data-reveal="scale">
                     <div className="password-header">
                         <Link href="/" className="password-logo">
                             <span className="password-logo-mark">DR</span>
@@ -71,7 +71,7 @@ export default function ResetPassword({ token, email }) {
                         <LoadingButton
                             type="submit"
                             loading={form.processing}
-                            className="password-submit-btn"
+                            className="password-submit-btn pop-on-active"
                         >
                             {form.processing ? 'Resetting...' : 'Reset Password'}
                         </LoadingButton>

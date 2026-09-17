@@ -1,7 +1,9 @@
 import { Head, useForm, Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
+
+const RichTextEditor = lazy(() => import('@/Components/RichTextEditor'));
 
 export default function CreateTopic() {
     const { categories, tags } = usePage().props;
@@ -42,11 +44,11 @@ export default function CreateTopic() {
 
     return (
         <MainLayout>
-            <Head title="Create Topic — DevRank Forum" />
+            <Head title="Create Topic" />
             <div className="container" style={{ paddingTop: 36, paddingBottom: 80 }}>
 
                 {/* Page Header */}
-                <div style={{ marginBottom: 32 }}>
+                <div data-reveal style={{ marginBottom: 32 }}>
                     <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 12 }}>
                         <Link href="/forum" style={{ color: 'var(--text3)', textDecoration: 'none' }}>Forum</Link>
                         {' '} › Create Topic
@@ -78,7 +80,7 @@ export default function CreateTopic() {
                     <form onSubmit={handleSubmit}>
 
                         {/* Title */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal="fade">
                             <div className="job-form-section-title">Topic Title</div>
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="form-label">
@@ -103,7 +105,7 @@ export default function CreateTopic() {
                         </div>
 
                         {/* Category */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal="fade">
                             <div className="job-form-section-title">Category</div>
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="form-label">
@@ -148,7 +150,7 @@ export default function CreateTopic() {
                         </div>
 
                         {/* Body */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal="fade">
                             <div className="job-form-section-title">Your Question</div>
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="form-label">
@@ -167,20 +169,18 @@ export default function CreateTopic() {
                                 }}>
                                     💡 <strong style={{ color: 'var(--text2)' }}>Tips:</strong> Explain what you tried, what you expected, and what actually happened. Include code snippets if relevant.
                                 </div>
-                                <textarea
-                                    className={`form-input${form.errors.body ? ' is-error' : ''}`}
-                                    rows={14}
-                                    placeholder={`Describe your question in detail...\n\nWhat have you tried so far?\nWhat error or unexpected behaviour are you seeing?\nWhat is your expected outcome?`}
-                                    value={form.data.body}
-                                    onChange={e => form.setData('body', e.target.value)}
-                                    style={{ resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.7 }}
-                                />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                                <Suspense fallback={<div style={{ padding: 16, color: 'var(--text3)', border: '1px solid var(--border2)', borderRadius: 'var(--r-lg)' }}>Loading editor…</div>}>
+                                    <RichTextEditor
+                                        value={form.data.body}
+                                        onChange={html => form.setData('body', html)}
+                                        placeholder="Describe your question — what you tried, what you expected, and what actually happened. Add code blocks or images with the toolbar."
+                                    />
+                                </Suspense>
+                                <div style={{ marginTop: 6 }}>
                                     {form.errors.body
                                         ? <span className="form-error">{form.errors.body}</span>
-                                        : <span style={{ fontSize: 11, color: 'var(--text3)' }}>Min 30 characters.</span>
+                                        : <span style={{ fontSize: 11, color: 'var(--text3)' }}>Min 30 characters. Use the toolbar for formatting, code, and images.</span>
                                     }
-                                    <span style={{ fontSize: 11, color: 'var(--text3)' }}>{form.data.body.length} chars</span>
                                 </div>
                             </div>
                         </div>
@@ -189,7 +189,7 @@ export default function CreateTopic() {
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                             <LoadingButton
                                 type="submit"
-                                className="btn btn-primary"
+                                className="btn btn-primary pop-on-active"
                                 loading={form.processing}
                                 style={{ padding: '12px 28px', fontSize: 15 }}
                             >

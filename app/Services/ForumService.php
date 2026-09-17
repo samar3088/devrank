@@ -126,7 +126,7 @@ class ForumService
             'category_id' => $data['category_id'],
             'title'       => $data['title'],
             'slug'        => $this->uniqueSlug($data['title']),
-            'body'        => $data['body'],
+            'body'        => app(HtmlSanitizer::class)->clean($data['body']),
             'status'      => 'open',
         ]);
 
@@ -167,7 +167,7 @@ class ForumService
         $reply = Reply::create([
             'topic_id' => $topicId,
             'user_id'  => $user->id,
-            'body'     => $data['body'],
+            'body'     => app(HtmlSanitizer::class)->clean($data['body']),
             'status'   => 'visible',
         ]);
 
@@ -180,13 +180,27 @@ class ForumService
         // Award rank points for contributing an answer
         $this->awardPoints($user->id, config('devrank.points.reply_posted', 5));
 
+        // Notify the topic owner that someone answered their question
+        $topic = Topic::find($topicId);
+        if ($topic) {
+            app(NotificationService::class)->notify(
+                user:    $topic->user_id,
+                type:    'new_reply',
+                title:   $user->name . ' answered your question',
+                body:    \Illuminate\Support\Str::limit($topic->title, 100),
+                url:     '/forum/' . $topic->slug,
+                icon:    '💬',
+                actorId: $user->id,
+            );
+        }
+
         return $reply;
     }
 
     // ── Update reply ─────────────────────────────────────────────
     public function updateReply(Reply $reply, string $body): void
     {
-        $reply->update(['body' => $body]);
+        $reply->update(['body' => app(HtmlSanitizer::class)->clean($body)]);
     }
 
     // ── Delete reply (soft) ──────────────────────────────────────
@@ -228,6 +242,16 @@ class ForumService
 
         if ($newValue) {
             $this->awardPoints($reply->user_id, $points);
+
+            app(NotificationService::class)->notify(
+                user:    $reply->user_id,
+                type:    'answer_accepted',
+                title:   'Your answer was accepted (+' . $points . ' pts)',
+                body:    \Illuminate\Support\Str::limit($topic->title, 100),
+                url:     '/forum/' . $topic->slug,
+                icon:    '✅',
+                actorId: $topic->user_id,
+            );
         }
     }
 

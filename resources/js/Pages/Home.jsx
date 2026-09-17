@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 export default function Home() {
     return (
@@ -10,36 +11,36 @@ export default function Home() {
             {/* ── Hero ──────────────────────────────────────── */}
             <section className="hero">
                 <div className="hero-inner">
-                    <div>
-                        <div className="hero-eyebrow">🚀 The Future of Tech Hiring</div>
-                        <h1>Your <em>Knowledge</em> Is Your Resume</h1>
-                        <p className="hero-desc">
+                    <div data-reveal-stagger="90">
+                        <div className="hero-eyebrow" data-reveal="fade">🚀 The Future of Tech Hiring</div>
+                        <h1 data-reveal>Your <em>Knowledge</em> Is Your Resume</h1>
+                        <p className="hero-desc" data-reveal>
                             DevRank ranks developers by what they actually know — verified forum answers, skill quizzes, and real interview performance. Companies find the best talent. Candidates get fair, transparent hiring.
                         </p>
-                        <div className="hero-cta">
-                            <Link href="/account" className="btn-hero btn-hero-primary">Join as Candidate</Link>
-                            <Link href="/account" className="btn-hero btn-hero-outline">Post Jobs as Company</Link>
+                        <div className="hero-cta" data-reveal>
+                            <Link href="/account" className="btn-hero btn-hero-primary pop-on-active">Join as Candidate</Link>
+                            <Link href="/account" className="btn-hero btn-hero-outline pop-on-active">Post Jobs as Company</Link>
                         </div>
-                        <div className="hero-stats">
+                        <div className="hero-stats" data-reveal>
                             <div>
-                                <div className="hero-stat-value">24,800+</div>
+                                <div className="hero-stat-value"><CountUp end={24800} suffix="+" /></div>
                                 <div className="hero-stat-label">Ranked Developers</div>
                             </div>
                             <div>
-                                <div className="hero-stat-value">1,340</div>
+                                <div className="hero-stat-value"><CountUp end={1340} /></div>
                                 <div className="hero-stat-label">Companies Hiring</div>
                             </div>
                             <div>
-                                <div className="hero-stat-value">98%</div>
+                                <div className="hero-stat-value"><CountUp end={98} suffix="%" /></div>
                                 <div className="hero-stat-label">Human-Verified Answers</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Hero Card Stack */}
-                    <div className="hero-visual">
+                    <div className="hero-visual" data-reveal="scale">
                         <div className="hero-card-stack">
-                            <div className="hcard hcard-1">
+                            <div className="hcard hcard-1 dr-float">
                                 <div className="hcard-rank-row">
                                     <div className="rank-badge gold">#1</div>
                                     <div className="home-avatar">AK</div>
@@ -49,20 +50,20 @@ export default function Home() {
                                     </div>
                                 </div>
                                 <div className="hcard-bars">
-                                    <div className="hcard-bar-row">Forum <div className="bar"><span style={{width:'92%'}}></span></div> 92</div>
-                                    <div className="hcard-bar-row">Quiz <div className="bar"><span style={{width:'88%'}}></span></div> 88</div>
-                                    <div className="hcard-bar-row">Interviews <div className="bar"><span style={{width:'95%'}}></span></div> 95</div>
+                                    <div className="hcard-bar-row">Forum <div className="bar"><span className="bar-grow" data-reveal="none" style={{'--bar-w':'92%'}}></span></div> 92</div>
+                                    <div className="hcard-bar-row">Quiz <div className="bar"><span className="bar-grow" data-reveal="none" style={{'--bar-w':'88%'}}></span></div> 88</div>
+                                    <div className="hcard-bar-row">Interviews <div className="bar"><span className="bar-grow" data-reveal="none" style={{'--bar-w':'95%'}}></span></div> 95</div>
                                 </div>
                                 <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'16px'}}>
                                     <div className="human-score">
-                                        <div className="hs-bar"><div className="hs-fill" style={{width:'96%'}}></div></div>
+                                        <div className="hs-bar"><div className="hs-fill bar-grow" data-reveal="none" style={{'--bar-w':'96%'}}></div></div>
                                         96% Human
                                     </div>
                                     <span className="home-badge home-badge-violet">Verified</span>
                                 </div>
                             </div>
 
-                            <div className="hcard hcard-2">
+                            <div className="hcard hcard-2 dr-float-2">
                                 <div className="hcard-rank-row">
                                     <div className="rank-badge silver">#2</div>
                                     <div className="home-avatar">PS</div>
@@ -94,24 +95,24 @@ export default function Home() {
             {/* ── How It Works ───────────────────────────────── */}
             <section className="home-section">
                 <div className="home-container">
-                    <div className="section-header">
+                    <div className="section-header" data-reveal>
                         <span className="section-eyebrow">How It Works</span>
                         <h2>Hiring That Actually Makes Sense</h2>
                         <p>Three roles. One transparent platform. Zero ghosting.</p>
                     </div>
 
-                    <div className="how-grid">
-                        <div className="how-item">
+                    <div className="how-grid" data-reveal-stagger="110">
+                        <div className="how-item hover-lift" data-reveal>
                             <div className="how-number">01</div>
                             <h3>Candidates Build Real Rank</h3>
                             <p>Answer forum questions, pass skill quizzes, complete verified interviews. Every action builds a transparent, multi-pillar rank score — not just years of experience.</p>
                         </div>
-                        <div className="how-item">
+                        <div className="how-item hover-lift" data-reveal>
                             <div className="how-number">02</div>
                             <h3>Companies Find Verified Talent</h3>
                             <p>Browse ranked candidates by technology tag. Request free first screening. Send direct outreach to top developers — without posting a job first.</p>
                         </div>
-                        <div className="how-item">
+                        <div className="how-item hover-lift" data-reveal>
                             <div className="how-number">03</div>
                             <h3>Transparent Outcomes For All</h3>
                             <p>Mandatory rejection reasons. Interview experience reviews. Company trust scores. Everyone knows where they stand and why.</p>
@@ -123,16 +124,16 @@ export default function Home() {
             {/* ── Leaderboard Preview ────────────────────────── */}
             <section className="home-section" style={{paddingTop:0}}>
                 <div className="home-container">
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'32px',flexWrap:'wrap',gap:'16px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'32px',flexWrap:'wrap',gap:'16px'}} data-reveal>
                         <div>
-                            <span className="section-eyebrow" style={{marginBottom:'8px',display:'block'}}>Live Rankings</span>
+                            <span className="section-eyebrow" style={{marginBottom:'8px',display:'inline-flex',alignItems:'center',gap:'7px'}}><span className="dr-live-dot"></span> Live Rankings</span>
                             <h2 style={{fontSize:'clamp(1.8rem, 3vw, 2.2rem)',fontWeight:700,letterSpacing:'-0.03em'}}>Top Ranked Developers</h2>
                         </div>
-                        <Link href="/leaderboard" className="btn-hero btn-hero-outline" style={{padding:'9px 20px',fontSize:'14px'}}>View Full Leaderboard →</Link>
+                        <Link href="/leaderboard" className="btn-hero btn-hero-outline hover-raise" style={{padding:'9px 20px',fontSize:'14px'}}>View Full Leaderboard →</Link>
                     </div>
 
-                    <div className="lb-preview">
-                        <div className="lb-header">
+                    <div className="lb-preview" data-reveal="fade" data-reveal-stagger="60">
+                        <div className="lb-header" data-reveal="fade">
                             <div style={{display:'flex',gap:'8px'}}>
                                 <span className="home-badge home-badge-violet">React</span>
                                 <span className="home-badge home-badge-muted">Node.js</span>
@@ -142,7 +143,7 @@ export default function Home() {
                             <span style={{fontSize:'13px',color:'var(--text3)'}}>Updated hourly</span>
                         </div>
 
-                        <div className="lb-row" style={{background:'var(--surface)',borderBottom:'1px solid var(--border2)'}}>
+                        <div className="lb-row" style={{background:'var(--surface)',borderBottom:'1px solid var(--border2)'}} data-reveal="fade">
                             <span style={{fontSize:'11px',color:'var(--text3)',fontWeight:700,textTransform:'uppercase'}}>Rank</span>
                             <span style={{fontSize:'11px',color:'var(--text3)',fontWeight:700,textTransform:'uppercase'}}>Candidate</span>
                             <span style={{fontSize:'11px',color:'var(--text3)',fontWeight:700,textTransform:'uppercase'}}>Human Score</span>
@@ -163,28 +164,28 @@ export default function Home() {
             <section className="home-section">
                 <div className="home-container">
                     <div className="trust-section-grid">
-                        <div>
+                        <div data-reveal="left">
                             <span className="trust-eyebrow">Company Trust System</span>
                             <h2 style={{fontSize:'clamp(1.8rem, 3vw, 2.2rem)',fontWeight:700,letterSpacing:'-0.03em',marginBottom:'16px'}}>Companies Earn Their Reputation Too</h2>
                             <p style={{color:'var(--text2)',fontSize:'16px',lineHeight:'1.7',marginBottom:'28px'}}>Every company gets a transparent Trust Score based on how they treat candidates — ghosting rate, feedback quality, verified hires, and work environment reviews.</p>
-                            <div className="badge-showcase">
-                                <div className="badge-card">🏅 Transparent Employer</div>
-                                <div className="badge-card">⚡ Fast Responder</div>
-                                <div className="badge-card">✅ Trusted Hirer</div>
-                                <div className="badge-card">❤️ Candidate Friendly</div>
-                                <div className="badge-card">🌟 Top Rated Company</div>
+                            <div className="badge-showcase" data-reveal-stagger="70">
+                                <div className="badge-card hover-sheen hover-raise" data-reveal="scale">🏅 Transparent Employer</div>
+                                <div className="badge-card hover-sheen hover-raise" data-reveal="scale">⚡ Fast Responder</div>
+                                <div className="badge-card hover-sheen hover-raise" data-reveal="scale">✅ Trusted Hirer</div>
+                                <div className="badge-card hover-sheen hover-raise" data-reveal="scale">❤️ Candidate Friendly</div>
+                                <div className="badge-card hover-sheen hover-raise" data-reveal="scale">🌟 Top Rated Company</div>
                             </div>
                             <p style={{marginTop:'20px',fontSize:'13px',color:'var(--text3)'}}>Badges auto-awarded based on real platform data. Cannot be bought.</p>
                         </div>
-                        <div className="trust-card">
-                            <div className="trust-gauge-score">87</div>
+                        <div className="trust-card hover-lift" data-reveal="right">
+                            <div className="trust-gauge-score"><CountUp end={87} /></div>
                             <div className="trust-gauge-label">Trust Score / 100</div>
                             <hr className="home-divider" />
                             <div className="pillar-bars" style={{marginTop:'16px'}}>
-                                <div className="pillar-row"><span className="pillar-label">Hiring Process</span><div className="pillar-bar"><div className="pillar-fill" style={{width:'91%'}}></div></div><span className="pillar-score">91</span></div>
-                                <div className="pillar-row"><span className="pillar-label">Candidate Exp.</span><div className="pillar-bar"><div className="pillar-fill" style={{width:'85%'}}></div></div><span className="pillar-score">85</span></div>
-                                <div className="pillar-row"><span className="pillar-label">Engagement</span><div className="pillar-bar"><div className="pillar-fill" style={{width:'82%'}}></div></div><span className="pillar-score">82</span></div>
-                                <div className="pillar-row"><span className="pillar-label">Hiring Outcomes</span><div className="pillar-bar"><div className="pillar-fill" style={{width:'88%'}}></div></div><span className="pillar-score">88</span></div>
+                                <div className="pillar-row"><span className="pillar-label">Hiring Process</span><div className="pillar-bar"><div className="pillar-fill bar-grow" data-reveal="none" style={{'--bar-w':'91%'}}></div></div><span className="pillar-score">91</span></div>
+                                <div className="pillar-row"><span className="pillar-label">Candidate Exp.</span><div className="pillar-bar"><div className="pillar-fill bar-grow" data-reveal="none" style={{'--bar-w':'85%'}}></div></div><span className="pillar-score">85</span></div>
+                                <div className="pillar-row"><span className="pillar-label">Engagement</span><div className="pillar-bar"><div className="pillar-fill bar-grow" data-reveal="none" style={{'--bar-w':'82%'}}></div></div><span className="pillar-score">82</span></div>
+                                <div className="pillar-row"><span className="pillar-label">Hiring Outcomes</span><div className="pillar-bar"><div className="pillar-fill bar-grow" data-reveal="none" style={{'--bar-w':'88%'}}></div></div><span className="pillar-score">88</span></div>
                             </div>
                             <div style={{display:'flex',gap:'8px',justifyContent:'center',marginTop:'24px'}}>
                                 <span className="home-badge home-badge-gold">🏅 Transparent Employer</span>
@@ -198,12 +199,12 @@ export default function Home() {
             {/* ── Testimonials ────────────────────────────────── */}
             <section className="home-section" style={{paddingTop:0}}>
                 <div className="home-container">
-                    <div className="section-header">
+                    <div className="section-header" data-reveal>
                         <span className="section-eyebrow">What People Say</span>
                         <h2>Built for Real People</h2>
                     </div>
-                    <div className="testimonial-grid">
-                        <div className="testimonial">
+                    <div className="testimonial-grid" data-reveal-stagger="100">
+                        <div className="testimonial hover-lift" data-reveal>
                             <div className="testimonial-stars">★★★★★</div>
                             <p className="testimonial-text">"I got 3 direct outreach messages from companies within a week of reaching #8 in React. No resume needed — my answers spoke for themselves."</p>
                             <div className="testimonial-author">
@@ -214,7 +215,7 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                        <div className="testimonial">
+                        <div className="testimonial hover-lift" data-reveal>
                             <div className="testimonial-stars">★★★★★</div>
                             <p className="testimonial-text">"The mandatory rejection feedback was a game-changer for us. It forced our team to be more thoughtful, and we actually improved our hiring process."</p>
                             <div className="testimonial-author">
@@ -225,7 +226,7 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                        <div className="testimonial">
+                        <div className="testimonial hover-lift" data-reveal>
                             <div className="testimonial-stars">★★★★☆</div>
                             <p className="testimonial-text">"The interview board saved me hours of prep. I knew exactly what to expect in my Infosys interview — rounds, topics, difficulty. I was fully prepared."</p>
                             <div className="testimonial-author">
@@ -243,13 +244,13 @@ export default function Home() {
             {/* ── CTA Banner ──────────────────────────────────── */}
             <section className="home-section-sm">
                 <div className="home-container">
-                    <div className="cta-banner">
+                    <div className="cta-banner hover-sheen" data-reveal="scale">
                         <span className="section-eyebrow" style={{marginBottom:'16px'}}>Start Today — Free</span>
                         <h2>Ready to Build Your Real Rank?</h2>
                         <p>Join 24,000+ developers who are getting hired based on what they know, not just what's on their CV.</p>
                         <div className="cta-buttons">
-                            <Link href="/account" className="btn-hero btn-hero-primary">Join as Developer</Link>
-                            <Link href="/account" className="btn-hero btn-hero-outline">Hire on DevRank</Link>
+                            <Link href="/account" className="btn-hero btn-hero-primary pop-on-active">Join as Developer</Link>
+                            <Link href="/account" className="btn-hero btn-hero-outline pop-on-active">Hire on DevRank</Link>
                         </div>
                     </div>
                 </div>
@@ -262,7 +263,7 @@ export default function Home() {
 
 function LeaderboardRow({ rank, rankClass, initials, name, city, score, tags, points }) {
     return (
-        <div className="lb-row">
+        <div className="lb-row" data-reveal="fade">
             <div className={`rank-badge ${rankClass}`}>{rank}</div>
             <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                 <div className="home-avatar">{initials}</div>
@@ -272,7 +273,7 @@ function LeaderboardRow({ rank, rankClass, initials, name, city, score, tags, po
                 </div>
             </div>
             <div className="human-score">
-                <div className="hs-bar"><div className="hs-fill" style={{width:score}}></div></div>
+                <div className="hs-bar"><div className="hs-fill bar-grow" data-reveal="none" style={{'--bar-w':score}}></div></div>
                 {score}
             </div>
             <div className="home-tags">

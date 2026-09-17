@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminFilterBar, AdminPagination, fmtDate } from '@/Pages/Admin/AdminShared';
 
 export default function AdminJobs() {
@@ -17,8 +18,8 @@ export default function AdminJobs() {
 
     return (
         <AdminLayout title="Job Posts" stats={stats}>
-            <div className="admin-page-header">
-                <div><h1>Job Posts</h1><p>{jobs.total} total jobs</p></div>
+            <div className="admin-page-header" data-reveal="fade">
+                <div><h1>Job Posts</h1><p><CountUp end={jobs.total} /> total jobs</p></div>
             </div>
 
             <AdminFilterBar route="/admin/jobs" filters={filters} placeholder="Search by title..."
@@ -27,7 +28,7 @@ export default function AdminJobs() {
                     { value: 'closed', label: 'Closed' }, { value: 'expired', label: 'Expired' },
                 ]} />
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead><tr><th>Job</th><th>Company</th><th>Applications</th><th>Posted</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>

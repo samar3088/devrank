@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\Log;
 
 class AiScoringService
 {
-    private string $apiUrl   = 'https://api.anthropic.com/v1/messages';
-    private string $model    = 'claude-sonnet-4-6';
-    private int    $maxTokens = 256;
+    private string $apiUrl = 'https://api.anthropic.com/v1/messages';
 
-    // ── AI Detection threshold ───────────────────────────────────
-    // Score >= this value means the answer is flagged as AI-written
-    private float $flagThreshold = 7.0;
+    // Tunables live in config/devrank.php ('ai.*') so the model, threshold,
+    // blend weights and outage behaviour can change without code edits.
+    private function cfg(string $key, mixed $default = null): mixed
+    {
+        return config("devrank.ai.{$key}", $default);
+    }
 
     /**
      * Score a coding answer for AI likelihood + correctness hint.
@@ -37,13 +38,28 @@ class AiScoringService
         // Always call API for the content analysis component
         $apiResult = $this->callAiDetectionApi($questionBody, $answerCode, $language, 'coding');
 
-        // Weighted final score:
-        // 30% paste/time heuristic + 70% API content analysis
-        $finalAiScore = round(($heuristicScore * 0.30) + ($apiResult['ai_score'] * 0.70), 2);
+        if ($apiResult['api_ok']) {
+            // Weighted blend: paste/time heuristic + API content analysis
+            $finalAiScore = round(
+                ($heuristicScore * (float) $this->cfg('heuristic_weight', 0.30))
+                + ($apiResult['ai_score'] * (float) $this->cfg('api_weight', 0.70)),
+                2
+            );
+        } elseif ($this->cfg('flag_on_api_failure', true)) {
+            // API down: lean entirely on the paste/typing heuristic so obvious
+            // paste-cheating is still caught rather than silently passing.
+            $finalAiScore = round($heuristicScore, 2);
+        } else {
+            $finalAiScore = round(
+                ($heuristicScore * (float) $this->cfg('heuristic_weight', 0.30))
+                + ($apiResult['ai_score'] * (float) $this->cfg('api_weight', 0.70)),
+                2
+            );
+        }
 
         return [
             'ai_score'   => $finalAiScore,
-            'ai_flagged' => $finalAiScore >= $this->flagThreshold,
+            'ai_flagged' => $finalAiScore >= (float) $this->cfg('flag_threshold', 7.0),
             'quality'    => $apiResult['quality'],
             'feedback'   => $apiResult['feedback'],
         ];
@@ -109,9 +125,9 @@ class AiScoringService
                 'x-api-key'         => config('services.anthropic.key'),
                 'anthropic-version' => '2023-06-01',
                 'content-type'      => 'application/json',
-            ])->timeout(15)->post($this->apiUrl, [
-                'model'      => $this->model,
-                'max_tokens' => $this->maxTokens,
+            ])->timeout((int) $this->cfg('timeout', 15))->post($this->apiUrl, [
+                'model'      => $this->cfg('model', 'claude-sonnet-4-6'),
+                'max_tokens' => (int) $this->cfg('max_tokens', 256),
                 'system'     => 'You are an expert AI detection system for technical assessments. You respond ONLY with valid JSON and nothing else.',
                 'messages'   => [
                     ['role' => 'user', 'content' => $prompt],
@@ -128,8 +144,9 @@ class AiScoringService
             Log::error('AiScoringService: Exception', ['error' => $e->getMessage()]);
         }
 
-        // Fallback if API fails — neutral score
-        return ['ai_score' => 5.0, 'quality' => 5.0, 'feedback' => 'AI scoring unavailable — manual review required.'];
+        // Fallback if API fails — signal api_ok:false so the caller can fall back
+        // to the paste/typing heuristic for the flag decision.
+        return ['ai_score' => 5.0, 'quality' => 5.0, 'feedback' => 'AI scoring unavailable — manual review required.', 'api_ok' => false];
     }
 
     private function buildPrompt(string $question, string $answer, string $language, string $type): string
@@ -172,9 +189,11 @@ class AiScoringService
                 'ai_score' => (float) min(max($data['ai_score'] ?? 5.0, 0), 10),
                 'quality'  => (float) min(max($data['quality']  ?? 5.0, 0), 10),
                 'feedback' => (string) ($data['feedback'] ?? ''),
+                'api_ok'   => true,
             ];
         } catch (\Throwable) {
-            return ['ai_score' => 5.0, 'quality' => 5.0, 'feedback' => 'Parse error — manual review.'];
+            // Unparseable response — treat like an outage for the flag decision.
+            return ['ai_score' => 5.0, 'quality' => 5.0, 'feedback' => 'Parse error — manual review.', 'api_ok' => false];
         }
     }
 }

@@ -2,6 +2,7 @@ import '../../css/layouts/main.css';
 import { useState, useRef, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import PageLoader from '@/Components/PageLoader';
+import NotificationBell from '@/Components/NotificationBell';
 
 export default function MainLayout({ children }) {
     const { auth } = usePage().props;
@@ -106,6 +107,8 @@ export default function MainLayout({ children }) {
                                 {isCompany && user.company_name && (
                                     <span className="nav-company-name">{user.company_name}</span>
                                 )}
+
+                                <NotificationBell />
 
                                 <div style={{ position: 'relative' }} ref={dropdownRef}>
                                     <div

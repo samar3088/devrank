@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminFilterBar, AdminPagination, fmtDate } from '@/Pages/Admin/AdminShared';
 
 export default function AdminTopics() {
@@ -8,8 +9,8 @@ export default function AdminTopics() {
 
     return (
         <AdminLayout title="Forum Topics" stats={stats}>
-            <div className="admin-page-header">
-                <div><h1>Forum Topics</h1><p>{topics.total} total topics</p></div>
+            <div className="admin-page-header" data-reveal="fade">
+                <div><h1>Forum Topics</h1><p><CountUp end={topics.total} /> total topics</p></div>
             </div>
 
             <AdminFilterBar route="/admin/topics" filters={filters} placeholder="Search topics..."
@@ -19,7 +20,7 @@ export default function AdminTopics() {
                     { value: 'moderated', label: 'Moderated' },
                 ]} />
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead><tr><th>Topic</th><th>Category</th><th>Author</th><th>Replies</th><th>Views</th><th>Posted</th><th>Status</th></tr></thead>
                     <tbody>

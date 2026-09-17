@@ -1,4 +1,5 @@
 import MainLayout from '@/Layouts/MainLayout';
+import CountUp from '@/Components/CountUp';
 
 export default function CompanyIndex({ requests, sent_month, monthly_limit, remaining }) {
     const pct = Math.round((sent_month / monthly_limit) * 100);
@@ -6,10 +7,10 @@ export default function CompanyIndex({ requests, sent_month, monthly_limit, rema
 
     return (
         <MainLayout title="Interest Requests Sent">
-            <div className="container" style={{ paddingTop: 36, paddingBottom: 80 }}>
+            <div className="container" data-reveal-stagger="80" style={{ paddingTop: 36, paddingBottom: 80 }}>
 
                 {/* Header */}
-                <div className="interests-header">
+                <div className="interests-header" data-reveal>
                     <div>
                         <h1>Sent Interest Requests</h1>
                         <p className="text-muted">
@@ -22,22 +23,23 @@ export default function CompanyIndex({ requests, sent_month, monthly_limit, rema
                 </div>
 
                 {/* Monthly Quota */}
-                <div className="quota-panel">
+                <div className="quota-panel" data-reveal>
                     <span className="quota-label">Monthly outreach</span>
                     <div className="quota-bar-wrap">
                         <div className="quota-bar">
                             <div
-                                className={`quota-fill ${fillClass}`}
-                                style={{ width: `${Math.min(pct, 100)}%` }}
+                                className={`quota-fill ${fillClass} bar-grow`}
+                                data-reveal="none"
+                                style={{ width: `${Math.min(pct, 100)}%`, '--bar-w': `${Math.min(pct, 100)}%` }}
                             />
                         </div>
                     </div>
                     <span className="quota-numbers">
-                        {sent_month} / {monthly_limit}
+                        <CountUp end={sent_month} /> / <CountUp end={monthly_limit} />
                     </span>
                     {remaining > 0 ? (
                         <span style={{ fontSize: 12, color: 'var(--text3)' }}>
-                            {remaining} remaining
+                            <CountUp end={remaining} /> remaining
                         </span>
                     ) : (
                         <span style={{ fontSize: 12, color: 'var(--coral)' }}>
@@ -69,7 +71,7 @@ function SentCard({ request }) {
         .split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
     return (
-        <div className="sent-card">
+        <div className="sent-card hover-lift" data-reveal>
             <div className="sent-card-avatar">{initials}</div>
             <div>
                 <div className="sent-card-name">

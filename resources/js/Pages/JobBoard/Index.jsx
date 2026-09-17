@@ -2,6 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 export default function JobsIndex() {
     const { jobs, tags, filters, auth } = usePage().props;
@@ -52,7 +53,7 @@ export default function JobsIndex() {
             <Head title="Job Board" />
             <div className="jobs-container">
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                <div data-reveal style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1 style={{ fontSize: '2rem', marginBottom: '6px' }}>Job Board</h1>
                         <p style={{ color: 'var(--text2)', fontSize: '15px' }}>Jobs from companies with verified Trust Scores. No ghosting guaranteed.</p>
@@ -63,7 +64,7 @@ export default function JobsIndex() {
                 </div>
 
                 {/* Search */}
-                <form onSubmit={handleSearch} className="jobs-search-bar">
+                <form onSubmit={handleSearch} className="jobs-search-bar" data-reveal>
                     <input
                         type="text"
                         className="jobs-search-input"
@@ -76,7 +77,7 @@ export default function JobsIndex() {
 
                 <div className="jobs-layout">
                     {/* Filter Panel */}
-                    <div className="filter-panel">
+                    <div className="filter-panel" data-reveal="left">
                         <div className="filter-panel-header">
                             <h4>Filters</h4>
                             <button className="filter-clear" onClick={clearFilters}>Clear all</button>
@@ -148,9 +149,9 @@ export default function JobsIndex() {
                     </div>
 
                     {/* Jobs List */}
-                    <div>
+                    <div data-reveal-stagger="80">
                         <div className="pub-job-results">
-                            <span>{jobs.total} jobs found</span>
+                            <span><CountUp end={jobs.total} /> jobs found</span>
                         </div>
 
                         {jobs.data.length === 0 ? (
@@ -160,7 +161,7 @@ export default function JobsIndex() {
                             </div>
                         ) : (
                             jobs.data.map(job => (
-                                <div key={job.id} className={`pub-job-card ${job.is_featured ? 'featured' : ''}`}>
+                                <div key={job.id} data-reveal className={`pub-job-card hover-lift ${job.is_featured ? 'featured' : ''}`}>
                                     <div>
                                         {job.is_featured && (
                                             <div style={{ marginBottom: '10px' }}><span className="badge badge-amber">⭐ Featured</span></div>
@@ -199,7 +200,7 @@ export default function JobsIndex() {
                                             <div className="pub-job-salary">{formatSalary(job.salary_min, job.salary_max, job.salary_currency)}</div>
                                         )}
                                         <Link href={`/jobs/${job.slug}`} className="btn-sm btn-primary-sm">Apply Now</Link>
-                                        <span className="pub-job-applicants">{job.applications_count} applicants</span>
+                                        <span className="pub-job-applicants"><CountUp end={job.applications_count} /> applicants</span>
                                     </div>
                                 </div>
                             ))

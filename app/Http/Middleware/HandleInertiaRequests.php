@@ -57,6 +57,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+
+            // Feature flags exposed to the frontend
+            'aiEnabled' => (bool) config('devrank.ai.enabled', false),
         ];
     }
 }

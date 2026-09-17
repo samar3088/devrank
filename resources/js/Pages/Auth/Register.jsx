@@ -110,7 +110,7 @@ export default function Register() {
 
                 {/* ── Right Panel ─────────────────────────────── */}
                 <div className="auth-right">
-                    <div className="auth-form-box">
+                    <div className="auth-form-box" data-reveal="scale">
                         <div className="auth-form-header">
                             <h3>Welcome to DevRank</h3>
                             <p>Join as a candidate or hire as a company.</p>
@@ -341,7 +341,7 @@ export default function Register() {
                                 <LoadingButton
                                     type="submit"
                                     loading={registerForm.processing}
-                                    className="auth-submit-btn"
+                                    className="auth-submit-btn pop-on-active"
                                 >
                                     {registerForm.processing ? 'Creating Account...' : 'Create My Account'}
                                 </LoadingButton>

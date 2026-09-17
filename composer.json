@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
+        "ezyang/htmlpurifier": "^4.19",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.9",

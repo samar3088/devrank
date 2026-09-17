@@ -2,6 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 export default function CompanyProfile() {
     const { company, active_jobs, total_jobs_posted } = usePage().props;
@@ -25,16 +26,16 @@ export default function CompanyProfile() {
 
     return (
         <MainLayout>
-            <Head title={`${company.company_name} — DevRank`} />
+            <Head title={company.company_name} />
             <div className="profile-container">
                 <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '20px' }}>
                     <Link href="/jobs" style={{ color: 'var(--text3)', textDecoration: 'none' }}>Jobs</Link> › Company Profile
                 </div>
 
                 <div className="profile-layout">
-                    <div>
+                    <div data-reveal-stagger="80">
                         {/* Company Hero */}
-                        <div className="profile-hero">
+                        <div className="profile-hero" data-reveal>
                             <div className="profile-header" style={{ alignItems: 'flex-start' }}>
                                 <div className="company-logo-lg">{getInitials(company.company_name)}</div>
                                 <div style={{ flex: 1 }}>
@@ -66,30 +67,30 @@ export default function CompanyProfile() {
                             {/* Quick Stats — 5 columns */}
                             <div className="company-quick-stats" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ color: 'var(--cyan)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}>{trustScore}</div>
+                                    <div className="company-quick-stat-value" style={{ color: 'var(--cyan)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={trustScore} /></div>
                                     <div className="company-quick-stat-label">Trust Score</div>
                                 </div>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}>42</div>
+                                    <div className="company-quick-stat-value" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={42} /></div>
                                     <div className="company-quick-stat-label">Platform Hires</div>
                                 </div>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}>4.8</div>
+                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={4.8} decimals={1} /></div>
                                     <div className="company-quick-stat-label">Avg Rating</div>
                                 </div>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ color: 'var(--champagne)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}>{active_jobs?.length || 0}</div>
+                                    <div className="company-quick-stat-value" style={{ color: 'var(--champagne)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={active_jobs?.length || 0} /></div>
                                     <div className="company-quick-stat-label">Open Jobs</div>
                                 </div>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}>98%</div>
+                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={98} suffix="%" /></div>
                                     <div className="company-quick-stat-label">Feedback Rate</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Tabs */}
-                        <div className="profile-tabs">
+                        <div className="profile-tabs" data-reveal="fade">
                             <button className={`profile-tab ${activeTab === 'trust' ? 'active' : ''}`} onClick={() => setActiveTab('trust')}>🏆 Trust Score</button>
                             <button className={`profile-tab ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>⭐ Reviews (28)</button>
                             <button className={`profile-tab ${activeTab === 'interviews' ? 'active' : ''}`} onClick={() => setActiveTab('interviews')}>🎯 Interviews (42)</button>
@@ -99,11 +100,11 @@ export default function CompanyProfile() {
 
                         {/* Trust Score Tab */}
                         {activeTab === 'trust' && (
-                            <div>
+                            <div data-reveal>
                                 <div className="dash-card" style={{ marginBottom: '20px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                         <h4>Company Trust Score Breakdown</h4>
-                                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2rem', color: 'var(--cyan)' }}>{trustScore}<span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/100</span></div>
+                                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2rem', color: 'var(--cyan)' }}><CountUp end={trustScore} /><span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/100</span></div>
                                     </div>
                                     <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '20px' }}>Recalculated weekly from verified platform data. Cannot be purchased or manipulated.</p>
 
@@ -162,14 +163,14 @@ export default function CompanyProfile() {
 
                         {/* Open Jobs Tab */}
                         {activeTab === 'jobs' && (
-                            <div>
+                            <div data-reveal-stagger="70">
                                 {active_jobs?.length === 0 ? (
                                     <div className="dash-card" style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
                                         No open jobs at the moment.
                                     </div>
                                 ) : (
                                     active_jobs.map(job => (
-                                        <div key={job.id} className="pub-job-card">
+                                        <div key={job.id} className="pub-job-card hover-lift" data-reveal>
                                             <div>
                                                 <Link href={`/jobs/${job.slug}`} className="pub-job-title">{job.title}</Link>
                                                 <div className="pub-job-meta">
@@ -219,8 +220,8 @@ export default function CompanyProfile() {
                     {/* Right Sidebar */}
                     <div style={{ position: 'sticky', top: 'calc(var(--nav-h) + 24px)' }}>
                         {/* Trust Score Card */}
-                        <div className="profile-sidebar-card" style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '48px', fontWeight: 800, marginBottom: '4px' }}>{trustScore}</div>
+                        <div className="profile-sidebar-card" data-reveal="right" style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '48px', fontWeight: 800, marginBottom: '4px' }}><CountUp end={trustScore} /></div>
                             <div style={{ fontSize: '13px', color: 'var(--text3)' }}>Trust Score / 100</div>
                             <div style={{ color: 'var(--champagne)', fontSize: '20px', marginTop: '8px', letterSpacing: '2px' }}>★★★★★</div>
                             <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>4.8 Average Rating</div>
@@ -273,7 +274,7 @@ function TrustFactor({ title, score, badgeColor = 'green', rows }) {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < rows.length - 1 ? '1px solid var(--border)' : 'none' }}>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', width: '200px', flexShrink: 0 }}>{row.name}</span>
                     <div className="pillar-bar" style={{ flex: 1 }}>
-                        <div className="pillar-fill" style={{ width: `${row.width}%`, background: row.color || 'var(--violet-bright)' }}></div>
+                        <div className="pillar-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${row.width}%`, background: row.color || 'var(--violet-bright)' }}></div>
                     </div>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: row.color || 'var(--cyan)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{row.value}</span>
                 </div>

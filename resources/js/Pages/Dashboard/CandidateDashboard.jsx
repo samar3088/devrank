@@ -1,9 +1,10 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 export default function CandidateDashboard() {
-    const { stats, auth } = usePage().props;
+    const { stats, auth, aiEnabled } = usePage().props;
     const user = auth?.user;
 
     // Weekly rank chart — from DashboardService.getWeeklyRankHistory()
@@ -12,7 +13,7 @@ export default function CandidateDashboard() {
 
     return (
         <MainLayout>
-            <Head title="Dashboard — DevRank" />
+            <Head title="Dashboard" />
             <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
 
                 {/* ── Header ─────────────────────────────────────── */}
@@ -39,28 +40,37 @@ export default function CandidateDashboard() {
                 </div>
 
                 {/* ── Top Stats Row ──────────────────────────────── */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }} data-reveal-stagger="80">
                     <StatCard
                         label="Rank Score"
-                        value={stats?.rank_score?.toLocaleString() ?? 0}
+                        value={<CountUp end={stats?.rank_score ?? 0} />}
                         sub={`#${stats?.rank_position ?? '—'} globally`}
                         color="var(--cyan)"
                     />
-                    <StatCard
-                        label="Human Score"
-                        value={`${stats?.human_score ?? 0}%`}
-                        sub="AI integrity check"
-                        color="var(--emerald)"
-                    />
+                    {aiEnabled ? (
+                        <StatCard
+                            label="Human Score"
+                            value={<CountUp end={stats?.human_score ?? 0} suffix="%" />}
+                            sub="AI integrity check"
+                            color="var(--emerald)"
+                        />
+                    ) : (
+                        <StatCard
+                            label="Profile Views"
+                            value={<CountUp end={stats?.profile_views ?? 0} />}
+                            sub="by companies"
+                            color="var(--emerald)"
+                        />
+                    )}
                     <StatCard
                         label="Forum Answers"
-                        value={stats?.total_replies ?? 0}
+                        value={<CountUp end={stats?.total_replies ?? 0} />}
                         sub={`${stats?.total_likes ?? 0} likes received`}
                         color="var(--violet-bright)"
                     />
                     <StatCard
                         label="Quizzes Passed"
-                        value={stats?.quizzes_passed ?? 0}
+                        value={<CountUp end={stats?.quizzes_passed ?? 0} />}
                         sub={`of ${stats?.quiz_attempts ?? 0} attempted`}
                         color="var(--champagne)"
                     />
@@ -70,7 +80,7 @@ export default function CandidateDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
 
                     {/* Rank chart */}
-                    <div className="dash-card">
+                    <div className="dash-card hover-lift" data-reveal>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                             <h4>Rank Score History</h4>
                             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>
@@ -104,7 +114,7 @@ export default function CandidateDashboard() {
                     </div>
 
                     {/* Pending Actions */}
-                    <div className="dash-card">
+                    <div className="dash-card hover-lift" data-reveal>
                         <h4 style={{ marginBottom: 14 }}>Pending Actions</h4>
 
                         {(stats?.interests_pending ?? 0) > 0 && (
@@ -129,7 +139,7 @@ export default function CandidateDashboard() {
                         )}
 
                         <div className="nudge-card">
-                            📝 Leave an <strong>interview review</strong> to help others and earn +15 pts
+                            📝 Share an <strong>interview review</strong> to help other candidates — earn +15 pts
                             <Link href="/interviews/create" style={{ marginLeft: 8, fontSize: 12, color: 'var(--cyan)' }}>Write Review →</Link>
                         </div>
 
@@ -145,7 +155,7 @@ export default function CandidateDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
 
                     {/* Demand Signals */}
-                    <div className="dash-card">
+                    <div className="dash-card hover-lift" data-reveal>
                         <h4 style={{ marginBottom: 14 }}>Demand Signals</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <div className="demand-row">
@@ -180,7 +190,7 @@ export default function CandidateDashboard() {
                     </div>
 
                     {/* Tag Rankings */}
-                    <div className="dash-card">
+                    <div className="dash-card hover-lift" data-reveal>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                             <h4>Tag Rankings</h4>
                             <Link href="/leaderboard" style={{ fontSize: 12, color: 'var(--text3)', textDecoration: 'none' }}>Full Leaderboard →</Link>
@@ -212,7 +222,7 @@ export default function CandidateDashboard() {
                 </div>
 
                 {/* ── 5-Pillar Score ─────────────────────────────── */}
-                <div className="dash-card" style={{ marginBottom: 20 }}>
+                <div className="dash-card hover-lift" style={{ marginBottom: 20 }} data-reveal>
                     <h4 style={{ marginBottom: 16 }}>5-Pillar Score Summary</h4>
                     <div className="pillar-bars">
                         <PillarRow
@@ -257,7 +267,7 @@ export default function CandidateDashboard() {
 
 function StatCard({ label, value, sub, color }) {
     return (
-        <div className="dash-card" style={{ textAlign: 'center' }}>
+        <div className="dash-card hover-lift" style={{ textAlign: 'center' }} data-reveal>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text3)', marginBottom: 8 }}>
                 {label}
             </div>
@@ -275,7 +285,7 @@ function PillarRow({ label, value, max, score, placeholder }) {
         <div className="pillar-row">
             <span className="pillar-label">{label}</span>
             <div className="pillar-bar">
-                <div className="pillar-fill" style={{ width: `${pct}%` }} />
+                <div className="pillar-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${pct}%` }} />
             </div>
             <span className="pillar-score" style={{ color: pct === 0 ? 'var(--text4)' : undefined }}>
                 {placeholder ?? score.toLocaleString()}

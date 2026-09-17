@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\JobListing;
 use App\Models\Reply;
 use App\Models\Tag;
@@ -119,6 +120,61 @@ class AdminController extends Controller
     {
         $this->adminService->rejectTag($tag);
         return back()->with('success', 'Tag rejected.');
+    }
+
+    // ── Forum: categories ─────────────────────────────────────────
+    public function categories()
+    {
+        return Inertia::render('Admin/Categories', [
+            'categories' => $this->adminService->getCategories(),
+        ]);
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'icon'        => ['nullable', 'string', 'max:8'],
+            'color'       => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'sort_order'  => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $this->adminService->createCategory($data);
+
+        return back()->with('success', 'Category created.');
+    }
+
+    public function updateCategory(Request $request, Category $category)
+    {
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'icon'        => ['nullable', 'string', 'max:8'],
+            'color'       => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'sort_order'  => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $this->adminService->updateCategory($category, $data);
+
+        return back()->with('success', 'Category updated.');
+    }
+
+    public function destroyCategory(Category $category)
+    {
+        if (!$this->adminService->deleteCategory($category)) {
+            return back()->withErrors([
+                'category' => 'This category still has topics. Move or remove them before deleting it.',
+            ]);
+        }
+
+        return back()->with('success', 'Category deleted.');
+    }
+
+    public function toggleCategory(Category $category)
+    {
+        $active = $this->adminService->toggleCategory($category);
+        return back()->with('success', $active ? 'Category activated.' : 'Category deactivated.');
     }
 
     // ── Profile access logs ───────────────────────────────────────

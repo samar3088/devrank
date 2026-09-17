@@ -1,8 +1,11 @@
 import { Head, Link, usePage, useForm, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import { FullFooter } from '@/Components/Footer';
+
+const RichTextEditor = lazy(() => import('@/Components/RichTextEditor'));
+const editorFallback = <div style={{ padding: 16, color: 'var(--text3)', border: '1px solid var(--border2)', borderRadius: 'var(--r-lg)' }}>Loading editor…</div>;
 
 export default function ForumTopic() {
     const { topic, replies, auth, flash } = usePage().props;
@@ -41,7 +44,7 @@ export default function ForumTopic() {
 
     return (
         <MainLayout>
-            <Head title={`${topic.title} — DevRank Forum`} />
+            <Head title={topic.title} />
             <div className="profile-container">
 
                 {/* Flash */}
@@ -62,7 +65,7 @@ export default function ForumTopic() {
                     {/* ── Main Column ───────────────────────────────────── */}
                     <div>
                         {/* Topic Header */}
-                        <div className="topic-header-card">
+                        <div className="topic-header-card" data-reveal>
                             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
                                 <h1 className="topic-title">{topic.title}</h1>
                                 {isTopicOwner && (
@@ -99,10 +102,12 @@ export default function ForumTopic() {
                                 </div>
                             )}
 
-                            {/* Body */}
-                            <div className="topic-body" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, fontSize: 15, color: 'var(--text2)' }}>
-                                {topic.body}
-                            </div>
+                            {/* Body (server-sanitised HTML) */}
+                            <div
+                                className="topic-body rich-content"
+                                style={{ lineHeight: 1.8, fontSize: 15 }}
+                                dangerouslySetInnerHTML={{ __html: topic.body }}
+                            />
                         </div>
 
                         {/* ── Answers ───────────────────────────────────── */}
@@ -110,18 +115,20 @@ export default function ForumTopic() {
                             {replies.length} {replies.length === 1 ? 'Answer' : 'Answers'}
                         </div>
 
-                        {replies.map(reply => (
-                            <ReplyCard
-                                key={reply.id}
-                                reply={reply}
-                                topic={topic}
-                                authUser={user}
-                                isCandidate={isCandidate}
-                                isTopicOwner={isTopicOwner}
-                                getInitials={getInitials}
-                                formatDate={formatDate}
-                            />
-                        ))}
+                        <div data-reveal-stagger="60">
+                            {replies.map(reply => (
+                                <ReplyCard
+                                    key={reply.id}
+                                    reply={reply}
+                                    topic={topic}
+                                    authUser={user}
+                                    isCandidate={isCandidate}
+                                    isTopicOwner={isTopicOwner}
+                                    getInitials={getInitials}
+                                    formatDate={formatDate}
+                                />
+                            ))}
+                        </div>
 
                         {/* ── Reply Form ────────────────────────────────── */}
                         {isGuest && (
@@ -141,22 +148,19 @@ export default function ForumTopic() {
                             <div className="answer-form-card" style={{ marginTop: 32 }}>
                                 <h3 style={{ marginBottom: 16 }}>Your Answer</h3>
                                 <form onSubmit={submitReply}>
-                                    <textarea
-                                        className={`form-input${replyForm.errors.body ? ' is-error' : ''}`}
-                                        rows={8}
-                                        placeholder="Write a detailed, helpful answer. Explain your reasoning and include code examples if relevant."
-                                        value={replyForm.data.body}
-                                        onChange={e => replyForm.setData('body', e.target.value)}
-                                        style={{ resize: 'vertical', lineHeight: 1.7, fontFamily: 'inherit' }}
-                                    />
-                                    {replyForm.errors.body && <div className="form-error">{replyForm.errors.body}</div>}
+                                    <Suspense fallback={editorFallback}>
+                                        <RichTextEditor
+                                            value={replyForm.data.body}
+                                            onChange={html => replyForm.setData('body', html)}
+                                            placeholder="Write a detailed, helpful answer. Explain your reasoning and include code examples or images if relevant."
+                                        />
+                                    </Suspense>
+                                    {replyForm.errors.body && <div className="form-error" style={{ marginTop: 6 }}>{replyForm.errors.body}</div>}
                                     <div style={{ display: 'flex', gap: 10, marginTop: 12, alignItems: 'center' }}>
-                                        <LoadingButton type="submit" className="btn btn-primary" loading={replyForm.processing}>
+                                        <LoadingButton type="submit" className="btn btn-primary pop-on-active" loading={replyForm.processing}>
                                             Post Answer
                                         </LoadingButton>
-                                        <span style={{ fontSize: 12, color: 'var(--text3)' }}>
-                                            {replyForm.data.body.length} chars · min 10
-                                        </span>
+                                        <span style={{ fontSize: 12, color: 'var(--text3)' }}>Min 10 characters</span>
                                     </div>
                                 </form>
                             </div>
@@ -274,7 +278,7 @@ function ReplyCard({ reply, topic, authUser, isCandidate, isTopicOwner, getIniti
     }
 
     return (
-        <div className={`answer-card${reply.is_accepted ? ' answer-accepted' : ''}`} style={{ marginBottom: 16 }}>
+        <div className={`answer-card hover-lift${reply.is_accepted ? ' answer-accepted' : ''}`} data-reveal="fade" style={{ marginBottom: 16 }}>
 
             {reply.is_accepted && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--emerald)', fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
@@ -340,14 +344,16 @@ function ReplyCard({ reply, topic, authUser, isCandidate, isTopicOwner, getIniti
             {/* Body or edit form */}
             {editing ? (
                 <form onSubmit={submitEdit}>
-                    <textarea
-                        className={`form-input${editForm.errors.body ? ' is-error' : ''}`}
-                        rows={6}
-                        value={editForm.data.body}
-                        onChange={e => editForm.setData('body', e.target.value)}
-                        style={{ resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.7, marginBottom: 10 }}
-                    />
-                    {editForm.errors.body && <div className="form-error">{editForm.errors.body}</div>}
+                    <div style={{ marginBottom: 10 }}>
+                        <Suspense fallback={editorFallback}>
+                            <RichTextEditor
+                                value={editForm.data.body}
+                                onChange={html => editForm.setData('body', html)}
+                                placeholder="Edit your answer…"
+                            />
+                        </Suspense>
+                    </div>
+                    {editForm.errors.body && <div className="form-error" style={{ marginBottom: 8 }}>{editForm.errors.body}</div>}
                     <div style={{ display: 'flex', gap: 8 }}>
                         <LoadingButton type="submit" className="btn btn-primary btn-sm" loading={editForm.processing}>
                             Save
@@ -358,9 +364,11 @@ function ReplyCard({ reply, topic, authUser, isCandidate, isTopicOwner, getIniti
                     </div>
                 </form>
             ) : (
-                <div className="answer-body" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, fontSize: 14, color: 'var(--text2)' }}>
-                    {reply.body}
-                </div>
+                <div
+                    className="answer-body rich-content"
+                    style={{ lineHeight: 1.8, fontSize: 14 }}
+                    dangerouslySetInnerHTML={{ __html: reply.body }}
+                />
             )}
 
             {/* Like button */}
@@ -369,6 +377,7 @@ function ReplyCard({ reply, topic, authUser, isCandidate, isTopicOwner, getIniti
                     <button
                         onClick={toggleLike}
                         disabled={!isCandidate}
+                        className="pop-on-active"
                         style={{
                             display: 'flex',
                             alignItems: 'center',

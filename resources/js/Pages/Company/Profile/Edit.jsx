@@ -65,7 +65,7 @@ export default function EditProfile() {
             </div>
 
             {/* Logo Section */}
-            <div className="profile-section">
+            <div className="profile-section" data-reveal>
                 <div className="profile-section-title">Company Logo</div>
                 <div className="logo-upload">
                     <div className="logo-preview">
@@ -99,9 +99,9 @@ export default function EditProfile() {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} data-reveal-stagger="70">
                 {/* Personal Info */}
-                <div className="profile-section">
+                <div className="profile-section" data-reveal>
                     <div className="profile-section-title">Contact Person</div>
 
                     <div className="form-row">
@@ -140,7 +140,7 @@ export default function EditProfile() {
                 </div>
 
                 {/* Company Info */}
-                <div className="profile-section">
+                <div className="profile-section" data-reveal>
                     <div className="profile-section-title">Company Information</div>
 
                     <div className="form-row">
@@ -231,7 +231,7 @@ export default function EditProfile() {
                     <LoadingButton
                         type="submit"
                         loading={form.processing}
-                        className="btn-submit"
+                        className="btn-submit pop-on-active"
                     >
                         {form.processing ? 'Saving...' : 'Save Changes'}
                     </LoadingButton>

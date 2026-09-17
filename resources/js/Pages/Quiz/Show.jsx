@@ -3,6 +3,7 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 import { DIFFICULTY_COLORS } from '@/constants';
 
 export default function QuizShow() {
@@ -35,7 +36,7 @@ export default function QuizShow() {
 
     return (
         <MainLayout>
-            <Head title={`${quiz.title} — DevRank Quiz`} />
+            <Head title={quiz.title} />
             <div className="container" style={{ paddingTop: 40, paddingBottom: 80, maxWidth: 760 }}>
 
                 {/* Breadcrumb */}
@@ -52,7 +53,7 @@ export default function QuizShow() {
                 )}
 
                 {/* Hero card */}
-                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 36, marginBottom: 20 }}>
+                <div data-reveal style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 36, marginBottom: 20 }}>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                         {quiz.tag && (
@@ -77,10 +78,10 @@ export default function QuizShow() {
                     {/* Stats */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: 'var(--border)', borderRadius: 'var(--r)', overflow: 'hidden', marginBottom: 28 }}>
                         {[
-                            { icon: '📝', label: 'Questions',  value: quiz.questions.length },
-                            { icon: '⏱',  label: 'Time Limit', value: `${quiz.time_limit_minutes} min` },
-                            { icon: '🏆', label: 'Total Marks', value: quiz.total_marks },
-                            { icon: '✅', label: 'Pass Score',  value: `${quiz.passing_score}%` },
+                            { icon: '📝', label: 'Questions',  value: <CountUp end={quiz.questions.length} /> },
+                            { icon: '⏱',  label: 'Time Limit', value: <CountUp end={quiz.time_limit_minutes} suffix=" min" /> },
+                            { icon: '🏆', label: 'Total Marks', value: <CountUp end={quiz.total_marks} /> },
+                            { icon: '✅', label: 'Pass Score',  value: <CountUp end={quiz.passing_score} suffix="%" /> },
                         ].map(s => (
                             <div key={s.label} style={{ background: 'var(--bg)', padding: '16px 12px', textAlign: 'center' }}>
                                 <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
@@ -102,12 +103,12 @@ export default function QuizShow() {
 
                 {/* Attempt history — show if candidate has prior attempts */}
                 {summary && summary.completed_count > 0 && (
-                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 20 }}>
+                    <div data-reveal="fade" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 20 }}>
                         <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>
                             Your Attempts
                             {summary.best_attempt && (
                                 <span style={{ marginLeft: 10, fontSize: 12, fontWeight: 400, color: 'var(--text3)' }}>
-                                    Best: <span style={{ color: 'var(--emerald)', fontWeight: 700 }}>{Math.round(summary.best_percentage)}%</span>
+                                    Best: <span style={{ color: 'var(--emerald)', fontWeight: 700 }}><CountUp end={Math.round(summary.best_percentage)} suffix="%" /></span>
                                 </span>
                             )}
                         </div>
@@ -200,7 +201,7 @@ function AttemptCTA({ user, isCandidate, summary, starting, onStart }) {
     if (summary?.in_progress) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <LoadingButton className="btn btn-primary" loading={starting} onClick={onStart}
+                <LoadingButton className="btn btn-primary pop-on-active" loading={starting} onClick={onStart}
                     style={{ padding: '12px 28px', fontSize: 15, background: 'var(--champagne)', borderColor: 'var(--champagne)', color: '#000' }}>
                     ▶ Resume Attempt {summary.in_progress.attempt_number}
                 </LoadingButton>
@@ -237,7 +238,7 @@ function AttemptCTA({ user, isCandidate, summary, starting, onStart }) {
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <LoadingButton className="btn btn-primary" loading={starting} onClick={onStart}
+            <LoadingButton className="btn btn-primary pop-on-active" loading={starting} onClick={onStart}
                 style={{ padding: '12px 28px', fontSize: 15 }}>
                 {isRetake ? `Retake Quiz (Attempt ${attemptNum})` : 'Start Quiz →'}
             </LoadingButton>

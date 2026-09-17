@@ -15,6 +15,7 @@ const NAV = [
             { label: 'Forum Topics',     icon: '📋', href: '/admin/topics',     name: 'admin.topics' },
             { label: 'Flag Queue',       icon: '🚨', href: '/admin/moderation', name: 'admin.moderation', badge: 'flagged_replies' },
             { label: 'Tag Approval',     icon: '🏷️', href: '/admin/tags',       name: 'admin.tags',       badge: 'pending_tags' },
+            { label: 'Categories',       icon: '🗂️', href: '/admin/categories', name: 'admin.categories' },
         ],
     },
     {

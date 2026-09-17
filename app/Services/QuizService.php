@@ -13,12 +13,23 @@ class QuizService
 {
     public function __construct(private AiScoringService $aiScoring) {}
 
+    /** Master AI switch — when false, quizzes run MCQ-only (no API cost). */
+    private function aiEnabled(): bool
+    {
+        return (bool) config('devrank.ai.enabled', false);
+    }
+
     // ── Public listing ───────────────────────────────────────────
     public function getPublishedQuizzes(?string $tagSlug = null, ?string $difficulty = null)
     {
+        $aiEnabled = $this->aiEnabled();
+
         return Quiz::published()
             ->with(['tag:id,name,slug', 'creator:id,name'])
-            ->withCount('questions')
+            // Count only the questions candidates will actually see.
+            ->withCount(['questions' => function ($q) use ($aiEnabled) {
+                if (! $aiEnabled) $q->where('type', 'mcq');
+            }])
             ->when($tagSlug,    fn ($q) => $q->whereHas('tag', fn ($t) => $t->where('slug', $tagSlug)))
             ->when($difficulty, fn ($q) => $q->where('difficulty', $difficulty))
             ->latest()
@@ -38,6 +49,14 @@ class QuizService
             ->where('slug', $slug)
             ->firstOrFail();
 
+        // Phase-1 (AI off): hide coding questions and score against the MCQ marks only.
+        $questions  = $this->aiEnabled()
+            ? $quiz->questions
+            : $quiz->questions->where('type', 'mcq')->values();
+        $totalMarks = $this->aiEnabled()
+            ? $quiz->total_marks
+            : (int) $questions->sum('marks');
+
         return [
             'id'                 => $quiz->id,
             'title'              => $quiz->title,
@@ -45,10 +64,10 @@ class QuizService
             'difficulty'         => $quiz->difficulty,
             'time_limit_minutes' => $quiz->time_limit_minutes,
             'passing_score'      => $quiz->passing_score,
-            'total_marks'        => $quiz->total_marks,
+            'total_marks'        => $totalMarks ?: 1,
             'max_attempts'       => $quiz->max_attempts,
             'tag'                => $quiz->tag,
-            'questions'          => $quiz->questions->map(fn ($q) => [
+            'questions'          => $questions->map(fn ($q) => [
                 'id'           => $q->id,
                 'body'         => $q->body,
                 'type'         => $q->type,
@@ -197,7 +216,10 @@ class QuizService
 
         $answers    = $attempt->answers()->with('question')->get();
         $totalScore = $answers->sum('marks_awarded');
-        $totalMarks = $attempt->quiz->total_marks ?: 1;
+        // AI off → denominator is MCQ marks only (coding questions weren't shown).
+        $totalMarks = $this->aiEnabled()
+            ? ($attempt->quiz->total_marks ?: 1)
+            : max(1, (int) QuizQuestion::where('quiz_id', $attempt->quiz_id)->where('type', 'mcq')->sum('marks'));
         $percentage = round(($totalScore / $totalMarks) * 100, 2);
         $passed     = $percentage >= $attempt->quiz->passing_score;
         $aiFlagged  = $answers->contains('ai_flagged', true);
@@ -232,6 +254,18 @@ class QuizService
 
         // Recompute the candidate's quiz-integrity score from their coding answers
         app(ScoreService::class)->updateHumanScore($attempt->user_id);
+
+        // Notify the candidate of their result
+        if ($passed || $rankPointsToAward > 0) {
+            app(NotificationService::class)->notify(
+                user:  $attempt->user_id,
+                type:  'quiz_passed',
+                title: ($passed ? 'You passed ' : 'You completed ') . $attempt->quiz->title,
+                body:  'Scored ' . $percentage . '%' . ($rankPointsToAward > 0 ? ' · +' . $rankPointsToAward . ' pts' : ''),
+                url:   '/quiz/result/' . $attempt->id,
+                icon:  $passed ? '🏆' : '📝',
+            );
+        }
 
         return $attempt->fresh();
     }
@@ -316,11 +350,14 @@ class QuizService
     ): QuizAnswer {
         $answerText = trim($answerText ?? '');
 
-        if (empty($answerText)) {
+        // Phase-1 (AI off): coding grading is disabled. Never call the API —
+        // record a neutral, non-penalising, non-counted answer. (Coding questions
+        // are also hidden from candidates, so this is only a defensive guard.)
+        if (! $this->aiEnabled() || empty($answerText)) {
             return QuizAnswer::create([
                 'attempt_id'         => $attempt->id,
                 'question_id'        => $question->id,
-                'answer_text'        => '',
+                'answer_text'        => $answerText,
                 'is_correct'         => false,
                 'marks_awarded'      => 0,
                 'ai_score'           => 0.0,

@@ -2,10 +2,12 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 
 export default function LeaderboardIndex() {
-    const { candidates, tags, filters } = usePage().props;
+    const { candidates, tags, filters, aiEnabled } = usePage().props;
     const [search, setSearch] = useState(filters?.search || '');
+    const firstPage = (candidates?.current_page ?? 1) === 1;
 
     function handleSearch(e) {
         e.preventDefault();
@@ -61,7 +63,7 @@ export default function LeaderboardIndex() {
             <Head title="Developer Leaderboard" />
             <div className="lb-container">
                 {/* Hero */}
-                <div className="lb-hero">
+                <div className="lb-hero" data-reveal>
                     <div className="lb-hero-top">
                         <div>
                             <h1>Developer Leaderboard</h1>
@@ -70,18 +72,18 @@ export default function LeaderboardIndex() {
                         <div className="lb-hero-stats">
                             <div className="lb-hero-stat">
                                 <div className="stat-label">Total Ranked</div>
-                                <div className="stat-value" style={{ fontSize: '1.5rem' }}>{candidates?.total || 0}</div>
+                                <div className="stat-value" style={{ fontSize: '1.5rem' }}><CountUp end={candidates?.total || 0} /></div>
                             </div>
                             <div className="lb-hero-stat">
                                 <div className="stat-label">Updated</div>
-                                <div className="stat-value" style={{ fontSize: '1.5rem' }}>Live</div>
+                                <div className="stat-value" style={{ fontSize: '1.5rem' }}><span className="dr-live-dot"></span>Live</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Tag Filter */}
-                <div className="tag-filter">
+                <div className="tag-filter" data-reveal="fade">
                     {tagButtons.map(t => (
                         <button
                             key={t.slug}
@@ -94,7 +96,7 @@ export default function LeaderboardIndex() {
                 </div>
 
                 {/* Table */}
-                <div className="lb-table-wrap">
+                <div className="lb-table-wrap" data-reveal>
                     <div className="lb-controls">
                         <div className="lb-controls-left">
                             <form onSubmit={handleSearch}>
@@ -117,7 +119,7 @@ export default function LeaderboardIndex() {
                             <tr>
                                 <th>Rank</th>
                                 <th>Candidate</th>
-                                <th>Human Score</th>
+                                {aiEnabled && <th>Human Score</th>}
                                 <th>Forum</th>
                                 <th>Answers</th>
                                 <th>Likes</th>
@@ -125,16 +127,16 @@ export default function LeaderboardIndex() {
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody data-reveal-stagger={firstPage ? '45' : undefined}>
                             {candidates?.data?.length === 0 && (
                                 <tr>
-                                    <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
+                                    <td colSpan={aiEnabled ? 8 : 7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
                                         No candidates found matching your filters.
                                     </td>
                                 </tr>
                             )}
                             {candidates?.data?.map((candidate, i) => (
-                                <tr key={candidate.id} className={getRankClass(i)}>
+                                <tr key={candidate.id} className={getRankClass(i)} data-reveal={firstPage ? '' : undefined}>
                                     <td>
                                         <div className={`rank-badge ${getRankBadgeClass(i)}`}>
                                             #{(candidates.from || 1) + i}
@@ -149,12 +151,14 @@ export default function LeaderboardIndex() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <div className="human-score">
-                                            <div className="hs-bar"><div className="hs-fill" style={{ width: `${candidate.human_score || 0}%` }}></div></div>
-                                            {candidate.human_score || 0}%
-                                        </div>
-                                    </td>
+                                    {aiEnabled && (
+                                        <td>
+                                            <div className="human-score">
+                                                <div className="hs-bar"><div className="hs-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${candidate.human_score || 0}%` }}></div></div>
+                                                {candidate.human_score || 0}%
+                                            </div>
+                                        </td>
+                                    )}
                                     <td className="mono">{candidate.topics_count || 0}</td>
                                     <td className="mono">{candidate.replies_count || 0}</td>
                                     <td className="mono">{candidate.likes_received || 0}</td>

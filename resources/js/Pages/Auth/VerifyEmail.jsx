@@ -19,7 +19,7 @@ export default function VerifyEmail() {
             <div className="verify-wrapper">
                 {status === 'verification-link-sent' ? (
                     /* State: Link Sent Confirmation */
-                    <div className="verify-card">
+                    <div className="verify-card" data-reveal="scale">
                         <div className="verify-icon">
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--violet-bright)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="2" y="4" width="20" height="16" rx="2"/>
@@ -53,7 +53,7 @@ export default function VerifyEmail() {
                                 <LoadingButton
                                     type="submit"
                                     loading={form.processing}
-                                    className="verify-resend-btn"
+                                    className="verify-resend-btn pop-on-active"
                                 >
                                     {form.processing ? 'Sending...' : 'Resend Verification Email'}
                                 </LoadingButton>
@@ -69,7 +69,7 @@ export default function VerifyEmail() {
                     </div>
                 ) : status === 'already-verified' ? (
                     /* State: Already Verified */
-                    <div className="verify-card">
+                    <div className="verify-card" data-reveal="scale">
                         <div className="verify-icon success">
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -84,7 +84,7 @@ export default function VerifyEmail() {
                     </div>
                 ) : (
                     /* State: Pending (default) */
-                    <div className="verify-card">
+                    <div className="verify-card" data-reveal="scale">
                         <div className="verify-icon">
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--violet-bright)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="2" y="4" width="20" height="16" rx="2"/>
@@ -115,7 +115,7 @@ export default function VerifyEmail() {
                                 <LoadingButton
                                     type="submit"
                                     loading={form.processing}
-                                    className="verify-resend-btn"
+                                    className="verify-resend-btn pop-on-active"
                                 >
                                     {form.processing ? 'Sending...' : 'Resend Verification Email'}
                                 </LoadingButton>

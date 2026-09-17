@@ -4,6 +4,8 @@
 @import './layouts/main.css';
 @import './layouts/company.css';
 @import './components/loader.css';
+@import './components/rich-editor.css';
+@import './components/notifications.css';
 @import './pages/auth.css';
 @import './pages/home.css';
 @import './pages/forum.css';
@@ -23,6 +25,7 @@
 @import './pages/company/profile.css';
 @import './layouts/admin.css';
 @import './pages/interview-board.css';
+@import './animations.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

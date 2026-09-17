@@ -54,7 +54,7 @@ export default function ForumIndex() {
             <Head title="Developer Forum" />
             <div className="forum-container">
                 {/* Header */}
-                <div className="forum-page-header">
+                <div className="forum-page-header" data-reveal>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                         <div>
                             <h1>Developer Forum</h1>
@@ -98,7 +98,7 @@ export default function ForumIndex() {
                 {/* Main Layout */}
                 <div className="forum-layout" style={{ marginTop: '24px' }}>
                     {/* Topics List */}
-                    <div>
+                    <div data-reveal-stagger={topics.current_page === 1 ? '45' : undefined}>
                         {topics.data.length === 0 ? (
                             <div className="forum-empty">
                                 <h3>No topics found</h3>
@@ -108,7 +108,8 @@ export default function ForumIndex() {
                             topics.data.map(topic => (
                                 <div
                                     key={topic.id}
-                                    className={`topic-card ${topic.is_pinned ? 'pinned' : ''} ${topic.is_hot ? 'hot' : ''} ${topic.accepted_reply_id ? 'solved' : ''}`}
+                                    data-reveal="fade"
+                                    className={`topic-card hover-lift ${topic.is_pinned ? 'pinned' : ''} ${topic.is_hot ? 'hot' : ''} ${topic.accepted_reply_id ? 'solved' : ''}`}
                                 >
                                     <div>
                                         {/* Badges */}
@@ -166,7 +167,7 @@ export default function ForumIndex() {
                     {/* Sidebar */}
                     <div style={{ position: 'sticky', top: 'calc(var(--nav-h) + 24px)' }}>
                         {/* Categories */}
-                        <div className="sidebar-card">
+                        <div className="sidebar-card" data-reveal="fade">
                             <h4>Categories</h4>
                             <div className="category-list">
                                 <div
@@ -192,7 +193,7 @@ export default function ForumIndex() {
                         </div>
 
                         {/* Top Contributors */}
-                        <div className="sidebar-card">
+                        <div className="sidebar-card" data-reveal="fade">
                             <h4>Top Contributors</h4>
                             <div>
                                 {topContributors.map((user, i) => (
@@ -212,7 +213,7 @@ export default function ForumIndex() {
                         </div>
 
                         {/* Trending Tags */}
-                        <div className="sidebar-card">
+                        <div className="sidebar-card" data-reveal="fade">
                             <h4>Trending Tags</h4>
                             <div className="tags">
                                 {trendingTags.map(tag => (

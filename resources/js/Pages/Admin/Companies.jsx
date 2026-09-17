@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminFilterBar, AdminPagination, fmtDate } from '@/Pages/Admin/AdminShared';
 
 export default function AdminCompanies() {
@@ -11,14 +12,14 @@ export default function AdminCompanies() {
 
     return (
         <AdminLayout title="Manage Companies" stats={stats}>
-            <div className="admin-page-header">
-                <div><h1>Companies</h1><p>{companies.total} registered companies</p></div>
+            <div className="admin-page-header" data-reveal="fade">
+                <div><h1>Companies</h1><p><CountUp end={companies.total} /> registered companies</p></div>
             </div>
 
             <AdminFilterBar route="/admin/companies" filters={filters} placeholder="Search by name or email..."
                 selectName="status" selectOptions={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
 
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead><tr><th>Company</th><th>Email</th><th>Jobs Posted</th><th>Interests Sent</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>

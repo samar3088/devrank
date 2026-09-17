@@ -2,6 +2,7 @@ import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import CompanyLayout from '@/Layouts/CompanyLayout';
 import LoadingButton from '@/Components/LoadingButton';
+import CountUp from '@/Components/CountUp';
 
 export default function EditJob() {
     const { job, tags } = usePage().props;
@@ -84,10 +85,10 @@ export default function EditJob() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
 
                     {/* ── Left: Main Form ─────────────────────────────── */}
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} data-reveal-stagger="70">
 
                         {/* Basic Info */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal>
                             <div className="job-form-section-title">Basic Information</div>
 
                             <div className="form-group">
@@ -148,7 +149,7 @@ export default function EditJob() {
                         </div>
 
                         {/* Job Details */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal>
                             <div className="job-form-section-title">Job Details</div>
 
                             <div className="form-row">
@@ -221,7 +222,7 @@ export default function EditJob() {
                         </div>
 
                         {/* Salary */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal>
                             <div className="job-form-section-title">Salary (Optional)</div>
 
                             <div className="form-row">
@@ -276,7 +277,7 @@ export default function EditJob() {
                         </div>
 
                         {/* Status */}
-                        <div className="job-form-section">
+                        <div className="job-form-section" data-reveal>
                             <div className="job-form-section-title">Listing Status</div>
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="form-label">Status</label>
@@ -299,7 +300,7 @@ export default function EditJob() {
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                             <LoadingButton
                                 type="submit"
-                                className="btn btn-primary"
+                                className="btn btn-primary pop-on-active"
                                 loading={form.processing}
                                 style={{ padding: '12px 28px', fontSize: 15 }}
                             >
@@ -312,7 +313,7 @@ export default function EditJob() {
                     </form>
 
                     {/* ── Right: Tag Picker ───────────────────────────── */}
-                    <div style={{ position: 'sticky', top: 'calc(var(--nav-h) + 24px)' }}>
+                    <div data-reveal="right" style={{ position: 'sticky', top: 'calc(var(--nav-h) + 24px)' }}>
                         <div className="job-form-section" style={{ marginBottom: 0 }}>
                             <div className="job-form-section-title">
                                 Tags
@@ -427,8 +428,8 @@ export default function EditJob() {
                             <div style={{ fontWeight: 700, color: 'var(--text2)', marginBottom: 8 }}>ℹ️ Job Info</div>
                             <div>Posted: <strong style={{ color: 'var(--text2)' }}>{job.published_at ? new Date(job.published_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</strong></div>
                             <div style={{ marginTop: 4 }}>Expires: <strong style={{ color: 'var(--champagne)' }}>{job.expires_at ? new Date(job.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</strong></div>
-                            <div style={{ marginTop: 4 }}>Applications: <strong style={{ color: 'var(--cyan)' }}>{job.applications_count ?? 0}</strong></div>
-                            <div style={{ marginTop: 4 }}>Views: <strong>{job.views_count ?? 0}</strong></div>
+                            <div style={{ marginTop: 4 }}>Applications: <strong style={{ color: 'var(--cyan)' }}><CountUp end={job.applications_count ?? 0} /></strong></div>
+                            <div style={{ marginTop: 4 }}>Views: <strong><CountUp end={job.views_count ?? 0} /></strong></div>
                         </div>
                     </div>
                 </div>

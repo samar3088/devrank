@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import CompanyLayout from '@/Layouts/CompanyLayout';
+import CountUp from '@/Components/CountUp';
 
 export default function JobsIndex() {
     const { jobs, monthlyPostsRemaining, flash, filters } = usePage().props;
@@ -67,14 +68,14 @@ export default function JobsIndex() {
             )}
 
             {/* Header */}
-            <div className="jobs-header">
+            <div className="jobs-header" data-reveal>
                 <h1>My Job Listings</h1>
                 <div className="jobs-header-actions">
                     <div className={`jobs-limit-badge ${getLimitClass()}`}>
-                        Posts remaining: <span className="jobs-limit-count">{monthlyPostsRemaining}</span>
+                        Posts remaining: <span className="jobs-limit-count"><CountUp end={monthlyPostsRemaining} /></span>
                     </div>
                     {monthlyPostsRemaining > 0 ? (
-                        <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">
+                        <Link href="/company/jobs/create" className="btn-sm btn-primary-sm pop-on-active">
                             + Post New Job
                         </Link>
                     ) : (
@@ -128,15 +129,15 @@ export default function JobsIndex() {
                         }
                     </p>
                     {!filters?.search && filters?.status === 'all' && (
-                        <Link href="/company/jobs/create" className="btn-sm btn-primary-sm">
+                        <Link href="/company/jobs/create" className="btn-sm btn-primary-sm pop-on-active">
                             + Post Your First Job
                         </Link>
                     )}
                 </div>
             ) : (
-                <>
+                <div data-reveal-stagger="80">
                     {jobs.data.map(job => (
-                        <div key={job.id} className={`job-card ${job.is_featured ? 'featured' : ''}`}>
+                        <div key={job.id} data-reveal className={`job-card hover-lift ${job.is_featured ? 'featured' : ''}`}>
                             <div>
                                 <div className="job-card-title">{job.title}</div>
                                 <div className="job-card-meta">
@@ -154,8 +155,8 @@ export default function JobsIndex() {
                                     </div>
                                 )}
                                 <div className="job-card-stats">
-                                    <span className="job-card-stat">👥 {job.applications_count || 0} applicants</span>
-                                    <span className="job-card-stat">👁 {job.views_count || 0} views</span>
+                                    <span className="job-card-stat">👥 <CountUp end={job.applications_count || 0} /> applicants</span>
+                                    <span className="job-card-stat">👁 <CountUp end={job.views_count || 0} /> views</span>
                                     {job.expires_at && (
                                         <span className="job-card-stat">⏳ Expires {formatDate(job.expires_at)}</span>
                                     )}
@@ -169,12 +170,15 @@ export default function JobsIndex() {
                                 )}
                                 <span className={getStatusClass(job.status)}>{job.status}</span>
                                 <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                                    <Link href={`/company/jobs/${job.id}/edit`} className="btn-sm btn-outline-sm">
+                                    <Link href={`/company/jobs/${job.id}/applicants`} className="btn-sm btn-primary-sm pop-on-active">
+                                        Applicants ({job.applications_count || 0})
+                                    </Link>
+                                    <Link href={`/company/jobs/${job.id}/edit`} className="btn-sm btn-outline-sm pop-on-active">
                                         Edit
                                     </Link>
                                     <button
                                         onClick={() => handleDelete(job.id)}
-                                        className="btn-sm btn-danger-sm"
+                                        className="btn-sm btn-danger-sm pop-on-active"
                                     >
                                         Delete
                                     </button>
@@ -196,7 +200,7 @@ export default function JobsIndex() {
                             ))}
                         </div>
                     )}
-                </>
+                </div>
             )}
         </CompanyLayout>
     );

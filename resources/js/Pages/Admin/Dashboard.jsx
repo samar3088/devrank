@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 
 export default function AdminDashboard() {
     const { stats } = usePage().props;
@@ -24,12 +25,12 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }} data-reveal-stagger="80">
                 {statCards.map(s => (
-                    <div key={s.label} className="admin-stat-card">
+                    <div key={s.label} className="admin-stat-card hover-lift" data-reveal>
                         <div className="admin-stat-label">{s.label}</div>
                         <div className="admin-stat-value" style={{ color: s.color }}>
-                            {s.value?.toLocaleString()}
+                            <CountUp end={s.value} />
                         </div>
                         <div className="admin-stat-sub">{s.sub}</div>
                     </div>
@@ -37,7 +38,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick actions */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24 }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24 }} data-reveal>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 16, color: 'var(--text2)' }}>Quick Actions</div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {stats.pending_tags > 0 && (

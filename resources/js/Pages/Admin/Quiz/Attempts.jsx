@@ -1,6 +1,7 @@
 import { usePage, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import CountUp from '@/Components/CountUp';
 import { AdminPagination, fmtDate } from '@/Pages/Admin/AdminShared';
 
 export default function AdminQuizAttempts() {
@@ -15,7 +16,7 @@ export default function AdminQuizAttempts() {
 
     return (
         <AdminLayout title={`Attempts — ${quiz.title}`}>
-            <div className="admin-page-header">
+            <div className="admin-page-header" data-reveal="fade">
                 <div>
                     <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 8 }}>
                         <Link href="/admin/quiz" style={{ color: 'var(--text3)', textDecoration: 'none' }}>Quizzes</Link>
@@ -23,27 +24,27 @@ export default function AdminQuizAttempts() {
                         {' '} › Attempts
                     </div>
                     <h1>Attempts</h1>
-                    <p>{attempts.total} completed attempts</p>
+                    <p><CountUp end={attempts.total} /> completed attempts</p>
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="admin-stats-grid" style={{ marginBottom: 24 }}>
+            <div className="admin-stats-grid" style={{ marginBottom: 24 }} data-reveal-stagger="80">
                 {[
                     { label: 'Total Attempts', value: stats.total_attempts, color: 'var(--text)' },
                     { label: 'Passed',         value: stats.passed,         color: 'var(--emerald)' },
-                    { label: 'Avg Score',      value: `${stats.avg_score}%`, color: 'var(--cyan)' },
+                    { label: 'Avg Score',      value: stats.avg_score, suffix: '%', color: 'var(--cyan)' },
                     { label: 'AI Flagged',     value: stats.ai_flagged,     color: stats.ai_flagged > 0 ? 'var(--coral)' : 'var(--text3)' },
                 ].map(s => (
-                    <div key={s.label} className="admin-stat-card">
+                    <div key={s.label} className="admin-stat-card hover-lift" data-reveal>
                         <div className="admin-stat-label">{s.label}</div>
-                        <div className="admin-stat-value" style={{ color: s.color }}>{s.value ?? 0}</div>
+                        <div className="admin-stat-value" style={{ color: s.color }}><CountUp end={s.value ?? 0} suffix={s.suffix ?? ''} /></div>
                     </div>
                 ))}
             </div>
 
             {/* Attempts table */}
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrap" data-reveal="fade">
                 <table className="admin-table">
                     <thead>
                         <tr>

@@ -2,6 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import CountUp from '@/Components/CountUp';
 import { DIFFICULTY_COLORS } from '@/constants';
 
 export default function QuizIndex() {
@@ -17,11 +18,11 @@ export default function QuizIndex() {
 
     return (
         <MainLayout>
-            <Head title="Skill Quizzes — DevRank" />
+            <Head title="Skill Quizzes" />
             <div className="container" style={{ paddingTop: 36, paddingBottom: 80 }}>
 
                 {/* Header */}
-                <div style={{ maxWidth: 640, marginBottom: 36 }}>
+                <div data-reveal style={{ maxWidth: 640, marginBottom: 36 }}>
                     <span className="eyebrow">Skill Verification</span>
                     <h1 style={{ marginTop: 4, marginBottom: 16 }}>Prove What You Know</h1>
                     <p style={{ color: 'var(--text3)', fontSize: 15 }}>
@@ -31,7 +32,7 @@ export default function QuizIndex() {
                 </div>
 
                 {/* Filters */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
+                <div data-reveal="fade" style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
                     {['', 'easy', 'medium', 'hard'].map(d => (
                         <button
                             key={d}
@@ -62,7 +63,7 @@ export default function QuizIndex() {
                         <p style={{ fontSize: 14 }}>Check back soon — new quizzes are added regularly.</p>
                     </div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+                    <div data-reveal-stagger="80" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
                         {quizzes.data.map(quiz => (
                             <QuizCard key={quiz.id} quiz={quiz} isCandidate={isCandidate} />
                         ))}
@@ -92,7 +93,7 @@ function QuizCard({ quiz, isCandidate }) {
     const dc = DIFFICULTY_COLORS[quiz.difficulty] || DIFFICULTY_COLORS.medium;
 
     return (
-        <div className="quiz-card">
+        <div className="quiz-card hover-lift" data-reveal>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontSize: 32 }}>{quiz.tag?.name ? tagEmoji(quiz.tag.name) : '🎯'}</div>
                 <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', background: dc.bg, color: dc.color, border: `1px solid ${dc.border}` }}>
@@ -113,9 +114,9 @@ function QuizCard({ quiz, isCandidate }) {
 
             {/* Meta */}
             <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--text3)', marginBottom: 18 }}>
-                <span>📝 {quiz.questions_count} questions</span>
-                <span>⏱ {quiz.time_limit_minutes} min</span>
-                <span>🏆 {quiz.total_marks} marks</span>
+                <span>📝 <CountUp end={quiz.questions_count} /> questions</span>
+                <span>⏱ <CountUp end={quiz.time_limit_minutes} /> min</span>
+                <span>🏆 <CountUp end={quiz.total_marks} /> marks</span>
             </div>
 
             {isCandidate ? (

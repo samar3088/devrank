@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Reply;
 use App\Models\Topic;
 use App\Services\ForumService;
+use App\Services\HtmlSanitizer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ForumController extends Controller
@@ -64,7 +66,7 @@ class ForumController extends Controller
         // Route middleware handles company block (role:candidate)
         $validated = $request->validate([
             'title'       => ['required', 'string', 'min:10', 'max:255'],
-            'body'        => ['required', 'string', 'min:30'],
+            'body'        => ['required', 'string', $this->richText(30)],
             'category_id' => ['required', 'exists:categories,id'],
             'tags'        => ['nullable', 'array', 'max:10'],
             'tags.*'      => ['integer', 'exists:tags,id'],
@@ -91,7 +93,7 @@ class ForumController extends Controller
     public function storeReply(Request $request, Topic $topic)
     {
         $validated = $request->validate([
-            'body' => ['required', 'string', 'min:10'],
+            'body' => ['required', 'string', $this->richText(10)],
         ]);
 
         $this->forumService->createReply($request->user(), $topic->id, $validated);
@@ -106,7 +108,7 @@ class ForumController extends Controller
         abort_unless($reply->user_id === $request->user()->id, 403);
 
         $validated = $request->validate([
-            'body' => ['required', 'string', 'min:10'],
+            'body' => ['required', 'string', $this->richText(10)],
         ]);
 
         $this->forumService->updateReply($reply, $validated['body']);
@@ -141,5 +143,34 @@ class ForumController extends Controller
         $result = $this->forumService->toggleLike($request->user(), $reply->id);
 
         return back()->with('like_result', $result);
+    }
+
+    // ── Candidate: upload an inline image for the rich-text editor ─
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => [
+                'required', 'image',
+                'mimes:' . implode(',', config('devrank.upload.allowed_images', ['jpg', 'jpeg', 'png', 'gif', 'webp'])),
+                'max:' . config('devrank.upload.max_size', 5120),
+            ],
+        ]);
+
+        $path = $request->file('image')->store('forum-images', 'public');
+
+        return response()->json(['url' => Storage::url($path)]);
+    }
+
+    /**
+     * Validation rule: rich-text body must have at least $min characters of
+     * actual text once HTML tags are stripped (so "<p><br></p>" isn't "valid").
+     */
+    private function richText(int $min): callable
+    {
+        return function (string $attribute, mixed $value, callable $fail) use ($min) {
+            if (app(HtmlSanitizer::class)->textLength($value) < $min) {
+                $fail("The {$attribute} must contain at least {$min} characters.");
+            }
+        };
     }
 }
