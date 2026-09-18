@@ -55,8 +55,8 @@ Quiz ranking uses a **delta model** (retakes bank only improvement; AI-flagged a
 - **Master switch `config('devrank.github.enabled')`** = true only when `GITHUB_CLIENT_ID` is set → the "Connect GitHub" UI/routes stay hidden (404) with no OAuth app (mirrors `aiEnabled`). Exposed to React as shared prop **`githubEnabled`**. Candidate dashboard shows a connect card → verified badge.
 - Owner setup: register an OAuth app at github.com/settings/developers, callback `<APP_URL>/auth/github/callback`, set `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET`.
 
-## Roadmap docs
-- **#2 verifiable embeddable rank credentials** — full design/scope in [`docs/CREDENTIALS_SCOPE.md`](docs/CREDENTIALS_SCOPE.md) (not built; ~2.5–3 days).
+## Verifiable rank credentials (#2) — BUILT
+- **Signed embeddable badge + public audit page.** `CredentialService` mints a public, revocable token per candidate (`credential_tokens`). Public routes: **`GET /badge/{token}.svg`** (hand-built shields-style SVG, rendered live from the DB each request — forged query params ignored; `metric=rank|tag:{slug}|human`) and **`GET /verify/{token}`** (`Verify/Credential.jsx` audit page — rank/score/percentile/skill-rankings/how-earned, already-public data only). Candidate dashboard has a **"Your verified rank badge"** card (live preview + copy Markdown/HTML/Link + rotate/revoke); token minted opt-in. `human` metric **404s while `config('devrank.ai.enabled')` is off** (never leaks a hidden readout). Secret: `config('devrank.credentials.secret')` (falls back to `APP_KEY`). Design notes: [`docs/CREDENTIALS_SCOPE.md`](docs/CREDENTIALS_SCOPE.md).
 
 ## Conventions & gotchas (learned the hard way)
 - **`auth.user.roles` is an array of STRINGS** (`getRoleNames()`). In React use `roles.includes('candidate')` — **never** `roles.some(r => r.name === …)` (silently always false).
@@ -91,7 +91,7 @@ A small, reusable, **reduced-motion-safe** system powers all page animation — 
 - Purpose-built (NOT Laravel's `Notifiable` DB channel): table **`user_notifications`**, model `UserNotification`, `NotificationService`, `NotificationController`, page `Notifications/Index.jsx`, and a nav bell **`Components/NotificationBell.jsx`** (in `MainLayout`, so candidates + companies; admins on `AdminLayout` don't get it yet).
 - **Near-real-time via polling** — the bell fetches `GET /notifications/feed` every 45s (visible tab only) + after each Inertia navigation. No websocket infra (Reverb/Echo can be added later without changing the data model).
 - Routes: `GET /notifications`, `GET /notifications/feed` (JSON), `POST /notifications/read-all`, `POST /notifications/{notification}/read`. Fetch POSTs send the `X-XSRF-TOKEN` cookie header.
-- **Triggers** (call `app(NotificationService::class)->notify(...)`, `actorId` skips self-notify): outreach received (`InterestService::sendInterest`), interest accepted/declined (`respond`), answer accepted + new reply (`ForumService`), quiz passed (`QuizService::completeAttempt`).
+- **Triggers** (call `app(NotificationService::class)->notify(...)`, `actorId` skips self-notify): outreach received (`InterestService::sendInterest`), interest accepted/declined (`respond`), answer accepted + new reply (`ForumService`), quiz passed (`QuizService::completeAttempt`), **rank-up** (`ScoreService::notifyRankChanges` — daily via `recompute-scores`, compares `users.last_rank_position`, silent on baseline), **admin moderation** (`NotificationService::notifyAdmins` → all super+sub admins, fired when an interview review auto-hides at the report threshold). Admins inherit the bell because **`AdminLayout` wraps `MainLayout`**.
 
 ## Testing approach (no Chrome extension yet)
 - **Routes:** curl audit — log in per role (CSRF via `XSRF-TOKEN` cookie → `X-XSRF-TOKEN` header), GET every page, expect 200.

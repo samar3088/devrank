@@ -1,6 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
+_Recent: built #2 credentials; added rank-up + admin-moderation notifications; nav Account&Privacy link; seed-data cleanup (applications_count from real rows, no future dates)._
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -21,7 +22,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 | **Leaderboard** | ✅ | Eager-loaded (2 queries); covering index. |
 | **Public profiles** | ✅ | **Contact gate** verified: guest/other-company nulled; self/admin/accepted-company unlocked. |
 | **Admin** | ✅ | Users/companies toggle, jobs, moderation, tags, **category CRUD** (delete-guard verified), analytics, quiz builder. All routes 200 for super + sub admin. |
-| **In-app notifications** | ✅ | `user_notifications`, polling bell (45s), triggers verified firing. |
+| **In-app notifications** | ✅ | `user_notifications`, polling bell (45s). Triggers: outreach, interest response, answer accepted, new reply, quiz passed, **rank-up** (daily), **admin moderation**. Admins inherit the bell (AdminLayout→MainLayout). |
 | **Scoring** | ✅ | `total_rank_score`, `human_score`, `trust_score` (blended); `devrank:recompute-scores` persists (verified after bug-fix). |
 
 ## Roadmap items
@@ -30,7 +31,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 | # | Item | Status |
 |---|---|---|
 | 1 | Objective code-execution grading (Judge0/Piston) | ❌ Not started — biggest credibility jump; own milestone. |
-| 2 | Verifiable embeddable rank credentials | 🟡 **Scoped** — full design in `docs/CREDENTIALS_SCOPE.md` (~2.5–3 days). |
+| 2 | Verifiable embeddable rank credentials | ✅ **Built** — signed `/badge/{token}.svg` + public `/verify/{token}` audit page + dashboard share card (mint/rotate/revoke). Live-rendered, forgery-proof, human-metric gated. |
 | 3 | Bias-reduced hiring flow | 🟡 **Partial** — contact-privacy gate live; name/photo/location anonymization in discovery not built. |
 
 ### High-impact

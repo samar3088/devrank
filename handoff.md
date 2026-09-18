@@ -18,6 +18,13 @@ Delivered, each committed separately:
 
 ⚠️ **Run `php artisan migrate`** on any DB predating this session — 4 new migrations: `responded_at`, `idx_users_company_name`, `consented_at`, github fields.
 
+## Session #3 (2026-09-18) — QA fixes, quick wins, #2 credentials
+- **QA pass** (re-seed + full browser click-through, all roles): found + fixed 2 more bugs — trust_score never persisted (guarded column → `forceFill`), trust trigger passed null (`jobListing->user`→`company`); plus 2 UI fixes (`% human` hidden on applicants view when AI off, stale trust copy).
+- **Seed cleanup**: `applications_count` now from real rows; no future "applied" dates; non-applied apps stamp `responded_at`.
+- **Quick wins**: rank-up notification (`ScoreService::notifyRankChanges`, `users.last_rank_position`, daily); admin moderation notification (`notifyAdmins`, review auto-hide); **Account & Privacy** nav dropdown link.
+- **#2 credentials BUILT** (`4948b18`): `/badge/{token}.svg` + `/verify/{token}` + dashboard share card. See CLAUDE.md "Verifiable rank credentials".
+- ⚠️ **2 more migrations** this session: `last_rank_position`, `credential_tokens`. Re-seed done; all verified in browser.
+
 ## What this session did (4-phase pass: UI motion → gap-fill → testing → docs)
 
 ### 1. Industry-standard UI/UX motion layer (all pages)
