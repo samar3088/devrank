@@ -46,6 +46,12 @@ class RolePermissionSeeder extends Seeder
             'tags.approve',
             'tags.delete',
 
+            // Quizzes / challenges / tests (upload = create quizzes, add/bulk-import
+            // questions, create weekly challenges). quizzes.delete is super-admin only
+            // (matches the "sub_admin can't delete" convention via the %.delete% rule).
+            'quizzes.manage',
+            'quizzes.delete',
+
             // Jobs
             'jobs.create',
             'jobs.edit',

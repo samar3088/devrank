@@ -161,18 +161,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/applications/{application}/status', [\App\Http\Controllers\Company\JobController::class, 'updateApplicationStatus'])->name('applications.status');
     });
 
-    // ── Admin quiz (super_admin only) ─────────────────────────────
-    Route::middleware('role:super_admin')->prefix('admin/quiz')->name('admin.quiz.')->group(function () {
+    // ── Admin quiz — super_admin always; sub_admin when granted quizzes.manage ─
+    // Deletes stay super-admin-only (quizzes.delete).
+    Route::middleware('permission:quizzes.manage')->prefix('admin/quiz')->name('admin.quiz.')->group(function () {
         Route::get('/',                               [AdminQuizController::class, 'index'])->name('index');
         Route::get('/create',                         [AdminQuizController::class, 'create'])->name('create');
         Route::post('/',                              [AdminQuizController::class, 'store'])->name('store');
         Route::get('/{quiz}/edit',                    [AdminQuizController::class, 'edit'])->name('edit');
         Route::put('/{quiz}',                         [AdminQuizController::class, 'update'])->name('update');
-        Route::delete('/{quiz}',                      [AdminQuizController::class, 'destroy'])->name('destroy');
+        Route::delete('/{quiz}',                      [AdminQuizController::class, 'destroy'])->middleware('permission:quizzes.delete')->name('destroy');
         Route::get('/{quiz}/questions',               [AdminQuizController::class, 'questions'])->name('questions');
         Route::post('/{quiz}/questions',              [AdminQuizController::class, 'storeQuestion'])->name('questions.store');
         Route::post('/{quiz}/questions/bulk',         [AdminQuizController::class, 'storeQuestionsBulk'])->name('questions.bulk');
-        Route::delete('/{quiz}/questions/{question}', [AdminQuizController::class, 'destroyQuestion'])->name('questions.destroy');
+        Route::delete('/{quiz}/questions/{question}', [AdminQuizController::class, 'destroyQuestion'])->middleware('permission:quizzes.delete')->name('questions.destroy');
         Route::get('/{quiz}/attempts',                [AdminQuizController::class, 'attempts'])->name('attempts');
     });
 

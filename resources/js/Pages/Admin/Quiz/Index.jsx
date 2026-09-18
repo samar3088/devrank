@@ -6,7 +6,8 @@ import { AdminPagination } from '@/Pages/Admin/AdminShared';
 const DIFFICULTY_COLOR = { easy: 'green', medium: 'amber', hard: 'red' };
 
 export default function AdminQuizIndex() {
-    const { quizzes, stats } = usePage().props;
+    const { quizzes, stats, auth } = usePage().props;
+    const canDelete = (auth?.user?.permissions ?? []).includes('quizzes.delete');
 
     function destroy(id) {
         if (!confirm('Delete this quiz? All attempts will also be deleted.')) return;
@@ -95,7 +96,7 @@ export default function AdminQuizIndex() {
                                             className={`admin-action-btn ${quiz.status === 'published' ? 'amber' : 'green'}`}>
                                             {quiz.status === 'published' ? 'Unpublish' : 'Publish'}
                                         </button>
-                                        <button onClick={() => destroy(quiz.id)} className="admin-action-btn red">Delete</button>
+                                        {canDelete && <button onClick={() => destroy(quiz.id)} className="admin-action-btn red">Delete</button>}
                                     </div>
                                 </td>
                             </tr>

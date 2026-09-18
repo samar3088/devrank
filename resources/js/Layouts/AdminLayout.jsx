@@ -30,17 +30,24 @@ const NAV = [
         section: 'Platform',
         items: [
             { label: 'Profile Logs', icon: '📜', href: '/admin/profile-logs',  name: 'admin.profile-logs' },
-            { label: 'Quiz Mgmt',    icon: '🎯', href: '/admin/quiz',           name: 'admin.quiz.index' },
+            { label: 'Quiz Mgmt',    icon: '🎯', href: '/admin/quiz',           name: 'admin.quiz.index', permission: 'quizzes.manage' },
             { label: 'Analytics', icon: '📈', href: '/admin/analytics', name: 'admin.analytics' },
         ],
     },
 ];
 
 export default function AdminLayout({ children, title, stats = {} }) {
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const perms = props?.auth?.user?.permissions ?? [];
 
     function isActive(href) {
         return url.startsWith(href);
+    }
+
+    // Hide nav items the current admin lacks the permission for (e.g. a sub_admin
+    // without quizzes.manage doesn't see Quiz Mgmt).
+    function allowed(item) {
+        return !item.permission || perms.includes(item.permission);
     }
 
     return (
@@ -61,7 +68,7 @@ export default function AdminLayout({ children, title, stats = {} }) {
                         {NAV.map(group => (
                             <div key={group.section}>
                                 <div className="admin-nav-section">{group.section}</div>
-                                {group.items.map(item => {
+                                {group.items.filter(allowed).map(item => {
                                     const badgeCount = item.badge ? (stats[item.badge] || 0) : 0;
                                     return (
                                         <Link

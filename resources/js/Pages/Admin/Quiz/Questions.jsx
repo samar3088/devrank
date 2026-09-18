@@ -12,7 +12,8 @@ const DEFAULT_OPTIONS = [
 ];
 
 export default function AdminQuizQuestions() {
-    const { quiz, aiEnabled } = usePage().props;
+    const { quiz, aiEnabled, auth } = usePage().props;
+    const canDelete = (auth?.user?.permissions ?? []).includes('quizzes.delete');
     const [showForm, setShowForm] = useState(false);
     const [showBulk, setShowBulk] = useState(false);
     const [bulkText, setBulkText] = useState('');
@@ -312,9 +313,11 @@ export default function AdminQuizQuestions() {
                                         </div>
                                     )}
                                 </div>
-                                <button onClick={() => deleteQuestion(q.id)} className="admin-action-btn red pop-on-active" style={{ flexShrink: 0 }}>
-                                    Delete
-                                </button>
+                                {canDelete && (
+                                    <button onClick={() => deleteQuestion(q.id)} className="admin-action-btn red pop-on-active" style={{ flexShrink: 0 }}>
+                                        Delete
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}

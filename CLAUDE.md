@@ -28,6 +28,7 @@ talent, admins moderate. **Laravel 12 + Inertia.js + React 19**, MySQL.
 `guest` (public) · `candidate` · `company` · `sub_admin` · `super_admin`.
 Routes in `routes/web.php`; signed-in areas require **verified + active** account.
 Full role→feature breakdown: the shared "DevRank — Functionality by Role" doc.
+- **Quiz/challenge/question management (upload) is permission-gated**, not role-gated: the `admin/quiz` group requires **`permission:quizzes.manage`** (super_admin always; **sub_admin when granted** — it's in sub_admin's default grants). **Deleting** quizzes/questions requires **`quizzes.delete`** (super_admin only; sub_admin auto-excluded via the `%.delete%` rule). Delete buttons are hidden in the UI when the admin lacks `quizzes.delete` (`auth.user.permissions`), and the AdminLayout hides the "Quiz Mgmt" nav item without `quizzes.manage`. To revoke upload access from a specific sub_admin, remove `quizzes.manage` from that account. Candidates/companies are never allowed (403).
 
 ## Scoring & limits
 Three user scores:
