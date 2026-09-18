@@ -60,6 +60,7 @@ class HandleInertiaRequests extends Middleware
 
             // Feature flags exposed to the frontend
             'aiEnabled' => (bool) config('devrank.ai.enabled', false),
+            'githubEnabled' => (bool) config('devrank.github.enabled', false),
         ];
     }
 }

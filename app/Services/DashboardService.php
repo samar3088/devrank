@@ -78,6 +78,13 @@ class DashboardService
             ->count();
 
         return [
+            // GitHub verified-import status (roadmap #6)
+            'github' => [
+                'verified'   => $user->github_verified_at !== null,
+                'username'   => $user->github_username,
+                'stats'      => $user->github_stats,
+            ],
+
             // Rank
             'rank_score'          => $user->total_rank_score,
             'human_score'         => $user->human_score ?? 0,

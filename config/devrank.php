@@ -38,6 +38,25 @@ return [
         'quiz_mcq_correct' => 10,
         'quiz_coding_pass' => 40,
         'interview_review' => 15,
+        // Awarded once when a candidate verifies GitHub ownership (bootstrap signal).
+        'github_verified'  => 50,
+    ],
+
+    // GitHub import — verified contribution signal (Socialite OAuth).
+    // Master switch: only enabled when a GitHub OAuth app is configured, so the
+    // "Connect GitHub" UI/routes stay hidden with no credentials (like ai.enabled).
+    'github' => [
+        'enabled' => (bool) env('GITHUB_CLIENT_ID'),
+        // Rank points earned per real contribution signal, each capped so a
+        // popular account can't dwarf earned platform activity.
+        'points'  => [
+            'per_repo'        => 2,   // capped
+            'max_repo_points' => 40,
+            'per_10_stars'    => 3,   // capped
+            'max_star_points' => 60,
+            'per_10_followers'=> 2,   // capped
+            'max_follower_points' => 30,
+        ],
     ],
 
     // DPDP (Digital Personal Data Protection Act, 2023) — data-fiduciary details

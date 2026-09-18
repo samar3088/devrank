@@ -95,6 +95,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ── Candidate-only ────────────────────────────────────────────
     Route::middleware('role:candidate')->group(function () {
+        // GitHub import (verified rank signal)
+        Route::get('/auth/github/redirect', [\App\Http\Controllers\GithubController::class, 'redirect'])->name('github.redirect');
+        Route::get('/auth/github/callback', [\App\Http\Controllers\GithubController::class, 'callback'])->name('github.callback');
         // Forum
         Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
         Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->name('forum.upload-image');

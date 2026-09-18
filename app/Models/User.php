@@ -20,6 +20,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         'company_name', 'company_website', 'company_size', 'industry',
         'company_description', 'company_logo',
         'is_active', 'consented_at',
+        'github_id', 'github_username', 'github_verified_at', 'github_stats',
     ];
 
     protected $hidden = [
@@ -39,6 +40,8 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
             'trust_score' => 'integer',
             'limits_reset_at' => 'date',
             'consented_at' => 'datetime',
+            'github_verified_at' => 'datetime',
+            'github_stats' => 'array',
         ];
     }
 

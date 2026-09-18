@@ -4,8 +4,9 @@ import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
 
 export default function CandidateDashboard() {
-    const { stats, auth, aiEnabled } = usePage().props;
+    const { stats, auth, aiEnabled, githubEnabled } = usePage().props;
     const user = auth?.user;
+    const gh = stats?.github;
 
     // Weekly rank chart — from DashboardService.getWeeklyRankHistory()
     const history  = stats?.weekly_history ?? [];
@@ -38,6 +39,38 @@ export default function CandidateDashboard() {
                         </Link>
                     </div>
                 </div>
+
+                {/* ── GitHub verified import (roadmap #6) ─────────── */}
+                {githubEnabled && (
+                    gh?.verified ? (
+                        <div className="dash-card hover-lift" data-reveal="fade" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: 30 }}>🐙</div>
+                            <div style={{ flex: 1, minWidth: 200 }}>
+                                <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    GitHub Verified
+                                    <span style={{ color: 'var(--emerald, #10b981)', fontSize: 13 }}>✓ @{gh.username}</span>
+                                </div>
+                                <div style={{ color: 'var(--text3)', fontSize: 13, marginTop: 4 }}>
+                                    <CountUp end={gh.stats?.public_repos ?? 0} /> repos · <CountUp end={gh.stats?.stars ?? 0} /> stars
+                                    {gh.stats?.top_language ? <> · {gh.stats.top_language}</> : null}
+                                    {' '}· <strong style={{ color: 'var(--cyan)' }}>+{gh.stats?.points_awarded ?? 0} pts</strong>
+                                </div>
+                            </div>
+                            <a href="/auth/github/redirect" className="btn-sm btn-outline-sm pop-on-active">Refresh</a>
+                        </div>
+                    ) : (
+                        <div className="dash-card hover-lift" data-reveal="fade" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: 30 }}>🐙</div>
+                            <div style={{ flex: 1, minWidth: 200 }}>
+                                <div style={{ fontWeight: 600 }}>Verify your GitHub</div>
+                                <div style={{ color: 'var(--text3)', fontSize: 13, marginTop: 4 }}>
+                                    Import your public repos, stars and top language as a verified rank signal — and earn rank points for real contributions.
+                                </div>
+                            </div>
+                            <a href="/auth/github/redirect" className="btn btn-primary btn-sm pop-on-active">Connect GitHub</a>
+                        </div>
+                    )
+                )}
 
                 {/* ── Top Stats Row ──────────────────────────────── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }} data-reveal-stagger="80">
