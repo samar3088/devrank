@@ -72,6 +72,15 @@ Quiz ranking uses a **delta model** (retakes bank only improvement; AI-flagged a
 - **Seasons / leagues / weekly challenges (`SeasonService`, public `/challenges`):** `seasons` + `season_scores`; a **weekly challenge is a Quiz** with `is_challenge` + `season_id` + `challenge_starts_at/ends_at`. **Season points = sum of a candidate's BEST percentage per season challenge** (idempotent on retakes); leagues **Gold (top 10%) / Silver (35%) / Bronze** by season rank. Awarded in `QuizService::completeAttempt`. `SeasonSeeder` creates a current season + 2 live challenges.
 - **How challenge/test questions are uploaded:** a challenge is just a quiz, so questions go through the **existing admin quiz builder** (`Admin/Quiz/Questions.jsx` → `storeQuestion`, one at a time) **plus a bulk JSON import** — `POST /admin/quiz/{quiz}/questions/bulk` (`storeQuestionsBulk`, paste-JSON panel): an array of `{body, marks?, explanation?, options:[{option_text,is_correct}]}` MCQs (exactly one correct each). Flag the quiz as a challenge + set its window in the quiz create/edit form (auto-joins the current season). Coding questions still need AI grading (blocked when AI off).
 
+## Roadmap status (11-item plan; see FEATURE-STATUS.md for detail)
+**Built ✅ (8/11):** #1 Judge0 code execution · #2 verifiable rank credentials · #4 smart matching · #6 GitHub import · #7 in-app notifications · #8 seasons/leagues/weekly challenges · #9 skill paths · #10 response SLAs.
+**Pending:**
+- **#3 Bias-reduced hiring — 🟡 partial:** contact-detail gate live; anonymize name/photo/location in company discovery until mutual interest is NOT built.
+- **#5 AI mock-interview — ❌:** rehearse real rounds/questions from interview-board data with AI feedback (needs `ANTHROPIC_API_KEY`).
+- **#11 Verified hire outcomes + salary transparency — ❌.**
+**Known gaps / polish (optional):** no **admin UI for seasons** (created via `SeasonSeeder`/tinker only); **bulk question import is MCQ-only** (coding + test cases added one at a time); notification delivery is 45s polling (Reverb optional); optional HMAC receipt on `/verify`; `monaco-editor` has 2 npm advisories.
+**Owner config to go live (not code):** `JUDGE0_URL` (unlocks coding) · GitHub OAuth (`GITHUB_CLIENT_ID/SECRET`) · staging `.env` (`APP_DEBUG=false`, HTTPS, SMTP) · cron `schedule:run` (daily `jobs:expire` + `devrank:recompute-scores`) · optionally `DEVRANK_AI_ENABLED=true`+`ANTHROPIC_API_KEY` for the AI human-check.
+
 ## Conventions & gotchas (learned the hard way)
 - **`auth.user.roles` is an array of STRINGS** (`getRoleNames()`). In React use `roles.includes('candidate')` — **never** `roles.some(r => r.name === …)` (silently always false).
 - **`.container`** is a global centered 1200px wrapper (defined in `app.css`), NOT bare Tailwind. Footer (`.home-footer`) is full-bleed by design.

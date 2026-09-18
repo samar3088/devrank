@@ -1,10 +1,11 @@
 # DevRank — Session Handoff
 
-_Last updated: 2026-09-18 (session #2). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec._
+_Last updated: 2026-09-18 (through session #5). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
 
 ## Where things are (current)
-- Branch **`main`**, **all work committed and pushed** to `origin/main`. Prior session's ~90-file batch was committed as `9ae8fe4`.
-- Build passes (`npm run build`), all new migrations run, verified working.
+- Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `fe40b0d`).
+- Build passes (`npm run build`), all migrations run, verified working.
+- **Roadmap: 8 of 11 items built** (#1,2,4,6,7,8,9,10 ✅; #3 partial; #5,#11 not started). See "Still pending / open" below.
 - Env note: XAMPP **MySQL** was stopped and restarted this session; a `php artisan serve` runs on **:8123** for testing (stale instances get killed/restarted).
 
 ## Session #2 (2026-09-18) — roadmap execution
@@ -108,16 +109,29 @@ Built a reusable, **reduced-motion-safe, no-JS-safe** system (see CLAUDE.md “F
 ## Candidate contact privacy gate — DONE
 - Public candidate profile now **hides `email` / `resume` / `github_url` / `linkedin_url`** unless the viewer is the candidate, an admin, or a **company whose interest that candidate ACCEPTED**. Enforced server-side in `PublicProfileService::getCandidateProfile` (`canViewContact` nulls the fields — real boundary, not a UI hide). Page reads `contact_unlocked`. Verified for guest / other-candidate / company-without-accept (locked, nulled) and accepted-company / self / admin (unlocked). Applicant-view résumé (candidates who applied) intentionally NOT gated — they consented by applying.
 
-## Still deferred / open
-- **Owner action before staging:** `APP_URL`, `APP_DEBUG=false`, real SMTP, `LOG_LEVEL=warning`, serve over HTTPS (activates HSTS + secure cookies), set `DEVRANK_GRIEVANCE_EMAIL`/`DEVRANK_ENTITY_NAME`. **`ANTHROPIC_API_KEY` is NOT required for phase 1** (leave `DEVRANK_AI_ENABLED=false`).
-- **GitHub import** is built but **off** until the owner registers a GitHub OAuth app and sets `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` (callback `<APP_URL>/auth/github/callback`).
-- **Cron:** production needs `schedule:run` for daily `jobs:expire` + `devrank:recompute-scores` (SLA trust decay).
-- **#2 verifiable rank credentials** — scoped in `docs/CREDENTIALS_SCOPE.md`, **not built** (~2.5–3 days).
-- **Roadmap remaining (from the differentiators list):** #1 code-execution grading (Judge0), #3 bias-reduced hiring (name/photo anonymization — only the contact gate exists), #4 smart matching, #5 AI mock-interview; engagement #2 seasons/leagues, #3 skill paths.
-- Optional: bump `monaco-editor` (last 2 npm advisories); WebSocket push (Reverb) to replace notification polling; give admins the notification bell; rank-change notification trigger (declared, not wired).
+## Still pending / open (as of session #5)
+
+**Roadmap features NOT built** (everything else on the 11-item roadmap is ✅ — see FEATURE-STATUS.md):
+- **#3 Bias-reduced hiring — 🟡 partial.** Contact-detail gate is live; still to build: anonymize name/photo/location in company discovery until mutual interest.
+- **#5 AI mock-interview — ❌.** Rehearse the actual rounds/questions from interview-board data with AI feedback (needs `ANTHROPIC_API_KEY`).
+- **#11 Verified hire outcomes + salary transparency — ❌.** Both sides confirm a hire; real-offer salary data.
+
+**Polish / infra (optional, none blocking):**
+- **Admin UI to create/activate/rotate seasons** — currently seasons are created via `SeasonSeeder`/tinker only; no admin screen (real gap for running #8 in production).
+- **Bulk question import is MCQ-only** — coding questions + test cases still added one at a time.
+- WebSocket push (Reverb) to replace the 45s notification polling.
+- Optional HMAC "receipt" on the `/verify` page (screenshot re-verification) — nice-to-have from `docs/CREDENTIALS_SCOPE.md`.
+- Bump `monaco-editor` (last 2 npm advisories).
+
+**Owner config before go-live (not code):**
+- `.env` for staging: `APP_DEBUG=false`, `APP_ENV=production`, `LOG_LEVEL=warning`, `APP_URL`, real SMTP, **HTTPS** (activates HSTS + secure cookies), `DEVRANK_GRIEVANCE_EMAIL`/`DEVRANK_ENTITY_NAME`.
+- **Judge0:** set `JUDGE0_URL` (self-host or RapidAPI) to turn coding questions/challenges on. Off = MCQ-only.
+- **GitHub import:** register an OAuth app, set `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` (callback `<APP_URL>/auth/github/callback`).
+- **Cron:** `schedule:run` for daily `jobs:expire` + `devrank:recompute-scores` (SLA trust decay, rank-up notifications).
+- **AI human-check (optional):** `DEVRANK_AI_ENABLED=true` + `ANTHROPIC_API_KEY` — NOT required; Judge0 alone grades coding.
 
 ## To pick up in a fresh session
-1. `git status` clean; `php artisan migrate` on any older DB (4 new migrations). `npm run build` if unsure.
-2. If demo data looks empty/stale: `php artisan migrate:fresh --seed`.
-3. Next roadmap pick: **build #2 credentials** (scoped, cheap, high-leverage) or **#1 Judge0 code execution** (biggest credibility jump).
-4. For staging: owner `.env` + HTTPS + cron, then deploy.
+1. `git status` clean; `php artisan migrate` on any older DB. `npm run build` if unsure. If demo data is stale: `php artisan migrate:fresh --seed`.
+2. Next roadmap pick: **#5 AI mock-interview** (data moat) or **#3 bias-reduced hiring** (extends the contact gate; DEI selling point). **#11 verified hires + salary** is the other open item.
+3. Highest-value non-roadmap build: **admin Seasons UI** so #8 can be run without the seeder.
+4. For staging: owner `.env` + HTTPS + cron + (optionally) `JUDGE0_URL`/GitHub OAuth, then deploy.
