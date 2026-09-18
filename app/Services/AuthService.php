@@ -91,14 +91,6 @@ class AuthService
     }
 
     /**
-     * Get the dashboard route based on user role
-     */
-    public function getDashboardRoute(User $user): string
-    {
-        return '/dashboard';
-    }
-
-    /**
      * Parse experience string to integer
      */
     private function parseExperience(?string $experience): ?int
