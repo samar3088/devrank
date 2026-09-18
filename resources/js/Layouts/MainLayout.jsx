@@ -167,6 +167,11 @@ export default function MainLayout({ children }) {
                                                 </Link>
                                             )}
 
+                                            <Link href="/account/settings" className="nav-dropdown-item"
+                                                onClick={() => setDropdownOpen(false)}>
+                                                🔒 Account &amp; Privacy
+                                            </Link>
+
                                             <hr className="nav-dropdown-divider" />
 
                                             <button onClick={handleLogout} className="nav-dropdown-item"
