@@ -1,7 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: built #2 credentials; added rank-up + admin-moderation notifications; nav Account&Privacy link; seed-data cleanup (applications_count from real rows, no future dates)._
+_Recent: built #4 matching, #8 seasons/leagues/weekly-challenges (+bulk question import), #9 skill paths, #2 credentials; rank-up + admin-moderation notifications; seed cleanup._
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -37,7 +37,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 ### High-impact
 | # | Item | Status |
 |---|---|---|
-| 4 | Smart two-sided matching | ❌ Not started (skills/tags/rank data exists to power it). |
+| 4 | Smart two-sided matching | ✅ **Built** — MatchService (skill×rank×experience×prefs), candidate "top matches" + open-to-work toggle, company "Browse Talent", saved searches + job alerts. |
 | 5 | AI mock-interview from interview-board data | ❌ Not started. |
 | 6 | **GitHub import** | ✅ **Built** — Socialite OAuth connect, verified repos/stars/language signal, capped delta-model points. Off until `GITHUB_CLIENT_ID` set. (Stack Overflow deferred per decision.) |
 
@@ -45,8 +45,8 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 | # | Item | Status |
 |---|---|---|
 | 7 | Real-time in-app notifications | ✅ Built (polling; Reverb/WebSocket optional later). |
-| 8 | Seasons / leagues / weekly challenges | ❌ Not started (points engine supports it). |
-| 9 | Skill paths | ❌ Not started. |
+| 8 | Seasons / leagues / weekly challenges | ✅ **Built** — seasons + season_scores, weekly-challenge quizzes (timed, season-linked), Gold/Silver/Bronze leagues, public /challenges page, admin bulk question import. |
+| 9 | Skill paths | ✅ **Built** — per-skill "climb / new" paths recommending unattempted quizzes + open questions (/skill-paths). |
 
 ### Company-side trust
 | # | Item | Status |
