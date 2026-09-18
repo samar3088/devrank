@@ -245,13 +245,17 @@ class JobService
      */
     public function getJobApplicants(JobListing $job)
     {
+        $cutoff = now()->subDays((int) config('devrank.sla.response_days', 14));
+
         return $job->applications()
             ->with('candidate:id,name,email,total_rank_score,human_score,resume_path,headline,location')
             ->orderByRaw("FIELD(status,'applied','reviewing','shortlisted','interview','offered','rejected','withdrawn')")
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($app) {
+            ->map(function ($app) use ($cutoff) {
                 $c = $app->candidate;
+
+                $awaiting = $app->status === 'applied' && $app->responded_at === null;
 
                 return [
                     'id'            => $app->id,
@@ -260,6 +264,8 @@ class JobService
                     'rejection_reason' => $app->rejection_reason,
                     'resume_path'   => $app->resume_path ?: ($c->resume_path ?? null),
                     'applied_at'    => optional($app->created_at)->diffForHumans(),
+                    'awaiting_response' => $awaiting,
+                    'sla_overdue'   => $awaiting && $app->created_at !== null && $app->created_at->lte($cutoff),
                     'candidate'     => $c ? [
                         'id'          => $c->id,
                         'name'        => $c->name,
@@ -303,6 +309,10 @@ class JobService
 
     /**
      * Move an applicant through the hiring pipeline.
+     *
+     * The first move off "applied" stamps `responded_at` (the company has
+     * acknowledged the candidate), which stops the SLA clock, and the company's
+     * trust_score is recomputed so responsive/unresponsive conduct is reflected.
      */
     public function updateApplicationStatus(\App\Models\JobApplication $application, string $status, ?string $rejectionReason = null): void
     {
@@ -312,7 +322,18 @@ class JobService
             $data['rejection_reason'] = $rejectionReason;
         }
 
+        // First response to the candidate stops the SLA clock.
+        if ($status !== 'applied' && $application->responded_at === null) {
+            $data['responded_at'] = now();
+        }
+
         $application->update($data);
+
+        // Reflect the company's hiring conduct in their trust score.
+        $company = $application->jobListing?->user;
+        if ($company) {
+            app(ScoreService::class)->updateTrustScoreForUser($company);
+        }
     }
 
     /**

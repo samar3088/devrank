@@ -12,6 +12,18 @@ return [
         'expiry_days' => 30,
     ],
 
+    // Company response SLA (feeds trust_score, enforces hiring conduct).
+    'sla' => [
+        // Days a company has to respond to (i.e. move off "applied") a job
+        // application before it counts as an un-responded breach against trust.
+        'response_days'   => 14,
+        // Blend weights for trust_score: interview-board ghosting vs. application
+        // response conduct. Only the signals a company actually has are counted,
+        // so a company with reviews but no applications behaves exactly as before.
+        'ghost_weight'    => 0.6,
+        'response_weight' => 0.4,
+    ],
+
     'upload' => [
         'max_size' => 5120, // KB
         'allowed_images' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],

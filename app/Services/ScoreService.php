@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\InterviewReview;
+use App\Models\JobApplication;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -46,9 +47,19 @@ class ScoreService
     }
 
     /**
-     * trust_score (0–100): 100 minus the percentage of a company's visible
-     * interview reviews that report a "ghosted" outcome. Companies with no
-     * reviews default to 100. Honest rejections do not reduce trust.
+     * trust_score (0–100): a company's hiring conduct, blended from two signals:
+     *   - ghosting rate on the interview board (matched by company_name), and
+     *   - application-response rate — the share of job applications the company
+     *     left un-responded past the SLA window (config `devrank.sla.response_days`).
+     * Only the signals a company actually has are counted (weighted by
+     * `sla.ghost_weight` / `sla.response_weight`), so a company with reviews but
+     * no applications scores exactly as it did before this blend existed.
+     * Companies with neither signal default to 100. Honest rejections and timely
+     * responses do not reduce trust.
+     *
+     * Interview reviews are name-matched (one report can span multiple accounts
+     * sharing a company_name), while application conduct is per account — so we
+     * recompute each matching account individually.
      */
     public function updateTrustScoreForCompany(?string $companyName): void
     {
@@ -56,19 +67,79 @@ class ScoreService
             return;
         }
 
-        $row = InterviewReview::where('company_name', $companyName)
-            ->where('status', 'visible')
-            ->selectRaw("COUNT(*) as total, COALESCE(SUM(outcome = 'ghosted'), 0) as ghosted")
-            ->first();
+        User::role('company')->where('company_name', $companyName)->get()
+            ->each(fn (User $company) => $this->updateTrustScoreForUser($company));
+    }
 
-        $total   = (int) $row->total;
-        $ghosted = (int) $row->ghosted;
-        $score   = $total > 0 ? (int) round(100 * (1 - $ghosted / $total)) : 100;
-
-        $ids = User::role('company')->where('company_name', $companyName)->pluck('id');
-        if ($ids->isNotEmpty()) {
-            User::whereIn('id', $ids)->update(['trust_score' => $score]);
+    /**
+     * Recompute one company account's trust_score from both conduct signals.
+     */
+    public function updateTrustScoreForUser(User $company): int
+    {
+        // Signal 1 — interview-board ghosting (name-matched, honest rejections excluded).
+        $ghostRate = null;
+        if ($company->company_name) {
+            $row = InterviewReview::where('company_name', $company->company_name)
+                ->where('status', 'visible')
+                ->selectRaw("COUNT(*) as total, COALESCE(SUM(outcome = 'ghosted'), 0) as ghosted")
+                ->first();
+            if ((int) $row->total > 0) {
+                $ghostRate = (int) $row->ghosted / (int) $row->total;
+            }
         }
+
+        // Signal 2 — application-response conduct (this account's jobs only).
+        $slaRate = $this->applicationBreachRate($company);
+
+        $ghostWeight    = (float) config('devrank.sla.ghost_weight', 0.6);
+        $responseWeight = (float) config('devrank.sla.response_weight', 0.4);
+
+        $weighted = 0.0;
+        $weightSum = 0.0;
+        if ($ghostRate !== null) {
+            $weighted  += $ghostRate * $ghostWeight;
+            $weightSum += $ghostWeight;
+        }
+        if ($slaRate !== null) {
+            $weighted  += $slaRate * $responseWeight;
+            $weightSum += $responseWeight;
+        }
+
+        $score = $weightSum > 0 ? (int) round(100 * (1 - $weighted / $weightSum)) : 100;
+
+        $company->update(['trust_score' => $score]);
+
+        return $score;
+    }
+
+    /**
+     * Share of a company's job applications left un-responded past the SLA
+     * window. Withdrawn applications (candidate backed out) are excluded from
+     * both sides. Returns null when the company has received no applications.
+     */
+    public function applicationBreachRate(User $company): ?float
+    {
+        $jobIds = $company->jobListings()->pluck('id');
+        if ($jobIds->isEmpty()) {
+            return null;
+        }
+
+        $base = JobApplication::whereIn('jobs_listing_id', $jobIds)
+            ->where('status', '!=', 'withdrawn');
+
+        $total = (clone $base)->count();
+        if ($total === 0) {
+            return null;
+        }
+
+        $cutoff = now()->subDays((int) config('devrank.sla.response_days', 14));
+        $breached = (clone $base)
+            ->where('status', 'applied')
+            ->whereNull('responded_at')
+            ->where('created_at', '<=', $cutoff)
+            ->count();
+
+        return $breached / $total;
     }
 
     /**
@@ -81,11 +152,14 @@ class ScoreService
             $this->updateHumanScore($id);
         }
 
-        $companyNames = User::role('company')->whereNotNull('company_name')->distinct()->pluck('company_name');
-        foreach ($companyNames as $name) {
-            $this->updateTrustScoreForCompany($name);
+        // Per-account so both signals (ghosting + application-response SLA) are
+        // recomputed — this also catches applications that silently crossed the
+        // SLA window with no status event to trigger a recompute.
+        $companies = User::role('company')->get();
+        foreach ($companies as $company) {
+            $this->updateTrustScoreForUser($company);
         }
 
-        return ['candidates' => $candidateIds->count(), 'companies' => $companyNames->count()];
+        return ['candidates' => $candidateIds->count(), 'companies' => $companies->count()];
     }
 }

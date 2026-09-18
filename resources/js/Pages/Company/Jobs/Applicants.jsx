@@ -14,7 +14,7 @@ const STATUS_LABELS = {
 };
 
 export default function Applicants() {
-    const { job, applicants, statuses } = usePage().props;
+    const { job, applicants, statuses, slaDays, slaOverdue, awaitingCount } = usePage().props;
 
     const header = (
         <div className="dash-header">
@@ -41,6 +41,30 @@ export default function Applicants() {
                     <h4><CountUp end={applicants.length} /> {applicants.length === 1 ? 'Applicant' : 'Applicants'}</h4>
                     <span style={{ fontSize: 13, color: 'var(--text3)' }}>Move candidates through your hiring pipeline</span>
                 </div>
+
+                {(awaitingCount > 0 || slaOverdue > 0) && (
+                    <div
+                        data-reveal="fade"
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                            margin: '4px 0 16px', padding: '10px 14px', borderRadius: 10,
+                            fontSize: 13, lineHeight: 1.5,
+                            background: slaOverdue > 0 ? 'rgba(239,68,68,.08)' : 'rgba(245,158,11,.08)',
+                            border: `1px solid ${slaOverdue > 0 ? 'rgba(239,68,68,.25)' : 'rgba(245,158,11,.25)'}`,
+                            color: 'var(--text2)',
+                        }}
+                    >
+                        <span>{slaOverdue > 0 ? '⏰' : '📥'}</span>
+                        <span>
+                            {awaitingCount > 0 && <><strong>{awaitingCount}</strong> awaiting a first response.</>}
+                            {slaOverdue > 0 && (
+                                <> <strong style={{ color: 'var(--rose, #ef4444)' }}>{slaOverdue}</strong> past your{' '}
+                                {slaDays}-day response SLA — unanswered applicants lower your <strong>trust score</strong>.</>
+                            )}
+                            {slaOverdue === 0 && awaitingCount > 0 && <> Respond within {slaDays} days to protect your trust score.</>}
+                        </span>
+                    </div>
+                )}
 
                 {applicants.length > 0 ? (
                     <div data-reveal-stagger="55">
@@ -98,6 +122,16 @@ function ApplicantRow({ a, statuses }) {
                 </div>
                 <div className="app-meta">
                     {c.headline ? `${c.headline} · ` : ''}{c.location || 'Location N/A'} · applied {a.applied_at}
+                    {a.sla_overdue && (
+                        <span style={{ marginLeft: 8, color: 'var(--rose, #ef4444)', fontWeight: 600 }} title="Past the response SLA — hurting your trust score">
+                            ⏰ overdue
+                        </span>
+                    )}
+                    {a.awaiting_response && !a.sla_overdue && (
+                        <span style={{ marginLeft: 8, color: 'var(--amber, #f59e0b)', fontWeight: 600 }} title="Awaiting your first response">
+                            ● awaiting response
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -140,20 +174,28 @@ function ApplicantRow({ a, statuses }) {
                     )}
                     {status === 'rejected' && (
                         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                            <textarea
-                                id={`reason-${a.id}`}
-                                className="form-input"
-                                placeholder="Rejection reason (shown to help the candidate improve) — required for a transparent rejection"
-                                value={reason}
-                                onChange={(e) => setReason(e.target.value)}
-                                rows={2}
-                                style={{ flex: 1, minWidth: 240 }}
-                            />
+                            <div style={{ flex: 1, minWidth: 240 }}>
+                                <textarea
+                                    id={`reason-${a.id}`}
+                                    className="form-input"
+                                    placeholder="Rejection reason (shown to help the candidate improve) — required, min 10 characters"
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
+                                    rows={2}
+                                    style={{ width: '100%' }}
+                                    aria-invalid={reason.trim().length > 0 && reason.trim().length < 10}
+                                />
+                                <span style={{ fontSize: 12, color: 'var(--text4)' }}>
+                                    {reason.trim().length < 10
+                                        ? `A reason is required (${reason.trim().length}/10 characters).`
+                                        : 'Thanks — transparent rejections keep your trust score healthy.'}
+                                </span>
+                            </div>
                             <button
                                 type="button"
                                 className="btn-sm btn-danger pop-on-active"
-                                disabled={saving}
-                                onClick={() => submit('rejected', reason)}
+                                disabled={saving || reason.trim().length < 10}
+                                onClick={() => submit('rejected', reason.trim())}
                             >
                                 Confirm rejection
                             </button>

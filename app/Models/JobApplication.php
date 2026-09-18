@@ -18,6 +18,11 @@ class JobApplication extends Model
         'status',
         'rejection_reason',
         'company_notes',
+        'responded_at',
+    ];
+
+    protected $casts = [
+        'responded_at' => 'datetime',
     ];
 
     public function jobListing()

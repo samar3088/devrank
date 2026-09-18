@@ -167,6 +167,8 @@ class JobController extends Controller
 
         $job->load('tags:id,name,slug');
 
+        $applicants = $this->jobService->getJobApplicants($job);
+
         return Inertia::render('Company/Jobs/Applicants', [
             'job' => [
                 'id'       => $job->id,
@@ -176,8 +178,11 @@ class JobController extends Controller
                 'location' => $job->location,
                 'job_type' => $job->job_type,
             ],
-            'applicants' => $this->jobService->getJobApplicants($job),
-            'statuses'   => ['applied', 'reviewing', 'shortlisted', 'interview', 'offered', 'rejected'],
+            'applicants'   => $applicants,
+            'statuses'     => ['applied', 'reviewing', 'shortlisted', 'interview', 'offered', 'rejected'],
+            'slaDays'      => (int) config('devrank.sla.response_days', 14),
+            'slaOverdue'   => $applicants->where('sla_overdue', true)->count(),
+            'awaitingCount'=> $applicants->where('awaiting_response', true)->count(),
         ]);
     }
 
@@ -192,7 +197,11 @@ class JobController extends Controller
 
         $validated = $request->validate([
             'status'           => ['required', 'in:applied,reviewing,shortlisted,interview,offered,rejected'],
-            'rejection_reason' => ['nullable', 'string', 'max:1000'],
+            // A rejection must carry a reason — no silent closes (transparency/SLA).
+            'rejection_reason' => ['required_if:status,rejected', 'nullable', 'string', 'min:10', 'max:1000'],
+        ], [
+            'rejection_reason.required_if' => 'A rejection reason is required before closing a candidate.',
+            'rejection_reason.min'         => 'Please give a rejection reason of at least 10 characters.',
         ]);
 
         $this->jobService->updateApplicationStatus(
