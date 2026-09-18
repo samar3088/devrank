@@ -106,6 +106,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/account/credential',        [\App\Http\Controllers\CredentialController::class, 'store'])->name('credential.store');
         Route::post('/account/credential/rotate', [\App\Http\Controllers\CredentialController::class, 'rotate'])->name('credential.rotate');
         Route::delete('/account/credential',      [\App\Http\Controllers\CredentialController::class, 'destroy'])->name('credential.destroy');
+        // Smart matching — availability toggle + saved job searches (#4)
+        Route::post('/candidate/open-to-work',    [\App\Http\Controllers\MatchController::class, 'toggleAvailability'])->name('candidate.availability');
+        Route::post('/candidate/saved-searches',  [\App\Http\Controllers\SavedSearchController::class, 'store'])->name('saved-search.store');
+        Route::delete('/candidate/saved-searches/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'destroy'])->name('saved-search.destroy');
         // Forum
         Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
         Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->name('forum.upload-image');
@@ -147,6 +151,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/profile',         [\App\Http\Controllers\Company\CompanyProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/logo',   [\App\Http\Controllers\Company\CompanyProfileController::class, 'updateLogo'])->name('profile.logo');
         Route::get('/interests',       [InterestController::class, 'companyIndex'])->name('interests.index');
+        Route::get('/talent',          [\App\Http\Controllers\MatchController::class, 'talent'])->name('talent');
         // Applicants (view who applied + move them through the pipeline)
         Route::get('/jobs/{job}/applicants',             [\App\Http\Controllers\Company\JobController::class, 'applicants'])->name('jobs.applicants');
         Route::put('/applications/{application}/status', [\App\Http\Controllers\Company\JobController::class, 'updateApplicationStatus'])->name('applications.status');

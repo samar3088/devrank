@@ -101,6 +101,12 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         return $this->hasMany(Tag::class, 'suggested_by');
     }
 
+    // ── Saved job searches (candidate) ──────────────
+    public function savedSearches()
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
     // ── Helper Methods ──────────────────────────────
     public function isAdmin(): bool
     {

@@ -27,7 +27,7 @@ export default function CompanyLayout({ children, fullWidthHeader }) {
 
         { section: 'Discovery' },
         { href: '/company/interests', icon: '📤', label: 'Outreach Sent' },
-        { href: '/leaderboard', icon: '🏆', label: 'Browse Talent' },
+        { href: '/company/talent', icon: '🏆', label: 'Browse Talent' },
 
         { section: 'Account' },
         { href: '/company/profile', icon: '🏢', label: 'Company Profile' },

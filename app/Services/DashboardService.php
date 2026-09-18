@@ -88,6 +88,17 @@ class DashboardService
             // Verifiable embeddable rank credential (#2) — token or null (opt-in).
             'credential_token' => optional(app(CredentialService::class)->activeToken($user))->token,
 
+            // Smart matching (#4)
+            'open_to_work' => (bool) $user->open_to_work,
+            'job_matches'  => collect(app(MatchService::class)->jobsForCandidate($user, 4))->map(fn ($m) => [
+                'score'    => $m['score'],
+                'title'    => $m['job']->title,
+                'slug'     => $m['job']->slug,
+                'company'  => $m['job']->company->company_name ?? $m['job']->company->name ?? '—',
+                'location' => $m['job']->location,
+                'job_type' => $m['job']->job_type,
+            ]),
+
             // Rank
             'rank_score'          => $user->total_rank_score,
             'human_score'         => $user->human_score ?? 0,

@@ -61,6 +61,30 @@ export default function JobsIndex() {
                     {auth?.user?.roles?.includes('company') && (
                         <Link href="/company/jobs/create" className="btn-sm btn-primary-sm" style={{ padding: '10px 20px', fontSize: '14px' }}>Post a Job</Link>
                     )}
+                    {auth?.user?.roles?.includes('candidate') && (
+                        <button
+                            type="button"
+                            className="btn-sm btn-outline-sm pop-on-active"
+                            style={{ padding: '10px 18px', fontSize: '14px' }}
+                            onClick={() => {
+                                const name = window.prompt('Name this search — we’ll alert you when matching jobs are posted:', search || 'My search');
+                                if (!name) return;
+                                router.post('/candidate/saved-searches', {
+                                    name,
+                                    alerts: true,
+                                    filters: {
+                                        search: filters?.search || search || null,
+                                        job_type: filters?.job_type || null,
+                                        work_mode: filters?.work_mode || null,
+                                        experience: filters?.experience || null,
+                                        tag_id: filters?.tag ? parseInt(filters.tag) : null,
+                                    },
+                                }, { preserveScroll: true });
+                            }}
+                        >
+                            🔔 Save &amp; alert me
+                        </button>
+                    )}
                 </div>
 
                 {/* Search */}

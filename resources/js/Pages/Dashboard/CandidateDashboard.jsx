@@ -76,6 +76,9 @@ export default function CandidateDashboard() {
                 {/* ── Verifiable rank credential (#2) ─────────────── */}
                 <CredentialCard token={stats?.credential_token} userId={user?.id} />
 
+                {/* ── Smart job matches (#4) ─────────────────────── */}
+                <MatchesCard matches={stats?.job_matches ?? []} openToWork={stats?.open_to_work} />
+
                 {/* ── Top Stats Row ──────────────────────────────── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }} data-reveal-stagger="80">
                     <StatCard
@@ -299,6 +302,53 @@ export default function CandidateDashboard() {
                 <FullFooter />
             </div>
         </MainLayout>
+    );
+}
+
+function MatchesCard({ matches, openToWork }) {
+    const [busy, setBusy] = useState(false);
+    const color = (s) => (s >= 70 ? 'var(--emerald, #10b981)' : s >= 45 ? 'var(--cyan)' : 'var(--text3)');
+
+    function toggle() {
+        setBusy(true);
+        router.post('/candidate/open-to-work', {}, { preserveScroll: true, onFinish: () => setBusy(false) });
+    }
+
+    return (
+        <div className="dash-card" data-reveal="fade" style={{ marginBottom: 24 }}>
+            <div className="dash-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                <h4>🎯 Top job matches for you</h4>
+                <button type="button" className={`btn-sm ${openToWork ? 'btn-primary-sm' : 'btn-outline-sm'} pop-on-active`} disabled={busy} onClick={toggle}>
+                    {openToWork ? '✓ Open to work' : 'Set open to work'}
+                </button>
+            </div>
+
+            {matches.length > 0 ? (
+                <div data-reveal-stagger="55">
+                    {matches.map((m) => (
+                        <div key={m.slug} className="app-row" data-reveal="fade" style={{ alignItems: 'center' }}>
+                            <div style={{ minWidth: 52, textAlign: 'center', fontWeight: 800, fontSize: 18, color: color(m.score) }}>
+                                {m.score}%
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontWeight: 600 }}>
+                                    <Link href={`/jobs/${m.slug}`} className="link-underline">{m.title}</Link>
+                                </div>
+                                <div style={{ fontSize: 13, color: 'var(--text3)' }}>{m.company} · {m.location || 'Location N/A'} · {m.job_type}</div>
+                            </div>
+                            <Link href={`/jobs/${m.slug}`} className="btn-sm btn-outline-sm pop-on-active">View</Link>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="dash-empty">
+                    Answer questions in the forum to build your skill profile — then we’ll match you to jobs.
+                </div>
+            )}
+            <div style={{ fontSize: 12, color: 'var(--text4)', marginTop: 10 }}>
+                Match blends skill overlap, rank, experience and your preferences. <Link href="/jobs" className="link-underline">Browse all jobs →</Link>
+            </div>
+        </div>
     );
 }
 

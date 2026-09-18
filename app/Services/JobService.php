@@ -72,10 +72,38 @@ class JobService
         // Increment monthly counter
         $user->increment('monthly_job_posts');
 
+        // Job alerts — notify candidates whose saved search matches this new job.
+        $this->fireJobAlerts($job);
+
         return [
             'success' => true,
             'job' => $job,
         ];
+    }
+
+    /**
+     * Notify candidates with an alerting saved search that matches a new job.
+     */
+    private function fireJobAlerts(JobListing $job): void
+    {
+        $job->loadMissing('tags:id');
+        $notifier = app(NotificationService::class);
+
+        \App\Models\SavedSearch::with('user:id')
+            ->where('alerts', true)
+            ->get()
+            ->filter(fn ($s) => $s->matchesJob($job))
+            ->groupBy('user_id')
+            ->each(function ($searches, $userId) use ($job, $notifier) {
+                $notifier->notify(
+                    user:  (int) $userId,
+                    type:  'job_alert',
+                    title: 'New job matches your saved search',
+                    body:  \Illuminate\Support\Str::limit($job->title, 100),
+                    url:   '/jobs/' . $job->slug,
+                    icon:  '🔔',
+                );
+            });
     }
 
     /**
