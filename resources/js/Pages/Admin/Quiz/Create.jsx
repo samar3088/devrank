@@ -15,6 +15,9 @@ export default function AdminQuizCreate() {
         passing_score:       quiz?.passing_score       ?? 60,
         max_attempts:        quiz?.max_attempts        ?? 1,
         status:              quiz?.status              ?? 'draft',
+        is_challenge:        quiz?.is_challenge        ?? false,
+        challenge_starts_at: quiz?.challenge_starts_at ?? '',
+        challenge_ends_at:   quiz?.challenge_ends_at   ?? '',
     });
 
     function submit(e) {
@@ -110,6 +113,32 @@ export default function AdminQuizCreate() {
                                     <option value="draft">Draft — not visible to candidates</option>
                                     <option value="published">Published — live</option>
                                 </select>
+                            </div>
+
+                            {/* Weekly challenge (#8) — joins the current active season */}
+                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <input type="checkbox" checked={form.data.is_challenge}
+                                        onChange={e => form.setData('is_challenge', e.target.checked)} />
+                                    ⚡ Make this a weekly challenge (adds it to the current season)
+                                </label>
+                                {form.data.is_challenge && (
+                                    <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
+                                        <div>
+                                            <label className="form-label" style={{ fontSize: 12 }}>Opens</label>
+                                            <input type="datetime-local" className="form-input"
+                                                value={form.data.challenge_starts_at || ''}
+                                                onChange={e => form.setData('challenge_starts_at', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label className="form-label" style={{ fontSize: 12 }}>Closes</label>
+                                            <input type="datetime-local" className={`form-input${form.errors.challenge_ends_at ? ' is-error' : ''}`}
+                                                value={form.data.challenge_ends_at || ''}
+                                                onChange={e => form.setData('challenge_ends_at', e.target.value)} />
+                                        </div>
+                                    </div>
+                                )}
+                                {form.errors.challenge_ends_at && <span className="form-error">{form.errors.challenge_ends_at}</span>}
                             </div>
 
                             <div className="form-group">

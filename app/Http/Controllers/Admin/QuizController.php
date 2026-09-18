@@ -82,14 +82,19 @@ class QuizController extends Controller
             'passing_score'      => ['required', 'integer', 'min:1', 'max:100'],
             'max_attempts'       => ['required', 'integer', 'min:0', 'max:5'],  // ← ADD
             'status'             => ['required', 'in:draft,published'],
+            'is_challenge'         => ['boolean'],
+            'challenge_starts_at'  => ['nullable', 'date'],
+            'challenge_ends_at'    => ['nullable', 'date', 'after:challenge_starts_at'],
         ]);
-         
+
         $quiz = Quiz::create([
             ...$validated,
-            'slug'       => Str::slug($validated['title']),
+            'slug'       => Str::slug($validated['title']) . '-' . Str::lower(Str::random(4)),
             'created_by' => auth()->id(),
+            // A weekly challenge joins the current active season.
+            'season_id'  => ! empty($validated['is_challenge']) ? optional(\App\Models\Season::current())->id : null,
         ]);
- 
+
         return redirect()->route('admin.quiz.questions', $quiz->id)
             ->with('success', 'Quiz created. Now add questions.');
     }
@@ -114,10 +119,18 @@ class QuizController extends Controller
             'passing_score'      => ['required', 'integer', 'min:1', 'max:100'],
             'max_attempts'       => ['required', 'integer', 'min:0', 'max:5'],  // ← ADD
             'status'             => ['required', 'in:draft,published'],
+            'is_challenge'         => ['boolean'],
+            'challenge_starts_at'  => ['nullable', 'date'],
+            'challenge_ends_at'    => ['nullable', 'date', 'after:challenge_starts_at'],
         ]);
-         
+
+        // Keep the season link in sync with the challenge flag.
+        if (! empty($validated['is_challenge']) && ! $quiz->season_id) {
+            $validated['season_id'] = optional(\App\Models\Season::current())->id;
+        }
+
         $quiz->update($validated);
- 
+
         return back()->with('success', 'Quiz updated.');
     }
  
@@ -196,8 +209,58 @@ class QuizController extends Controller
         abort_unless($question->quiz_id === $quiz->id, 422);
         $question->delete();
         $quiz->recalculateTotalMarks();
- 
+
         return back()->with('success', 'Question deleted.');
+    }
+
+    /**
+     * Bulk-add MCQ questions from a pasted JSON array — the fast way to load a
+     * weekly challenge / test. Each item: { body, marks?, explanation?,
+     * options: [{ option_text, is_correct }] } with exactly one correct option.
+     * Coding questions aren't bulk-importable (they need AI grading / review).
+     */
+    public function storeQuestionsBulk(Request $request, Quiz $quiz)
+    {
+        $validated = $request->validate([
+            'questions'                        => ['required', 'array', 'min:1', 'max:100'],
+            'questions.*.body'                 => ['required', 'string'],
+            'questions.*.marks'                => ['nullable', 'integer', 'min:1', 'max:100'],
+            'questions.*.explanation'          => ['nullable', 'string'],
+            'questions.*.options'              => ['required', 'array', 'min:2', 'max:4'],
+            'questions.*.options.*.option_text'=> ['required', 'string'],
+            'questions.*.options.*.is_correct' => ['required', 'boolean'],
+        ]);
+
+        // Validate exactly one correct option per question before writing any.
+        foreach ($validated['questions'] as $i => $q) {
+            $correct = collect($q['options'])->where('is_correct', true)->count();
+            if ($correct !== 1) {
+                return back()->withErrors(['bulk' => "Question " . ($i + 1) . " must have exactly one correct option."]);
+            }
+        }
+
+        $order = (int) $quiz->questions()->max('order_column');
+        foreach ($validated['questions'] as $q) {
+            $question = $quiz->questions()->create([
+                'body'         => $q['body'],
+                'type'         => 'mcq',
+                'marks'        => $q['marks'] ?? 1,
+                'explanation'  => $q['explanation'] ?? null,
+                'order_column' => ++$order,
+            ]);
+            foreach (array_values($q['options']) as $j => $opt) {
+                QuizOption::create([
+                    'question_id'  => $question->id,
+                    'option_text'  => $opt['option_text'],
+                    'is_correct'   => $opt['is_correct'],
+                    'order_column' => $j,
+                ]);
+            }
+        }
+
+        $quiz->recalculateTotalMarks();
+
+        return back()->with('success', count($validated['questions']) . ' questions imported.');
     }
  
     // ── Attempts: review AI-flagged ──────────────────────────────

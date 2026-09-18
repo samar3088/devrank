@@ -14,6 +14,28 @@ const DEFAULT_OPTIONS = [
 export default function AdminQuizQuestions() {
     const { quiz, aiEnabled } = usePage().props;
     const [showForm, setShowForm] = useState(false);
+    const [showBulk, setShowBulk] = useState(false);
+    const [bulkText, setBulkText] = useState('');
+    const [bulkError, setBulkError] = useState('');
+
+    function submitBulk() {
+        setBulkError('');
+        let parsed;
+        try {
+            parsed = JSON.parse(bulkText);
+        } catch {
+            setBulkError('Invalid JSON — check for a missing comma or bracket.');
+            return;
+        }
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            setBulkError('Provide a non-empty JSON array of questions.');
+            return;
+        }
+        router.post(`/admin/quiz/${quiz.id}/questions/bulk`, { questions: parsed }, {
+            preserveScroll: true,
+            onSuccess: () => { setBulkText(''); setShowBulk(false); },
+        });
+    }
 
     const form = useForm({
         type:         'mcq',
@@ -76,10 +98,37 @@ export default function AdminQuizQuestions() {
                     <h1>Questions</h1>
                     <p>{quiz.questions.length} questions · {quiz.total_marks} total marks</p>
                 </div>
-                <button className="btn btn-primary pop-on-active" onClick={() => setShowForm(v => !v)}>
-                    {showForm ? '× Cancel' : '+ Add Question'}
-                </button>
+                <div style={{ display: 'flex', gap: 10 }}>
+                    <button className="btn btn-ghost pop-on-active" onClick={() => setShowBulk(v => !v)}>
+                        {showBulk ? '× Cancel' : '⇪ Bulk import'}
+                    </button>
+                    <button className="btn btn-primary pop-on-active" onClick={() => setShowForm(v => !v)}>
+                        {showForm ? '× Cancel' : '+ Add Question'}
+                    </button>
+                </div>
             </div>
+
+            {/* Bulk import (JSON) — fast way to load a challenge/test */}
+            {showBulk && (
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--violet-border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 24 }} data-reveal="scale">
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--violet-bright)' }}>Bulk import MCQ questions (JSON)</div>
+                    <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 12 }}>
+                        Paste an array of questions. Each: <code>{'{ "body": "...", "marks": 1, "options": [{ "option_text": "...", "is_correct": true }, ...] }'}</code> — exactly one correct option.
+                    </p>
+                    <textarea
+                        className="form-input"
+                        rows={10}
+                        style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12 }}
+                        placeholder={'[\n  { "body": "What does HTTP stand for?", "marks": 1, "options": [\n    { "option_text": "HyperText Transfer Protocol", "is_correct": true },\n    { "option_text": "High Transfer Text Protocol", "is_correct": false }\n  ] }\n]'}
+                        value={bulkText}
+                        onChange={e => setBulkText(e.target.value)}
+                    />
+                    {bulkError && <span className="form-error">{bulkError}</span>}
+                    <div style={{ marginTop: 12 }}>
+                        <button className="btn btn-primary pop-on-active" onClick={submitBulk}>Import questions</button>
+                    </div>
+                </div>
+            )}
 
             {/* Add question form */}
             {showForm && (

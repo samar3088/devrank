@@ -62,6 +62,9 @@ Route::get('/company/{id}',   [PublicProfileController::class, 'companyProfile']
 // ── Public interview board ────────────────────────────────────────
 Route::get('/interviews', [InterviewController::class, 'index'])->name('interviews.index');
 
+// ── Seasons / leagues / weekly challenges (public, #8) ───────────
+Route::get('/challenges', [\App\Http\Controllers\SeasonController::class, 'index'])->name('challenges.index');
+
 // ── Public quiz — result BEFORE {slug} to avoid catch-all conflict ─
 Route::get('/quiz',                  [QuizController::class, 'index'])->name('quiz.index');
 Route::get('/quiz/result/{attempt}', [QuizAttemptController::class, 'result'])->name('quiz.result');
@@ -168,6 +171,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{quiz}',                      [AdminQuizController::class, 'destroy'])->name('destroy');
         Route::get('/{quiz}/questions',               [AdminQuizController::class, 'questions'])->name('questions');
         Route::post('/{quiz}/questions',              [AdminQuizController::class, 'storeQuestion'])->name('questions.store');
+        Route::post('/{quiz}/questions/bulk',         [AdminQuizController::class, 'storeQuestionsBulk'])->name('questions.bulk');
         Route::delete('/{quiz}/questions/{question}', [AdminQuizController::class, 'destroyQuestion'])->name('questions.destroy');
         Route::get('/{quiz}/attempts',                [AdminQuizController::class, 'attempts'])->name('attempts');
     });

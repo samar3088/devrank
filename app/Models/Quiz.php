@@ -13,16 +13,34 @@ class Quiz extends Model
         'tag_id', 'created_by', 'title', 'slug', 'description',
         'difficulty', 'time_limit_minutes', 'passing_score',
         'total_marks', 'max_attempts', 'status',
+        'is_challenge', 'season_id', 'challenge_starts_at', 'challenge_ends_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'time_limit_minutes' => 'integer',
-            'passing_score'      => 'integer',
-            'total_marks'        => 'integer',
-            'max_attempts'       => 'integer',
+            'time_limit_minutes'  => 'integer',
+            'passing_score'       => 'integer',
+            'total_marks'         => 'integer',
+            'max_attempts'        => 'integer',
+            'is_challenge'        => 'boolean',
+            'challenge_starts_at' => 'datetime',
+            'challenge_ends_at'   => 'datetime',
         ];
+    }
+
+    public function season()
+    {
+        return $this->belongsTo(Season::class);
+    }
+
+    /** Is this challenge currently open for attempts? */
+    public function challengeLive(): bool
+    {
+        return $this->is_challenge
+            && $this->status === 'published'
+            && (! $this->challenge_starts_at || $this->challenge_starts_at->lte(now()))
+            && (! $this->challenge_ends_at   || $this->challenge_ends_at->gte(now()));
     }
 
     // ── Relations ────────────────────────────────────────────

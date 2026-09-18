@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             QuizSeeder::class,
             DemoInterviewSeeder::class,
             DemoScoreVariationSeeder::class,
+            SeasonSeeder::class,
         ]);
     }
 }

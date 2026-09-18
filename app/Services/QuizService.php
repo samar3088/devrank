@@ -255,6 +255,9 @@ class QuizService
         // Recompute the candidate's quiz-integrity score from their coding answers
         app(ScoreService::class)->updateHumanScore($attempt->user_id);
 
+        // If this was a weekly challenge, update the candidate's season score.
+        app(SeasonService::class)->awardForAttempt($attempt->fresh('quiz'));
+
         // Notify the candidate of their result
         if ($passed || $rankPointsToAward > 0) {
             app(NotificationService::class)->notify(

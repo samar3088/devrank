@@ -55,6 +55,7 @@ export default function MainLayout({ children }) {
             { href: '/leaderboard', label: 'Leaderboard' },
             { href: '/jobs',        label: 'Jobs' },
             { href: '/quiz',        label: 'Quizzes' },
+            { href: '/challenges',  label: 'Challenges' },
             { href: '/interviews',  label: 'Interviews' },
         ];
     }
