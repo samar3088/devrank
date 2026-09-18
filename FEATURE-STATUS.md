@@ -1,7 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: #3 bias-reduced hiring (identity anonymization); polish pass — admin Seasons UI, bulk coding import, Reverb real-time, HMAC receipt. **9/11 roadmap items built** — only #5 AI mock-interview and #11 verified-hires/salary remain._
+_Recent: #5 AI mock-interview, #3 bias-reduced hiring; polish pass (Seasons UI, bulk coding import, Reverb, HMAC receipt). **10/11 roadmap items built** — only #11 verified-hires/salary remains._
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -38,7 +38,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 | # | Item | Status |
 |---|---|---|
 | 4 | Smart two-sided matching | ✅ **Built** — MatchService (skill×rank×experience×prefs), candidate "top matches" + open-to-work toggle, company "Browse Talent", saved searches + job alerts. |
-| 5 | AI mock-interview from interview-board data | ❌ Not started. |
+| 5 | AI mock-interview from interview-board data | ✅ **Built** — `/mock-interview`; questions grounded in real board rounds/tips, AI-scored feedback when AI on, "prep mode" (real questions, no API cost) when off. |
 | 6 | **GitHub import** | ✅ **Built** — Socialite OAuth connect, verified repos/stars/language signal, capped delta-model points. Off until `GITHUB_CLIENT_ID` set. (Stack Overflow deferred per decision.) |
 
 ### Engagement

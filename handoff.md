@@ -2,12 +2,13 @@
 
 _Last updated: 2026-09-18 (through session #6). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
 _Session #6 (polish pass): admin Seasons UI (`f3bcd1c`), bulk coding import (`69deada`), HMAC receipt (`17910b2`), Reverb real-time (`4559b3c`). New deps: laravel/reverb, laravel-echo, pusher-js._
+_Session #8: **#5 AI mock-interview** (`3141389`) — `/mock-interview`; `MockInterviewService` builds questions from real board rounds/tips; AI-scored feedback when `DEVRANK_AI_ENABLED=true`, "prep mode" (no API cost) when off. New migration `mock_interviews`._
 _Session #7: **#3 bias-reduced hiring** (`ef2c499`) — opt-in `users.anonymous` masks name/photo/location in discovery until mutual interest via `AnonymityService` (shared with the contact gate); enforced server-side on profile/leaderboard/Browse Talent; candidate "Go anonymous" toggle. ⚠️ New migration `users.anonymous` + `composer install`/`npm install` on any older checkout._
 
 ## Where things are (current)
 - Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `fe40b0d`).
 - Build passes (`npm run build`), all migrations run, verified working.
-- **Roadmap: 9 of 11 items built** (#1,2,3,4,6,7,8,9,10 ✅; #5,#11 not started). See "Still pending / open" below.
+- **Roadmap: 10 of 11 items built** (#1–#10 ✅; only #11 verified-hires/salary left). See "Still pending / open" below.
 - Env note: XAMPP **MySQL** was stopped and restarted this session; a `php artisan serve` runs on **:8123** for testing (stale instances get killed/restarted).
 
 ## Session #2 (2026-09-18) — roadmap execution
@@ -113,9 +114,8 @@ Built a reusable, **reduced-motion-safe, no-JS-safe** system (see CLAUDE.md “F
 
 ## Still pending / open (as of session #5)
 
-**Roadmap features NOT built** (9/11 done — see FEATURE-STATUS.md):
-- **#5 AI mock-interview — ❌.** Rehearse the actual rounds/questions from interview-board data with AI feedback (needs `ANTHROPIC_API_KEY`).
-- **#11 Verified hire outcomes + salary transparency — ❌.** Both sides confirm a hire; real-offer salary data.
+**Roadmap features NOT built** (10/11 done — see FEATURE-STATUS.md):
+- **#11 Verified hire outcomes + salary transparency — ❌** (the last one). Both sides confirm a hire; real-offer salary data.
 
 **Polish / infra — DONE (session #6):**
 - ✅ **Admin Seasons UI** (`/admin/seasons`, `Admin\SeasonController`) — create/activate/close/delete; single active season; gated by `quizzes.manage`.
