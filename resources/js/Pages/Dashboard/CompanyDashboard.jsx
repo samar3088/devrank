@@ -41,7 +41,7 @@ export default function CompanyDashboard() {
                     <div className="stat-value" style={{ color: 'var(--champagne)' }}>
                         <CountUp end={stats?.trust_score || 0} /><span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/100</span>
                     </div>
-                    <div className="stat-change">100 − interview ghosting rate</div>
+                    <div className="stat-change">ghosting + response conduct</div>
                 </div>
                 <div className="stat-card hover-lift" data-reveal>
                     <div className="stat-label">Outreach Sent</div>
@@ -98,9 +98,9 @@ export default function CompanyDashboard() {
                         <Link href={`/company/${auth.user.id}`}>Public profile →</Link>
                     </div>
                     <div className="trust-big" style={{ color: 'var(--champagne)' }}><CountUp end={stats?.trust_score || 0} /></div>
-                    <div className="trust-sub">Out of 100 · Based on interview reviews</div>
+                    <div className="trust-sub">Out of 100 · Based on your hiring conduct</div>
                     <p style={{ color: 'var(--text2)', fontSize: 14, lineHeight: 1.7, marginTop: 16 }}>
-                        Your Trust Score is <strong>100 minus your interview-ghosting rate</strong> across candidate-submitted interview reviews. Honest rejections never lower it — only ghosting does.
+                        Your Trust Score reflects how you treat candidates — it blends your <strong>interview-ghosting rate</strong> (from candidate reviews) with your <strong>application-response conduct</strong> (leaving applicants unanswered past the response SLA lowers it). Honest, timely rejections never hurt it — only ghosting and silence do.
                     </p>
                     <div style={{ display: 'flex', gap: 28, marginTop: 20 }}>
                         <div><div style={{ fontSize: 22, fontWeight: 700 }}><CountUp end={stats?.outreach_accepted || 0} /></div><div style={{ fontSize: 12, color: 'var(--text3)' }}>Outreach accepted</div></div>

@@ -83,6 +83,7 @@ export default function Applicants() {
 }
 
 function ApplicantRow({ a, statuses }) {
+    const { aiEnabled } = usePage().props;
     const c = a.candidate || {};
     const [open, setOpen] = useState(false);
     const [status, setStatus] = useState(a.status);
@@ -137,7 +138,9 @@ function ApplicantRow({ a, statuses }) {
 
             <div className="app-right" style={{ gap: 10 }}>
                 <span className="app-score">{(c.rank_score || 0).toLocaleString()} pts</span>
-                <span title="AI-integrity human score" style={{ fontSize: 12, color: 'var(--emerald)' }}>{Math.round(c.human_score || 0)}% human</span>
+                {aiEnabled && (
+                    <span title="AI-integrity human score" style={{ fontSize: 12, color: 'var(--emerald)' }}>{Math.round(c.human_score || 0)}% human</span>
+                )}
 
                 {a.resume_path ? (
                     <a href={`/storage/${a.resume_path}`} target="_blank" rel="noopener noreferrer" className="btn-sm btn-outline-sm pop-on-active">Résumé ↗</a>
