@@ -39,6 +39,22 @@ class NotificationService
         ]);
     }
 
+    /**
+     * Notify every admin (super + sub). Used for moderation events so the admin
+     * nav bell surfaces things that need a human — not just an empty bell.
+     */
+    public function notifyAdmins(
+        string $type,
+        string $title,
+        ?string $body = null,
+        ?string $url = null,
+        ?string $icon = null,
+    ): void {
+        User::role(['super_admin', 'sub_admin'])->pluck('id')->each(
+            fn ($id) => $this->notify($id, $type, $title, $body, $url, $icon)
+        );
+    }
+
     public function unreadCount(int $userId): int
     {
         return UserNotification::where('user_id', $userId)->unread()->count();

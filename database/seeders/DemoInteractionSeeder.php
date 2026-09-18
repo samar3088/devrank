@@ -36,6 +36,11 @@ class DemoInteractionSeeder extends Seeder
                 if ($existing) continue;
 
                 $appliedAt = $job->published_at->copy()->addDays(rand(1, 15));
+                // Never seed a "you applied in the future" date when a job was
+                // published recently.
+                if ($appliedAt->isFuture()) {
+                    $appliedAt = Carbon::now()->subDays(rand(0, 5));
+                }
                 $status = $statuses[array_rand($statuses)];
 
                 JobApplication::create([
@@ -45,10 +50,23 @@ class DemoInteractionSeeder extends Seeder
                     'status' => $status,
                     'rejection_reason' => $status === 'rejected' ? $this->randomRejectionReason() : null,
                     'company_notes' => in_array($status, ['shortlisted', 'interviewing', 'offered']) ? 'Strong candidate, good fit for the role.' : null,
+                    // A non-"applied" status means the company has responded — stamp
+                    // responded_at so the SLA/trust model sees consistent data.
+                    'responded_at' => $status !== 'applied'
+                        ? $appliedAt->copy()->addDays(rand(1, 7))->min(Carbon::now())
+                        : null,
                     'created_at' => $appliedAt,
                     'updated_at' => $appliedAt,
                 ]);
             }
+        }
+
+        // Keep the denormalised applications_count badge honest — set it from the
+        // real rows just created, not the random value the job seeder assigned.
+        foreach ($allJobs as $job) {
+            JobListing::where('id', $job->id)->update([
+                'applications_count' => JobApplication::where('jobs_listing_id', $job->id)->count(),
+            ]);
         }
 
         // ── Interest Requests (Company → Candidate) ─────

@@ -162,6 +162,55 @@ class ScoreService
             $this->updateTrustScoreForUser($company);
         }
 
-        return ['candidates' => $candidateIds->count(), 'companies' => $companies->count()];
+        $ranked = $this->notifyRankChanges();
+
+        return [
+            'candidates' => $candidateIds->count(),
+            'companies'  => $companies->count(),
+            'rank_ups'   => $ranked,
+        ];
+    }
+
+    /**
+     * Recompute each candidate's global leaderboard position and notify anyone
+     * who climbed since the last run. The first run (or a candidate with no
+     * recorded position) only sets the baseline — no notification — so we never
+     * spam "you moved up" on day one. Returns the number of rank-up pings sent.
+     */
+    public function notifyRankChanges(): int
+    {
+        $candidates = User::role('candidate')
+            ->orderByDesc('total_rank_score')
+            ->orderBy('id') // stable tie-break
+            ->get(['id', 'total_rank_score', 'last_rank_position']);
+
+        $notifier = app(NotificationService::class);
+        $position = 0;
+        $sent = 0;
+
+        foreach ($candidates as $candidate) {
+            $position++;
+            $previous = $candidate->last_rank_position;
+
+            // Only notify on a genuine climb (smaller position = better) after a
+            // baseline exists.
+            if ($previous !== null && $position < $previous) {
+                $notifier->notify(
+                    user:  $candidate->id,
+                    type:  'rank_up',
+                    title: "You climbed to #{$position} on the leaderboard 📈",
+                    body:  "Up from #{$previous}. Keep it going.",
+                    url:   '/leaderboard',
+                    icon:  '📈',
+                );
+                $sent++;
+            }
+
+            if ($previous !== $position) {
+                $candidate->forceFill(['last_rank_position' => $position])->save();
+            }
+        }
+
+        return $sent;
     }
 }

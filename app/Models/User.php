@@ -21,6 +21,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         'company_description', 'company_logo',
         'is_active', 'consented_at',
         'github_id', 'github_username', 'github_verified_at', 'github_stats',
+        'last_rank_position',
     ];
 
     protected $hidden = [

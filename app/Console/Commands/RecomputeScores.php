@@ -15,7 +15,7 @@ class RecomputeScores extends Command
     {
         $this->info('Recomputing integrity/trust scores…');
         $result = $scores->recomputeAll();
-        $this->info("Done. Candidates: {$result['candidates']}, Companies: {$result['companies']}.");
+        $this->info("Done. Candidates: {$result['candidates']}, Companies: {$result['companies']}, Rank-up notifications: {$result['rank_ups']}.");
 
         return self::SUCCESS;
     }

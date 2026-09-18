@@ -92,6 +92,15 @@ class InterviewService
             $review->update(['status' => 'moderated']);
             // Hiding a review changes the visible set → recompute the company's trust
             app(ScoreService::class)->updateTrustScoreForCompany($review->company_name);
+
+            // Surface it to admins — auto-hidden content may need a human decision.
+            app(NotificationService::class)->notifyAdmins(
+                type:  'moderation',
+                title: 'A review was auto-hidden after 5 reports',
+                body:  "\"{$review->role_applied}\" at {$review->company_name} — review in the moderation queue.",
+                url:   '/admin/moderation',
+                icon:  '🚨',
+            );
         }
     }
  
