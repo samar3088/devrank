@@ -26,13 +26,18 @@ Route::get('/account',  [AuthController::class, 'showAccount'])->name('account')
 
 // ── Guest only ───────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
-    Route::post('/account/register',      [AuthController::class, 'register'])->name('register');
-    Route::post('/account/login',         [AuthController::class, 'login'])->name('login');
+    // Rate-limited to blunt credential-stuffing / brute-force / signup abuse.
+    Route::post('/account/register',      [AuthController::class, 'register'])->middleware('throttle:10,1')->name('register');
+    Route::post('/account/login',         [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login');
     Route::get('/forgot-password',        [PasswordResetController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password',       [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/forgot-password',       [PasswordResetController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password',        [PasswordResetController::class, 'resetPassword'])->name('password.update');
+    Route::post('/reset-password',        [PasswordResetController::class, 'resetPassword'])->middleware('throttle:6,1')->name('password.update');
 });
+
+// ── Legal / privacy (public) ─────────────────────────────────────
+Route::get('/privacy', [\App\Http\Controllers\LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/terms',   [\App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
 
 // ── Forum public — create BEFORE {slug} catch-all ─────────────────
 Route::get('/forum/create', [ForumController::class, 'create'])
@@ -66,6 +71,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('signed')->name('verification.verify');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
         ->middleware('throttle:6,1')->name('verification.send');
+
+    // ── DPDP data-subject rights (any authenticated user) ─────────
+    Route::get('/account/settings',    [\App\Http\Controllers\AccountController::class, 'settings'])->name('account.settings');
+    Route::get('/account/data-export', [\App\Http\Controllers\AccountController::class, 'exportData'])
+        ->middleware('throttle:4,1')->name('account.data-export');
+    Route::delete('/account',          [\App\Http\Controllers\AccountController::class, 'destroy'])->name('account.destroy');
 });
 
 // ── Auth + Verified ──────────────────────────────────────────────

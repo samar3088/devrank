@@ -19,7 +19,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         'open_to_work', 'preferred_job_type', 'preferred_location', 'salary_expectation',
         'company_name', 'company_website', 'company_size', 'industry',
         'company_description', 'company_logo',
-        'is_active',
+        'is_active', 'consented_at',
     ];
 
     protected $hidden = [
@@ -38,6 +38,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
             'human_score' => 'decimal:2',
             'trust_score' => 'integer',
             'limits_reset_at' => 'date',
+            'consented_at' => 'datetime',
         ];
     }
 

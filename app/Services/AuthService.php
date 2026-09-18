@@ -19,6 +19,8 @@ class AuthService
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            // DPDP: record the moment informed consent was given (validated in the controller).
+            'consented_at' => now(),
         ]);
 
         // First user becomes super_admin

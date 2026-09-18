@@ -40,6 +40,16 @@ return [
         'interview_review' => 15,
     ],
 
+    // DPDP (Digital Personal Data Protection Act, 2023) — data-fiduciary details
+    // surfaced in the privacy notice and grievance flow. Override via env in prod.
+    'privacy' => [
+        'entity_name'      => env('DEVRANK_ENTITY_NAME', 'DevRank'),
+        'grievance_email'  => env('DEVRANK_GRIEVANCE_EMAIL', 'privacy@devrank.com'),
+        'grievance_officer'=> env('DEVRANK_GRIEVANCE_OFFICER', 'Data Protection Officer'),
+        // How long inactive personal data is retained before erasure (informational).
+        'retention_note'   => 'Account data is kept while your account is active and removed on erasure request.',
+    ],
+
     // AI coding-answer scoring / proctoring (AiScoringService)
     'ai' => [
         // Master switch. When false (phase-1 launch, no ANTHROPIC_API_KEY / no cost):

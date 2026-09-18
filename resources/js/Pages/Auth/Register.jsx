@@ -17,6 +17,7 @@ export default function Register() {
         industry: '',
         primary_skill: '',
         years_of_experience: '',
+        consent: false,
     });
 
     const loginForm = useForm({
@@ -334,9 +335,16 @@ export default function Register() {
                                 )}
 
                                 <label className="auth-terms">
-                                    <input type="checkbox" required />
-                                    <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+                                    <input
+                                        type="checkbox"
+                                        checked={registerForm.data.consent}
+                                        onChange={e => registerForm.setData('consent', e.target.checked)}
+                                    />
+                                    <span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>, and consent to DevRank processing my personal data as described.</span>
                                 </label>
+                                {registerForm.errors.consent && (
+                                    <span className="auth-error">{registerForm.errors.consent}</span>
+                                )}
 
                                 <LoadingButton
                                     type="submit"
