@@ -107,7 +107,9 @@ class ScoreService
 
         $score = $weightSum > 0 ? (int) round(100 * (1 - $weighted / $weightSum)) : 100;
 
-        $company->update(['trust_score' => $score]);
+        // trust_score is guarded (not in $fillable), so a mass-assignment update()
+        // would silently drop it — forceFill to actually persist.
+        $company->forceFill(['trust_score' => $score])->save();
 
         return $score;
     }

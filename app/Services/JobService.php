@@ -330,7 +330,7 @@ class JobService
         $application->update($data);
 
         // Reflect the company's hiring conduct in their trust score.
-        $company = $application->jobListing?->user;
+        $company = $application->jobListing?->company;
         if ($company) {
             app(ScoreService::class)->updateTrustScoreForUser($company);
         }
