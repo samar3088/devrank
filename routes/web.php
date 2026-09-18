@@ -202,5 +202,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/categories/{category}',              [AdminController::class, 'updateCategory'])->name('categories.update');
         Route::delete('/categories/{category}',           [AdminController::class, 'destroyCategory'])->name('categories.destroy');
         Route::post('/categories/{category}/toggle',      [AdminController::class, 'toggleCategory'])->name('categories.toggle');
+
+        // Seasons management (#8) — same permission as challenge/quiz management.
+        Route::middleware('permission:quizzes.manage')->group(function () {
+            Route::get('/seasons',                 [\App\Http\Controllers\Admin\SeasonController::class, 'index'])->name('seasons');
+            Route::post('/seasons',                [\App\Http\Controllers\Admin\SeasonController::class, 'store'])->name('seasons.store');
+            Route::post('/seasons/{season}/activate', [\App\Http\Controllers\Admin\SeasonController::class, 'activate'])->name('seasons.activate');
+            Route::post('/seasons/{season}/close',    [\App\Http\Controllers\Admin\SeasonController::class, 'close'])->name('seasons.close');
+            Route::delete('/seasons/{season}',     [\App\Http\Controllers\Admin\SeasonController::class, 'destroy'])->name('seasons.destroy');
+        });
     });
 });

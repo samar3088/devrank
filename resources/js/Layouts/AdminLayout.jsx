@@ -31,6 +31,7 @@ const NAV = [
         items: [
             { label: 'Profile Logs', icon: '📜', href: '/admin/profile-logs',  name: 'admin.profile-logs' },
             { label: 'Quiz Mgmt',    icon: '🎯', href: '/admin/quiz',           name: 'admin.quiz.index', permission: 'quizzes.manage' },
+            { label: 'Seasons',      icon: '🏆', href: '/admin/seasons',        name: 'admin.seasons', permission: 'quizzes.manage' },
             { label: 'Analytics', icon: '📈', href: '/admin/analytics', name: 'admin.analytics' },
         ],
     },
