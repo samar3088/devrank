@@ -32,6 +32,12 @@ Delivered, each committed separately:
 - ⚠️ **New migrations**: `saved_searches`, `seasons`, `season_scores`, quiz challenge fields. Re-seeded (`migrate:fresh --seed`) + browser-verified `/challenges`, matches card, skill paths, Browse Talent.
 - See CLAUDE.md "Smart matching / skill paths / seasons" incl. **how challenge questions are uploaded**.
 
+## Session #5 (2026-09-18) — #1 Judge0 code execution + sub_admin quiz uploads
+- **Quiz upload permission**: `admin/quiz` now `permission:quizzes.manage` (super_admin always; sub_admin granted by default; revocable). Deletes need `quizzes.delete` (super_admin only). Nav/Delete-button hidden without the permission.
+- **#1 Judge0 objective code execution (`ba…`)**: `Judge0Service` runs coding submissions against hidden test cases (`question_test_cases`), storing `quiz_answers.tests_passed/tests_total`. `gradeCoding` blends Judge0 correctness + AI human-check. **Coding is unlocked when `codingEnabled()` = Judge0 OR AI** (was AI-only). Admin coding form has a test-case editor; candidate attempt has "▶ Run sample tests" (`POST /quiz/attempt/{attempt}/run`). Master switch `config('devrank.judge0.enabled')` (env `JUDGE0_URL`), off by default; shared prop `judge0Enabled`.
+- ⚠️ **New migrations**: `question_test_cases`, `quiz_answers.tests_passed/tests_total`. Verified grading via faked Judge0 (2/3 → proportional marks, graceful fallback) + browser (admin test-case editor, candidate coding question unlocked).
+- Owner: set `JUDGE0_URL` (self-host judge0 or RapidAPI) to turn coding on. See CLAUDE.md "Judge0 objective code execution".
+
 ## What this session did (4-phase pass: UI motion → gap-fill → testing → docs)
 
 ### 1. Industry-standard UI/UX motion layer (all pages)

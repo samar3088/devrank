@@ -12,7 +12,8 @@ const DEFAULT_OPTIONS = [
 ];
 
 export default function AdminQuizQuestions() {
-    const { quiz, aiEnabled, auth } = usePage().props;
+    const { quiz, aiEnabled, judge0Enabled, auth } = usePage().props;
+    const codingEnabled = aiEnabled || judge0Enabled;
     const canDelete = (auth?.user?.permissions ?? []).includes('quizzes.delete');
     const [showForm, setShowForm] = useState(false);
     const [showBulk, setShowBulk] = useState(false);
@@ -46,7 +47,21 @@ export default function AdminQuizQuestions() {
         starter_code: '',
         explanation:  '',
         options:      DEFAULT_OPTIONS.map(o => ({ ...o })),
+        test_cases:   [{ input: '', expected_output: '', is_sample: true, weight: 1 }],
     });
+
+    function setTest(index, field, value) {
+        const tcs = [...form.data.test_cases];
+        tcs[index] = { ...tcs[index], [field]: value };
+        form.setData('test_cases', tcs);
+    }
+    function addTest() {
+        if (form.data.test_cases.length >= 30) return;
+        form.setData('test_cases', [...form.data.test_cases, { input: '', expected_output: '', is_sample: false, weight: 1 }]);
+    }
+    function removeTest(index) {
+        form.setData('test_cases', form.data.test_cases.filter((_, i) => i !== index));
+    }
 
     function setOption(index, field, value) {
         const opts = [...form.data.options];
@@ -141,7 +156,7 @@ export default function AdminQuizQuestions() {
 
                         {/* Type toggle */}
                         <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-                            {(aiEnabled ? ['mcq', 'coding'] : ['mcq']).map(t => (
+                            {(codingEnabled ? ['mcq', 'coding'] : ['mcq']).map(t => (
                                 <button key={t} type="button"
                                     onClick={() => form.setData('type', t)}
                                     style={{
@@ -153,9 +168,14 @@ export default function AdminQuizQuestions() {
                                     {t === 'mcq' ? '📋 Multiple Choice' : '💻 Coding'}
                                 </button>
                             ))}
-                            {!aiEnabled && (
+                            {!codingEnabled && (
                                 <span style={{ fontSize: 12, color: 'var(--text3)' }}>
-                                    Coding questions are disabled while AI grading is off (MCQ only).
+                                    Coding questions need a grader — enable Judge0 (JUDGE0_URL) or AI grading.
+                                </span>
+                            )}
+                            {form.data.type === 'coding' && judge0Enabled && (
+                                <span style={{ fontSize: 12, color: 'var(--emerald, #10b981)' }}>
+                                    ⚡ Graded objectively against your test cases (Judge0)
                                 </span>
                             )}
                         </div>
@@ -249,6 +269,50 @@ export default function AdminQuizQuestions() {
                                     onChange={e => form.setData('starter_code', e.target.value)}
                                     style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}
                                 />
+                            </div>
+                        )}
+
+                        {/* Coding test cases (Judge0) */}
+                        {!isMcq && judge0Enabled && (
+                            <div className="form-group" style={{ marginTop: 8 }}>
+                                <label className="form-label">
+                                    Test cases <span style={{ color: 'var(--coral)' }}>*</span>
+                                    <span style={{ fontSize: 12, color: 'var(--text3)', fontWeight: 400 }}> — the program reads stdin, its stdout is matched to expected. Sample cases are shown to the candidate; the rest grade silently.</span>
+                                </label>
+                                {form.errors.test_cases && <div className="form-error" style={{ marginBottom: 8 }}>{form.errors.test_cases}</div>}
+                                {form.data.test_cases.map((tc, i) => (
+                                    <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 12, marginBottom: 10 }}>
+                                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                            <div style={{ flex: 1, minWidth: 180 }}>
+                                                <label className="form-label" style={{ fontSize: 11 }}>Input (stdin)</label>
+                                                <textarea className="form-input" rows={2} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                                                    value={tc.input} onChange={e => setTest(i, 'input', e.target.value)} />
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: 180 }}>
+                                                <label className="form-label" style={{ fontSize: 11 }}>Expected output (stdout)</label>
+                                                <textarea className="form-input" rows={2} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}
+                                                    value={tc.expected_output} onChange={e => setTest(i, 'expected_output', e.target.value)} />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginTop: 8, fontSize: 12, color: 'var(--text3)' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <input type="checkbox" checked={tc.is_sample} onChange={e => setTest(i, 'is_sample', e.target.checked)} />
+                                                Sample (visible to candidate)
+                                            </label>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                Weight
+                                                <input type="number" min={1} max={20} className="form-input" style={{ width: 64, padding: '4px 8px' }}
+                                                    value={tc.weight} onChange={e => setTest(i, 'weight', parseInt(e.target.value) || 1)} />
+                                            </label>
+                                            {form.data.test_cases.length > 1 && (
+                                                <button type="button" className="admin-action-btn red" onClick={() => removeTest(i)}>Remove</button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {form.data.test_cases.length < 30 && (
+                                    <button type="button" className="btn btn-ghost btn-sm pop-on-active" onClick={addTest}>+ Add test case</button>
+                                )}
                             </div>
                         )}
 

@@ -143,8 +143,8 @@ class QuizController extends Controller
     // ── Questions management ─────────────────────────────────────
     public function questions(Quiz $quiz)
     {
-        $quiz->load(['questions.options']);
- 
+        $quiz->load(['questions.options', 'questions.testCases']);
+
         return Inertia::render('Admin/Quiz/Questions', [
             'quiz' => $quiz,
         ]);
@@ -162,11 +162,23 @@ class QuizController extends Controller
             'options'      => ['required_if:type,mcq', 'array', 'min:2', 'max:4'],
             'options.*.option_text' => ['required', 'string'],
             'options.*.is_correct'  => ['required', 'boolean'],
+            'test_cases'   => ['array', 'max:30'],
+            'test_cases.*.input'           => ['nullable', 'string'],
+            'test_cases.*.expected_output' => ['required', 'string'],
+            'test_cases.*.is_sample'       => ['boolean'],
+            'test_cases.*.weight'          => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
- 
-        // Phase-1 (AI off): coding questions can't be graded, so block creating them.
-        if ($validated['type'] === 'coding' && ! config('devrank.ai.enabled', false)) {
-            return back()->withErrors(['type' => 'Coding questions are disabled while AI grading is off. Add MCQ questions only.']);
+
+        $codingEnabled = config('devrank.judge0.enabled') || config('devrank.ai.enabled', false);
+
+        // Coding questions need a grader (Judge0 or AI).
+        if ($validated['type'] === 'coding' && ! $codingEnabled) {
+            return back()->withErrors(['type' => 'Coding questions need a grader — enable Judge0 (JUDGE0_URL) or AI grading. Add MCQ questions only for now.']);
+        }
+
+        // With Judge0, a coding question needs at least one test case to be gradable.
+        if ($validated['type'] === 'coding' && config('devrank.judge0.enabled') && empty($validated['test_cases'])) {
+            return back()->withErrors(['test_cases' => 'Add at least one test case so the submission can be graded objectively.']);
         }
 
         // Exactly one correct option for MCQ
@@ -176,7 +188,7 @@ class QuizController extends Controller
                 return back()->withErrors(['options' => 'Exactly one option must be marked as correct.']);
             }
         }
- 
+
         $question = $quiz->questions()->create([
             'body'         => $validated['body'],
             'type'         => $validated['type'],
@@ -186,7 +198,7 @@ class QuizController extends Controller
             'explanation'  => $validated['explanation'] ?? null,
             'order_column' => $quiz->questions()->max('order_column') + 1,
         ]);
- 
+
         if ($validated['type'] === 'mcq') {
             foreach ($validated['options'] as $i => $opt) {
                 QuizOption::create([
@@ -197,10 +209,23 @@ class QuizController extends Controller
                 ]);
             }
         }
- 
+
+        if ($validated['type'] === 'coding') {
+            foreach (array_values($validated['test_cases'] ?? []) as $i => $tc) {
+                \App\Models\QuestionTestCase::create([
+                    'question_id'     => $question->id,
+                    'input'           => $tc['input'] ?? null,
+                    'expected_output' => $tc['expected_output'],
+                    'is_sample'       => $tc['is_sample'] ?? false,
+                    'weight'          => $tc['weight'] ?? 1,
+                    'order_column'    => $i,
+                ]);
+            }
+        }
+
         // Recalculate total marks
         $quiz->recalculateTotalMarks();
- 
+
         return back()->with('success', 'Question added.');
     }
  

@@ -131,6 +131,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Quiz attempts
         Route::post('/quiz/{quiz}/start',              [QuizAttemptController::class, 'start'])->name('quiz.start');
         Route::post('/quiz/attempt/{attempt}/answer',  [QuizAttemptController::class, 'answer'])->name('quiz.answer');
+        Route::post('/quiz/attempt/{attempt}/run',      [QuizAttemptController::class, 'runTests'])->middleware('throttle:20,1')->name('quiz.run');
         Route::post('/quiz/attempt/{attempt}/complete',[QuizAttemptController::class, 'complete'])->name('quiz.complete');
         // Interview Board
         Route::get('/interviews/create',      [InterviewController::class, 'create'])->name('interviews.create');

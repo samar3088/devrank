@@ -35,7 +35,12 @@ class QuizQuestion extends Model
     {
         return $this->hasMany(QuizAnswer::class, 'question_id');
     }
- 
+
+    public function testCases()
+    {
+        return $this->hasMany(QuestionTestCase::class, 'question_id')->orderBy('order_column');
+    }
+
     public function isMcq(): bool   { return $this->type === 'mcq'; }
     public function isCoding(): bool { return $this->type === 'coding'; }
 }

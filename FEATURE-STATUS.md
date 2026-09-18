@@ -1,7 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: built #4 matching, #8 seasons/leagues/weekly-challenges (+bulk question import), #9 skill paths, #2 credentials; rank-up + admin-moderation notifications; seed cleanup._
+_Recent: built #1 Judge0 code execution (unlocks coding challenges), #4 matching, #8 seasons/leagues/weekly-challenges, #9 skill paths, #2 credentials; sub_admin quiz-upload permission; rank-up + admin-moderation notifications._
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -30,7 +30,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 ### Differentiators
 | # | Item | Status |
 |---|---|---|
-| 1 | Objective code-execution grading (Judge0/Piston) | ❌ Not started — biggest credibility jump; own milestone. |
+| 1 | Objective code-execution grading (Judge0) | ✅ **Built** — Judge0Service runs coding submissions against hidden test cases for a provable correctness score; unlocks coding questions/challenges without AI. Off until `JUDGE0_URL` set. |
 | 2 | Verifiable embeddable rank credentials | ✅ **Built** — signed `/badge/{token}.svg` + public `/verify/{token}` audit page + dashboard share card (mint/rotate/revoke). Live-rendered, forgery-proof, human-metric gated. |
 | 3 | Bias-reduced hiring flow | 🟡 **Partial** — contact-privacy gate live; name/photo/location anonymization in discovery not built. |
 

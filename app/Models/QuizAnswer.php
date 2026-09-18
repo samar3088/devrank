@@ -13,6 +13,7 @@ class QuizAnswer extends Model
         'attempt_id', 'question_id', 'selected_option_id',
         'answer_text', 'is_correct', 'marks_awarded',
         'ai_score', 'ai_flagged', 'paste_count', 'time_spent_seconds',
+        'tests_passed', 'tests_total',
     ];
  
     protected function casts(): array

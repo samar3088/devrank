@@ -75,6 +75,27 @@ return [
         'retention_note'   => 'Account data is kept while your account is active and removed on erasure request.',
     ],
 
+    // Judge0 objective code execution (#1). Runs coding submissions against hidden
+    // test cases for a provable correctness score — this UNLOCKS coding questions
+    // without needing AI (AI, when also on, adds the human-integrity check on top).
+    // Master switch: enabled only when JUDGE0_URL is set, so coding stays off with
+    // no sandbox configured (mirrors ai.enabled / github.enabled).
+    'judge0' => [
+        'enabled' => (bool) env('JUDGE0_URL'),
+        'url'     => rtrim((string) env('JUDGE0_URL', ''), '/'),
+        'key'     => env('JUDGE0_KEY'),        // RapidAPI key (optional; self-hosted needs none)
+        'host'    => env('JUDGE0_HOST'),       // RapidAPI host header (optional)
+        'timeout' => (int) env('JUDGE0_TIMEOUT', 20),
+        // language name → Judge0 CE language_id
+        'languages' => [
+            'javascript' => 63,  // Node.js 12
+            'python'     => 71,  // Python 3.8
+            'php'        => 68,  // PHP 7.4
+            'java'       => 62,  // Java (OpenJDK 13)
+            'cpp'        => 54,  // C++ (GCC 9.2)
+        ],
+    ],
+
     // AI coding-answer scoring / proctoring (AiScoringService)
     'ai' => [
         // Master switch. When false (phase-1 launch, no ANTHROPIC_API_KEY / no cost):

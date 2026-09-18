@@ -66,6 +66,27 @@ class QuizAttemptController extends Controller
         ]);
     }
 
+    // ── Run sample tests (Judge0) without submitting ─────────────
+    public function runTests(Request $request, QuizAttempt $attempt)
+    {
+        abort_unless($attempt->user_id === auth()->id(), 403);
+        abort_unless($attempt->isInProgress(), 422, 'Attempt already completed.');
+        abort_unless(config('devrank.judge0.enabled'), 404);
+
+        $validated = $request->validate([
+            'question_id' => ['required', 'integer', 'exists:quiz_questions,id'],
+            'answer_text' => ['required', 'string', 'max:10000'],
+        ]);
+
+        $question = \App\Models\QuizQuestion::where('quiz_id', $attempt->quiz_id)
+            ->findOrFail($validated['question_id']);
+        abort_unless($question->isCoding(), 422, 'Not a coding question.');
+
+        $result = app(\App\Services\Judge0Service::class)->runSamples($validated['answer_text'], $question);
+
+        return response()->json($result);
+    }
+
     // ── Complete attempt ─────────────────────────────────────────
     public function complete(Request $request, QuizAttempt $attempt)
     {

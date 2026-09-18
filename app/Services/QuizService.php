@@ -11,24 +11,43 @@ use Illuminate\Support\Facades\DB;
 
 class QuizService
 {
-    public function __construct(private AiScoringService $aiScoring) {}
+    public function __construct(
+        private AiScoringService $aiScoring,
+        private Judge0Service $judge0,
+    ) {}
 
-    /** Master AI switch — when false, quizzes run MCQ-only (no API cost). */
+    /** Master AI switch — when false, no AI human-check / API cost. */
     private function aiEnabled(): bool
     {
         return (bool) config('devrank.ai.enabled', false);
     }
 
+    /** Judge0 objective code execution available? */
+    private function judge0Enabled(): bool
+    {
+        return $this->judge0->enabled();
+    }
+
+    /**
+     * Are coding questions gradable at all? True when EITHER Judge0 (objective
+     * correctness) OR AI (human-check) is on. When both are off, quizzes stay
+     * MCQ-only. Judge0 alone is enough to show + grade coding questions.
+     */
+    private function codingEnabled(): bool
+    {
+        return $this->judge0Enabled() || $this->aiEnabled();
+    }
+
     // ── Public listing ───────────────────────────────────────────
     public function getPublishedQuizzes(?string $tagSlug = null, ?string $difficulty = null)
     {
-        $aiEnabled = $this->aiEnabled();
+        $codingEnabled = $this->codingEnabled();
 
         return Quiz::published()
             ->with(['tag:id,name,slug', 'creator:id,name'])
             // Count only the questions candidates will actually see.
-            ->withCount(['questions' => function ($q) use ($aiEnabled) {
-                if (! $aiEnabled) $q->where('type', 'mcq');
+            ->withCount(['questions' => function ($q) use ($codingEnabled) {
+                if (! $codingEnabled) $q->where('type', 'mcq');
             }])
             ->when($tagSlug,    fn ($q) => $q->whereHas('tag', fn ($t) => $t->where('slug', $tagSlug)))
             ->when($difficulty, fn ($q) => $q->where('difficulty', $difficulty))
@@ -43,17 +62,18 @@ class QuizService
         $quiz = Quiz::published()
             ->with([
                 'tag:id,name,slug',
-                'questions'         => fn ($q) => $q->orderBy('order_column'),
-                'questions.options' => fn ($q) => $q->orderBy('order_column'),
+                'questions'           => fn ($q) => $q->orderBy('order_column'),
+                'questions.options'   => fn ($q) => $q->orderBy('order_column'),
+                'questions.testCases' => fn ($q) => $q->orderBy('order_column'),
             ])
             ->where('slug', $slug)
             ->firstOrFail();
 
-        // Phase-1 (AI off): hide coding questions and score against the MCQ marks only.
-        $questions  = $this->aiEnabled()
+        // Coding questions are shown only when they can be graded (Judge0 or AI).
+        $questions  = $this->codingEnabled()
             ? $quiz->questions
             : $quiz->questions->where('type', 'mcq')->values();
-        $totalMarks = $this->aiEnabled()
+        $totalMarks = $this->codingEnabled()
             ? $quiz->total_marks
             : (int) $questions->sum('marks');
 
@@ -80,6 +100,17 @@ class QuizService
                     'option_text'  => $o->option_text,
                     'order_column' => $o->order_column,
                 ]) : [],
+                // Coding: show sample test cases + how many hidden cases grade it.
+                'sample_tests' => $q->isCoding()
+                    ? $q->testCases->where('is_sample', true)->map(fn ($t) => [
+                        'input'    => $t->input,
+                        'expected' => $t->expected_output,
+                    ])->values()
+                    : [],
+                'hidden_test_count' => $q->isCoding()
+                    ? $q->testCases->where('is_sample', false)->count()
+                    : 0,
+                'runnable' => $q->isCoding() && $this->judge0Enabled() && $q->testCases->isNotEmpty(),
             ]),
         ];
     }
@@ -216,8 +247,8 @@ class QuizService
 
         $answers    = $attempt->answers()->with('question')->get();
         $totalScore = $answers->sum('marks_awarded');
-        // AI off → denominator is MCQ marks only (coding questions weren't shown).
-        $totalMarks = $this->aiEnabled()
+        // Coding disabled → denominator is MCQ marks only (coding wasn't shown).
+        $totalMarks = $this->codingEnabled()
             ? ($attempt->quiz->total_marks ?: 1)
             : max(1, (int) QuizQuestion::where('quiz_id', $attempt->quiz_id)->where('type', 'mcq')->sum('marks'));
         $percentage = round(($totalScore / $totalMarks) * 100, 2);
@@ -353,10 +384,9 @@ class QuizService
     ): QuizAnswer {
         $answerText = trim($answerText ?? '');
 
-        // Phase-1 (AI off): coding grading is disabled. Never call the API —
-        // record a neutral, non-penalising, non-counted answer. (Coding questions
-        // are also hidden from candidates, so this is only a defensive guard.)
-        if (! $this->aiEnabled() || empty($answerText)) {
+        // Coding disabled entirely (no Judge0, no AI) or empty answer → neutral,
+        // non-counted answer. (Coding questions are hidden in this case anyway.)
+        if (! $this->codingEnabled() || $answerText === '') {
             return QuizAnswer::create([
                 'attempt_id'         => $attempt->id,
                 'question_id'        => $question->id,
@@ -370,26 +400,62 @@ class QuizService
             ]);
         }
 
-        $scored = $this->aiScoring->scoreCodingAnswer(
-            questionBody:     $question->body,
-            answerCode:       $answerText,
-            language:         $question->language ?? 'javascript',
-            pasteCount:       $pasteCount,
-            timeSpentSeconds: $timeSpentSeconds
-        );
+        // ── Objective correctness via Judge0 (hidden test cases) ──────────
+        $testsPassed = null; $testsTotal = null; $correctness = null;
+        if ($this->judge0Enabled()) {
+            $cases = $question->relationLoaded('testCases') ? $question->testCases : $question->testCases()->get();
+            if ($cases->isNotEmpty()) {
+                $result = $this->judge0->run($answerText, $question->language, $cases);
+                if ($result['ran']) {
+                    $testsPassed = $result['passed'];
+                    $testsTotal  = $result['total'];
+                    $correctness = $result['weight_passed'] / $result['weight_total'];
+                }
+            }
+        }
 
-        $marksAwarded = $scored['ai_flagged']
-            ? 0
-            : (int) round(($scored['quality'] / 10) * $question->marks);
+        // ── Human-integrity check via AI (only if AI is on) ──────────────
+        $aiScore = 0.0; $aiFlagged = false; $aiQuality = null;
+        if ($this->aiEnabled()) {
+            $scored = $this->aiScoring->scoreCodingAnswer(
+                questionBody:     $question->body,
+                answerCode:       $answerText,
+                language:         $question->language ?? 'javascript',
+                pasteCount:       $pasteCount,
+                timeSpentSeconds: $timeSpentSeconds
+            );
+            $aiScore   = $scored['ai_score'];
+            $aiFlagged = $scored['ai_flagged'];
+            $aiQuality = $scored['quality'];
+        }
+
+        // ── Marks: AI-flagged cheating earns 0; otherwise objective correctness
+        //    when we have tests, else the AI quality fallback. ─────────────
+        if ($aiFlagged) {
+            $marksAwarded = 0;
+            $isCorrect    = false;
+        } elseif ($correctness !== null) {
+            $marksAwarded = (int) round($question->marks * $correctness);
+            $isCorrect    = $testsPassed === $testsTotal;
+        } elseif ($aiQuality !== null) {
+            $marksAwarded = (int) round(($aiQuality / 10) * $question->marks);
+            $isCorrect    = $aiQuality >= 7.0;
+        } else {
+            // Judge0 on but the question has no test cases (and AI off) → cannot grade.
+            $marksAwarded = 0;
+            $isCorrect    = false;
+        }
 
         return QuizAnswer::create([
             'attempt_id'         => $attempt->id,
             'question_id'        => $question->id,
             'answer_text'        => $answerText,
-            'is_correct'         => $scored['quality'] >= 7.0,
+            'is_correct'         => $isCorrect,
             'marks_awarded'      => $marksAwarded,
-            'ai_score'           => $scored['ai_score'],
-            'ai_flagged'         => $scored['ai_flagged'],
+            'ai_score'           => $aiScore,
+            'ai_flagged'         => $aiFlagged,
+            'tests_passed'       => $testsPassed,
+            'tests_total'        => $testsTotal,
             'paste_count'        => $pasteCount,
             'time_spent_seconds' => $timeSpentSeconds,
         ]);

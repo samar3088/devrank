@@ -14,6 +14,8 @@ export default function QuizAttempt() {
     const [submitting, setSubmitting]       = useState(false);
     const [submitted, setSubmitted]         = useState({});
     const [aiFlagWarning, setAiFlagWarning] = useState(false);
+    const [runResults, setRunResults]       = useState({});
+    const [running, setRunning]             = useState(false);
 
     const pasteCount        = useRef({});
     const questionStartTime = useRef({});
@@ -46,6 +48,26 @@ export default function QuizAttempt() {
         pasteCount.current[questionId] = (pasteCount.current[questionId] || 0) + 1;
         setAiFlagWarning(true);
         setTimeout(() => setAiFlagWarning(false), 4000);
+    }
+
+    // ── Run sample tests (Judge0) without submitting ─────────────
+    async function runSampleTests() {
+        const code = answers[currentQ.id]?.answerText ?? (currentQ.starter_code || '');
+        if (!code.trim()) return;
+        setRunning(true);
+        try {
+            const res = await fetch(`/quiz/attempt/${attemptId}/run`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+                body: JSON.stringify({ question_id: currentQ.id, answer_text: code }),
+            });
+            const data = await res.json();
+            setRunResults(prev => ({ ...prev, [currentQ.id]: data }));
+        } catch {
+            setRunResults(prev => ({ ...prev, [currentQ.id]: { ran: false } }));
+        } finally {
+            setRunning(false);
+        }
     }
 
     // ── Submit single question answer ─────────────────────────────
@@ -245,9 +267,41 @@ export default function QuizAttempt() {
                                     />
                                 </div>
 
-                                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 6 }}>
-                                    {(answers[currentQ.id]?.answerText || '').length} characters
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, flexWrap: 'wrap', gap: 8 }}>
+                                    <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                                        {(answers[currentQ.id]?.answerText || '').length} characters
+                                        {currentQ.hidden_test_count > 0 && ` · graded against ${currentQ.hidden_test_count} hidden test${currentQ.hidden_test_count === 1 ? '' : 's'}`}
+                                    </span>
+                                    {currentQ.runnable && (
+                                        <button type="button" className="btn-sm btn-outline-sm pop-on-active" disabled={running} onClick={runSampleTests}>
+                                            {running ? 'Running…' : '▶ Run sample tests'}
+                                        </button>
+                                    )}
                                 </div>
+
+                                {/* Sample test cases */}
+                                {currentQ.sample_tests?.length > 0 && (
+                                    <div style={{ marginTop: 12 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text3)', marginBottom: 6 }}>Sample tests</div>
+                                        {currentQ.sample_tests.map((t, i) => {
+                                            const r = runResults[currentQ.id]?.results?.filter(x => x.is_sample)?.[i];
+                                            return (
+                                                <div key={i} style={{ fontSize: 12, fontFamily: 'var(--font-mono, monospace)', background: 'var(--surface, #0f172a)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', marginBottom: 6 }}>
+                                                    <div><span style={{ color: 'var(--text4)' }}>input:</span> {t.input || '—'}</div>
+                                                    <div><span style={{ color: 'var(--text4)' }}>expected:</span> {t.expected}</div>
+                                                    {r && (
+                                                        <div style={{ marginTop: 4, color: r.passed ? 'var(--emerald, #10b981)' : 'var(--rose, #ef4444)' }}>
+                                                            {r.passed ? '✓ passed' : `✗ ${r.status}`}{r.actual != null && !r.passed ? ` · got: ${r.actual}` : ''}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                        {runResults[currentQ.id] && runResults[currentQ.id].ran === false && (
+                                            <div style={{ fontSize: 12, color: 'var(--amber, #f59e0b)' }}>Couldn’t run right now — your submission will still be graded.</div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
