@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
+import { getEcho } from '@/lib/echo';
 
 function getCookie(name) {
     const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -21,6 +22,7 @@ function timeAgo(iso) {
 const POLL_MS = 45000;
 
 export default function NotificationBell() {
+    const userId = usePage().props?.auth?.user?.id;
     const [items, setItems] = useState([]);
     const [unread, setUnread] = useState(0);
     const [open, setOpen] = useState(false);
@@ -48,6 +50,22 @@ export default function NotificationBell() {
         const off = router.on('finish', () => fetchFeed());
         return () => { clearInterval(id); off(); };
     }, [fetchFeed]);
+
+    // Real-time push (Reverb) — additive to polling. No-op if Reverb isn't
+    // configured (getEcho() returns null) or there's no user.
+    useEffect(() => {
+        if (!userId) return;
+        const echo = getEcho();
+        if (!echo) return;
+        const channel = echo.private(`notifications.${userId}`);
+        channel.listen('.notification.created', (n) => {
+            setItems(prev => prev.some(x => x.id === n.id) ? prev : [n, ...prev].slice(0, 12));
+            setUnread(u => u + 1);
+        });
+        return () => {
+            try { echo.leave(`notifications.${userId}`); } catch { /* ignore */ }
+        };
+    }, [userId]);
 
     // Close on outside click
     useEffect(() => {

@@ -29,7 +29,7 @@ class NotificationService
             return null;
         }
 
-        return UserNotification::create([
+        $notification = UserNotification::create([
             'user_id' => $userId,
             'type'    => $type,
             'title'   => $title,
@@ -37,6 +37,17 @@ class NotificationService
             'url'     => $url,
             'icon'    => $icon,
         ]);
+
+        // Best-effort real-time push (Reverb). Never let a broadcast issue break
+        // the notification write — the DB row is the source of truth and polling
+        // still delivers it. No-op when broadcasting isn't configured.
+        try {
+            event(new \App\Events\NotificationCreated($notification));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Notification broadcast failed: ' . $e->getMessage());
+        }
+
+        return $notification;
     }
 
     /**
