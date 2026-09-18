@@ -38,6 +38,14 @@ Delivered, each committed separately:
 - ⚠️ **New migrations**: `question_test_cases`, `quiz_answers.tests_passed/tests_total`. Verified grading via faked Judge0 (2/3 → proportional marks, graceful fallback) + browser (admin test-case editor, candidate coding question unlocked).
 - Owner: set `JUDGE0_URL` (self-host judge0 or RapidAPI) to turn coding on. See CLAUDE.md "Judge0 objective code execution".
 
+### Coding-challenge end-to-end verification (re-seed + real execution)
+Verified with a **local mock Judge0** (a Node HTTP server that actually executes submissions and returns Judge0-shaped results; bound to 127.0.0.1, torn down after — a test double, NOT a sandbox). Reproduce: `node scratchpad/mock-judge0.js` (port 2358) → add `JUDGE0_URL=http://127.0.0.1:2358` to `.env` → `config:clear` → restart serve. Results (all passed):
+- **Grading pipeline (real JS executed):** coding *challenge* in the active season, 3 test cases (2 sample, 1 hidden). Correct `n*2` → **3/3 tests, 20/20 marks, 100%, passed, +40 rank pts**, season standing → **rank #1 Gold, 200 pts**. Wrong `n*3` → **0/3, 0 marks**.
+- **Live "Run tests"** via the real route `POST /quiz/attempt/{id}/run`: correct → `passed 2/2` (Accepted); wrong → `passed 0/2` (Wrong Answer, actual outputs 15/21 shown).
+- **Unlocked in UI:** challenge quiz page showed **1 Question · 20 marks** (coding question now counted/shown); admin coding form + test-case editor render with Judge0 on.
+- Full flow exercised: start attempt → run sample tests (live) → submit → grade vs hidden tests → complete → season points.
+- **Cleanup after:** demo challenge + attempts removed, season score recomputed, `JUDGE0_URL` removed from `.env` (Judge0 back to **off**), mock stopped. No code changed (verification only); feature remains at commit `5ddaede`.
+
 ## What this session did (4-phase pass: UI motion → gap-fill → testing → docs)
 
 ### 1. Industry-standard UI/UX motion layer (all pages)
