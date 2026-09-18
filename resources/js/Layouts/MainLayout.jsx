@@ -168,6 +168,13 @@ export default function MainLayout({ children }) {
                                                 </Link>
                                             )}
 
+                                            {isCandidate && (
+                                                <Link href="/mock-interview" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
+                                                    🎤 Mock Interview
+                                                </Link>
+                                            )}
+
                                             {isAdmin && (
                                                 <Link href="/admin/dashboard" className="nav-dropdown-item"
                                                     onClick={() => setDropdownOpen(false)}>

@@ -113,6 +113,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/candidate/open-to-work',    [\App\Http\Controllers\MatchController::class, 'toggleAvailability'])->name('candidate.availability');
         Route::post('/candidate/anonymous',       [\App\Http\Controllers\MatchController::class, 'toggleAnonymous'])->name('candidate.anonymous');
         Route::get('/skill-paths',                [\App\Http\Controllers\SkillPathController::class, 'index'])->name('skill-paths');
+        // AI mock interview (#5)
+        Route::get('/mock-interview',                [\App\Http\Controllers\MockInterviewController::class, 'index'])->name('mock.index');
+        Route::post('/mock-interview',               [\App\Http\Controllers\MockInterviewController::class, 'store'])->middleware('throttle:10,1')->name('mock.store');
+        Route::get('/mock-interview/{mock}',         [\App\Http\Controllers\MockInterviewController::class, 'show'])->name('mock.show');
+        Route::post('/mock-interview/{mock}/submit', [\App\Http\Controllers\MockInterviewController::class, 'submit'])->middleware('throttle:10,1')->name('mock.submit');
         Route::post('/candidate/saved-searches',  [\App\Http\Controllers\SavedSearchController::class, 'store'])->name('saved-search.store');
         Route::delete('/candidate/saved-searches/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'destroy'])->name('saved-search.destroy');
         // Forum

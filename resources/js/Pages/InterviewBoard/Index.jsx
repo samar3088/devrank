@@ -57,7 +57,10 @@ export default function InterviewBoardIndex() {
                         <h1 style={{ fontSize: '2rem', marginBottom: 6 }}>Interview Experience Board</h1>
                         <p style={{ color: 'var(--text3)', fontSize: 14, maxWidth: 520 }}>Real, verified interview experiences. Know what to expect before you walk in.</p>
                     </div>
-                    <Link href={isCandidate ? '/interviews/create' : '/account'} className="btn btn-primary">+ Share Your Experience</Link>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        {isCandidate && <Link href="/mock-interview" className="btn btn-ghost">🎤 Practice with AI</Link>}
+                        <Link href={isCandidate ? '/interviews/create' : '/account'} className="btn btn-primary">+ Share Your Experience</Link>
+                    </div>
                 </div>
 
                 {/* Stats row */}
