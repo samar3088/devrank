@@ -70,6 +70,7 @@ export default function Credential({ credential: c, token }) {
                 <p style={{ color: 'var(--text4)', fontSize: 12, marginTop: 20, lineHeight: 1.6 }}>
                     This page is generated live from DevRank’s records — the figures above are always current, never self-reported.
                     Verified {new Date(c.generated_at).toLocaleString()}. Credential ref <code>{token.slice(0, 8)}…</code>
+                    {c.receipt && <> · Receipt <code title="Signed HMAC over this day’s rank/score — proves a screenshot wasn’t doctored">{c.receipt}</code></>}
                 </p>
             </div>
         </>

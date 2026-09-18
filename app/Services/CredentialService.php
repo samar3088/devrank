@@ -117,7 +117,18 @@ class CredentialService
                 'quizzes_passed'   => $quizzesPassed,
             ],
             'generated_at'    => now()->toIso8601String(),
+            // HMAC receipt over the day's claim — lets a screenshot/export be
+            // re-attested (the value can't be fabricated without the server secret).
+            'receipt'         => $this->receipt($user->id, $rank, (int) $user->total_rank_score),
         ];
+    }
+
+    /** Short HMAC over (user, rank, score, date) keyed by the credential secret. */
+    public function receipt(int $userId, int $rank, int $score, ?string $date = null): string
+    {
+        $date ??= now()->toDateString();
+        $secret = (string) config('devrank.credentials.secret');
+        return substr(hash_hmac('sha256', "{$userId}|{$rank}|{$score}|{$date}", $secret), 0, 16);
     }
 
     /**
