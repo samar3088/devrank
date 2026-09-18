@@ -33,12 +33,30 @@ Full role→feature breakdown: the shared "DevRank — Functionality by Role" do
 Three user scores:
 - `total_rank_score` — earned activity (forum likes/replies/accepts + quiz points).
 - `human_score` (candidates) — % of AI-analysed coding answers **not** flagged as AI. Computed in `ScoreService`.
-- `trust_score` (companies) — 100 − ghosting rate on interview reviews (matched by `company_name`).
+- `trust_score` (companies) — hiring conduct, a **weighted blend** of two signals: interview-board ghosting rate (matched by `company_name`) **and** application-response conduct (see SLA below). Only the signals a company actually has are counted, so a review-only company scores as it did before the blend.
 
-`ScoreService` recomputes on quiz-complete and interview events; full backfill via **`php artisan devrank:recompute-scores`**.
-Points & monthly limits are config in **`config/devrank.php`** (`points.*` incl. `interview_review`, `limits.*`, `ai.*`).
+`ScoreService` recomputes on quiz-complete, interview events, **and every application status change**; full backfill via **`php artisan devrank:recompute-scores`** (also scheduled daily to catch applications that silently cross the SLA). Points & monthly limits are config in **`config/devrank.php`** (`points.*` incl. `interview_review` + `github_verified`, `limits.*`, `ai.*`, `sla.*`, `github.*`, `privacy.*`).
 Posting an interview review awards `points.interview_review` (default 15), reversed on delete (floored at 0).
-Quiz ranking uses a **delta model** (retakes bank only improvement; AI-flagged answers earn 0).
+Quiz ranking uses a **delta model** (retakes bank only improvement; AI-flagged answers earn 0). **GitHub import** uses the same delta model (reconnecting refreshes stats without re-awarding).
+
+## Response SLA / "zero ghosting" enforcement (#10)
+- **Mandatory rejection reasons:** rejecting a job applicant requires a reason (≥10 chars), enforced **server-side** (`JobController::updateApplicationStatus` `required_if:status,rejected`) *and* in the Applicants UI (confirm disabled until valid). No silent closes.
+- **Response SLA feeds trust_score:** `job_applications.responded_at` is stamped on the first move off `applied` (stops the SLA clock). Applications left un-responded past **`config('devrank.sla.response_days')`** (default 14) count as breaches; `trust_score = 100 − weighted(ghost_rate, sla_breach_rate)` (`sla.ghost_weight`/`sla.response_weight`). `ScoreService::updateTrustScoreForUser` / `applicationBreachRate`.
+- Applicants view flags **overdue/awaiting** applicants + shows an SLA banner. `getJobApplicants` returns `awaiting_response` / `sla_overdue` per row.
+
+## Security & DPDP compliance
+- **Security headers:** `app/Http/Middleware/SecurityHeaders.php` on the web group (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, X-Permitted-Cross-Domain-Policies, HSTS on https). ⚠️ CSP intentionally **not** enforced (Vite/Inertia inline assets need nonces).
+- **Rate limiting:** `throttle` on login (5/min), register (10/min), password-reset (5 & 6/min), data-export (4/min).
+- **DPDP (Digital Personal Data Protection Act, 2023) — implemented:** consent capture at registration (mandatory checkbox → `users.consented_at`); public `/privacy` + `/terms` pages (`LegalController`); **data export** `GET /account/data-export` (full JSON); **erasure** `DELETE /account` (password-confirmed → PII scrubbed, email released, soft-delete, authored content anonymised) via `AccountService`; self-service hub `/account/settings` (`Settings/Account.jsx`); grievance contact in `config('devrank.privacy.*')`. Full audit: [`docs/SECURITY_DPDP.md`](docs/SECURITY_DPDP.md).
+- **The personal-data surface lives in `AccountService`** — when adding a personal field, update export + erasure there.
+
+## GitHub import — verified rank signal (#6)
+- **Laravel Socialite** GitHub OAuth **connect** flow (account link for logged-in candidates, NOT a login provider): `GithubController@redirect|callback`, routes `/auth/github/{redirect,callback}` (candidate-only). `GithubImportService::linkAndImport` verifies identity (`users.github_id` unique — one GitHub per account), imports public repos/followers/stars/top-language (forks excluded, public API), and banks **capped** rank points (`config('devrank.github.points')` + `points.github_verified`) via the **delta model**.
+- **Master switch `config('devrank.github.enabled')`** = true only when `GITHUB_CLIENT_ID` is set → the "Connect GitHub" UI/routes stay hidden (404) with no OAuth app (mirrors `aiEnabled`). Exposed to React as shared prop **`githubEnabled`**. Candidate dashboard shows a connect card → verified badge.
+- Owner setup: register an OAuth app at github.com/settings/developers, callback `<APP_URL>/auth/github/callback`, set `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET`.
+
+## Roadmap docs
+- **#2 verifiable embeddable rank credentials** — full design/scope in [`docs/CREDENTIALS_SCOPE.md`](docs/CREDENTIALS_SCOPE.md) (not built; ~2.5–3 days).
 
 ## Conventions & gotchas (learned the hard way)
 - **`auth.user.roles` is an array of STRINGS** (`getRoleNames()`). In React use `roles.includes('candidate')` — **never** `roles.some(r => r.name === …)` (silently always false).
