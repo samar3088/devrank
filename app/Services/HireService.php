@@ -34,8 +34,46 @@ class HireService
 
         return DB::transaction(function () use ($application, $job, $data) {
             $existing = HireOutcome::where('job_application_id', $application->id)->first();
-            if ($existing) {
+
+            // A pending/verified outcome already exists — nothing to do.
+            if ($existing && in_array($existing->status, ['pending', 'verified'], true)) {
                 return $existing;
+            }
+
+            // A previously DECLINED outcome — the company is re-recording the
+            // hire. Reset it to pending (with the fresh offer) rather than
+            // leaving the applicant un-hireable.
+            if ($existing) {
+                $existing->update([
+                    'role_title'           => $job->title,
+                    'experience_level'     => $job->experience_level,
+                    'offered_salary'       => $data['offered_salary'] ?? null,
+                    'salary_currency'      => $data['salary_currency'] ?? ($job->salary_currency ?: 'INR'),
+                    'salary_period'        => $data['salary_period'] ?? 'yearly',
+                    'starts_on'            => $data['starts_on'] ?? null,
+                    'status'               => 'pending',
+                    'salary_shared'        => false,
+                    'company_confirmed_at' => now(),
+                    'candidate_confirmed_at' => null,
+                ]);
+
+                $updates = ['status' => 'hired'];
+                if ($application->responded_at === null) {
+                    $updates['responded_at'] = now();
+                }
+                $application->update($updates);
+
+                $company = $job->company;
+                $this->notifications->notify(
+                    user:  $application->user_id,
+                    type:  'hire_recorded',
+                    title: 'Confirm your new role 🎉',
+                    body:  Str::limit(($company->company_name ?: $company->name ?? 'A company') . ' marked you as hired for ' . $job->title . '. Confirm to verify it.', 140),
+                    url:   '/hires',
+                    icon:  '🎉',
+                );
+
+                return $existing->refresh();
             }
 
             $outcome = HireOutcome::create([
@@ -283,12 +321,13 @@ class HireService
     {
         $sorted = $values->sort()->values();
 
+        // Deliberately NO min/max: at the k-anonymity floor those are the exact
+        // lowest/highest individual offers in the bucket. Median + interpolated
+        // percentiles never expose a single person's figure.
         return [
             'median' => $this->percentile($sorted, 0.50),
             'p25'    => $this->percentile($sorted, 0.25),
             'p75'    => $this->percentile($sorted, 0.75),
-            'min'    => (int) $sorted->first(),
-            'max'    => (int) $sorted->last(),
         ];
     }
 

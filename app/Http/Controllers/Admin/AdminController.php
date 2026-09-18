@@ -35,6 +35,14 @@ class AdminController extends Controller
 
     public function toggleUser(User $user)
     {
+        // A sub_admin must not be able to deactivate a super_admin (or any admin) —
+        // otherwise a sub_admin could lock the platform owner out via the active-gate.
+        abort_if(
+            $user->hasRole(['super_admin', 'sub_admin']) && ! auth()->user()->isSuperAdmin(),
+            403,
+            'You are not allowed to change an administrator account.'
+        );
+
         $active = $this->adminService->toggleUserStatus($user);
         return back()->with('success', $active ? 'User activated.' : 'User deactivated.');
     }

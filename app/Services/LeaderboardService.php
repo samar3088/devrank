@@ -34,7 +34,10 @@ class LeaderboardService
         }
 
         $result = $query->orderByDesc('total_rank_score')
-            ->select('id', 'name', 'location', 'years_of_experience', 'total_rank_score', 'human_score', 'avatar', 'anonymous')
+            // addSelect (not select) so the withCount() + likes_received subquery
+            // columns above aren't clobbered — otherwise Forum/Answers/Likes
+            // render 0 for every candidate.
+            ->addSelect('id', 'name', 'location', 'years_of_experience', 'total_rank_score', 'human_score', 'avatar', 'anonymous')
             ->paginate($perPage)
             ->withQueryString();
 

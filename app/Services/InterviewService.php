@@ -82,11 +82,31 @@ class InterviewService
     }
 
     /**
-     * Flag a review. Auto-hides it once it crosses the report threshold.
+     * Flag a review. Reports are deduped per reporter (one per user per review)
+     * so a single user can't push a review past the auto-hide threshold; a user
+     * cannot report their own review. Auto-hides once ≥5 DISTINCT users report.
      */
-    public function reportReview(InterviewReview $review): void
+    public function reportReview(InterviewReview $review, ?int $reporterId = null): void
     {
-        $review->increment('reports_count');
+        // Can't report your own review.
+        if ($reporterId !== null && $reporterId === $review->user_id) {
+            return;
+        }
+
+        // Record this reporter once (idempotent via the unique index).
+        if ($reporterId !== null) {
+            \Illuminate\Support\Facades\DB::table('review_reports')->updateOrInsert(
+                ['interview_review_id' => $review->id, 'user_id' => $reporterId],
+                ['updated_at' => now(), 'created_at' => now()],
+            );
+            // reports_count now tracks DISTINCT reporters.
+            $distinct = \Illuminate\Support\Facades\DB::table('review_reports')
+                ->where('interview_review_id', $review->id)->count();
+            $review->update(['reports_count' => $distinct]);
+        } else {
+            // Fallback (no reporter context) — legacy behaviour.
+            $review->increment('reports_count');
+        }
 
         if ($review->fresh()->reports_count >= 5 && $review->status === 'visible') {
             $review->update(['status' => 'moderated']);

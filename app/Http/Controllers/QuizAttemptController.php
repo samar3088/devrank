@@ -44,7 +44,10 @@ class QuizAttemptController extends Controller
         abort_unless($attempt->isInProgress(), 422, 'Attempt already completed.');
 
         $validated = $request->validate([
-            'question_id'        => ['required', 'integer', 'exists:quiz_questions,id'],
+            // Scope the question to THIS attempt's quiz — otherwise a candidate
+            // could grade answers to easier questions from another quiz and
+            // inflate their score/percentage.
+            'question_id'        => ['required', 'integer', \Illuminate\Validation\Rule::exists('quiz_questions', 'id')->where('quiz_id', $attempt->quiz_id)],
             'selected_option_id' => ['nullable', 'integer', 'exists:quiz_options,id'],
             'answer_text'        => ['nullable', 'string', 'max:10000'],
             'paste_count'        => ['integer', 'min:0'],

@@ -322,13 +322,16 @@ class QuizService
     // ── Admin stats ──────────────────────────────────────────────
     public function getQuizStats(Quiz $quiz): array
     {
-        $q = QuizAttempt::where('quiz_id', $quiz->id)->where('status', 'completed');
+        // Base filter — clone per aggregate so chained where()s don't mutate the
+        // shared builder (that bug made avg_score = avg of PASSED only, and
+        // ai_flagged = passed AND flagged).
+        $base = fn () => QuizAttempt::where('quiz_id', $quiz->id)->where('status', 'completed');
 
         return [
-            'total_attempts' => $q->count(),
-            'passed'         => $q->where('passed', true)->count(),
-            'avg_score'      => round($q->avg('percentage'), 1),
-            'ai_flagged'     => $q->where('ai_flagged', true)->count(),
+            'total_attempts' => $base()->count(),
+            'passed'         => $base()->where('passed', true)->count(),
+            'avg_score'      => round((float) $base()->avg('percentage'), 1),
+            'ai_flagged'     => $base()->where('ai_flagged', true)->count(),
         ];
     }
 

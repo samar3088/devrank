@@ -45,7 +45,7 @@ export default function Applicants() {
 
             <div className="dash-card" data-reveal>
                 <div className="dash-card-header">
-                    <h4><CountUp end={applicants.length} /> {applicants.length === 1 ? 'Applicant' : 'Applicants'}</h4>
+                    <h4><CountUp end={applicants.total} /> {applicants.total === 1 ? 'Applicant' : 'Applicants'}</h4>
                     <span style={{ fontSize: 13, color: 'var(--text3)' }}>Move candidates through your hiring pipeline</span>
                 </div>
 
@@ -73,12 +73,15 @@ export default function Applicants() {
                     </div>
                 )}
 
-                {applicants.length > 0 ? (
-                    <div data-reveal-stagger="55">
-                        {applicants.map((a) => (
-                            <ApplicantRow key={a.id} a={a} statuses={statuses} />
-                        ))}
-                    </div>
+                {applicants.data.length > 0 ? (
+                    <>
+                        <div data-reveal-stagger="55">
+                            {applicants.data.map((a) => (
+                                <ApplicantRow key={a.id} a={a} statuses={statuses} />
+                            ))}
+                        </div>
+                        <Pager links={applicants.links} />
+                    </>
                 ) : (
                     <div className="dash-empty">
                         No applications yet. Once candidates apply to <strong>{job.title}</strong>, they’ll appear here.
@@ -86,6 +89,28 @@ export default function Applicants() {
                 )}
             </div>
         </CompanyLayout>
+    );
+}
+
+function Pager({ links }) {
+    // Laravel paginator links: [{url, label, active}, ...]. Hide when single page.
+    if (!links || links.length <= 3) return null;
+    return (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 18 }}>
+            {links.map((l, i) => (
+                l.url ? (
+                    <Link
+                        key={i}
+                        href={l.url}
+                        preserveScroll
+                        className={`btn-sm ${l.active ? 'btn-primary-sm' : 'btn-outline-sm'} pop-on-active`}
+                        dangerouslySetInnerHTML={{ __html: l.label }}
+                    />
+                ) : (
+                    <span key={i} style={{ padding: '6px 10px', fontSize: 13, color: 'var(--text4)' }} dangerouslySetInnerHTML={{ __html: l.label }} />
+                )
+            ))}
+        </div>
     );
 }
 
@@ -100,6 +125,7 @@ function ApplicantRow({ a, statuses }) {
 
     const hire = a.hire;
     const isHired = a.status === 'hired' || (hire && hire.status !== 'declined');
+    const isWithdrawn = a.status === 'withdrawn';
 
     function submit(newStatus, rejectionReason) {
         setSaving(true);
@@ -159,7 +185,9 @@ function ApplicantRow({ a, statuses }) {
                     <span style={{ fontSize: 12, color: 'var(--text4)' }}>No résumé</span>
                 )}
 
-                {isHired ? (
+                {isWithdrawn ? (
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text3)', whiteSpace: 'nowrap' }}>↩ Withdrawn by candidate</span>
+                ) : isHired ? (
                     <span style={{ fontSize: 13, fontWeight: 700, color: (HIRE_BADGE[hire?.status] || HIRE_BADGE.pending).color, whiteSpace: 'nowrap' }}>
                         {(HIRE_BADGE[hire?.status] || HIRE_BADGE.pending).label}
                     </span>

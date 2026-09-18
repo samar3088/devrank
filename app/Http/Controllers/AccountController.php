@@ -31,12 +31,9 @@ class AccountController extends Controller
      */
     public function exportData(Request $request)
     {
-        $data = $this->accountService->exportData($request->user());
-        $filename = 'devrank-data-' . $request->user()->id . '-' . now()->format('Ymd') . '.json';
-
-        return response()->json($data, 200, [
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        // Streamed (chunked) download — memory stays bounded regardless of how
+        // much content the user has authored.
+        return $this->accountService->streamExport($request->user());
     }
 
     /**

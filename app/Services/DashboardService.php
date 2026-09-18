@@ -160,10 +160,13 @@ class DashboardService
         $totalApplications = (int) $appCounts->sum();
 
         // Outreach breakdown in one pass instead of repeated queries
-        $sentInterests     = $user->sentInterests()->get(['status']);
+        $sentInterests     = $user->sentInterests()->get(['status', 'created_at']);
         $interestsSent     = $sentInterests->count();
         $interestsAccepted = $sentInterests->where('status', 'accepted')->count();
         $interestsPending  = $sentInterests->where('status', 'pending')->count();
+        // Outreach used THIS month — computed from real rows (the monthly_outreach_sent
+        // column is never incremented; sendInterest enforces the limit by row count).
+        $outreachThisMonth = $sentInterests->where('created_at', '>=', now()->startOfMonth())->count();
 
         // Active jobs expiring within the next 7 days
         $expiringJobs = $user->jobListings()
@@ -193,7 +196,7 @@ class DashboardService
                 config('devrank.limits.monthly_job_posts', 5) - $user->monthly_job_posts
             ),
             'monthly_interest_remaining' => max(0,
-                config('devrank.limits.monthly_outreach', 10) - $user->monthly_outreach_sent
+                config('devrank.limits.monthly_outreach', 10) - $outreachThisMonth
             ),
 
             // Pipeline stages (real counts)

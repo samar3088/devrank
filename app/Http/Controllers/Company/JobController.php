@@ -169,6 +169,7 @@ class JobController extends Controller
         $job->load('tags:id,name,slug');
 
         $applicants = $this->jobService->getJobApplicants($job);
+        $slaCounts  = $this->jobService->getApplicantSlaCounts($job);
 
         return Inertia::render('Company/Jobs/Applicants', [
             'job' => [
@@ -182,8 +183,8 @@ class JobController extends Controller
             'applicants'   => $applicants,
             'statuses'     => ['applied', 'reviewing', 'shortlisted', 'interview', 'offered', 'rejected'],
             'slaDays'      => (int) config('devrank.sla.response_days', 14),
-            'slaOverdue'   => $applicants->where('sla_overdue', true)->count(),
-            'awaitingCount'=> $applicants->where('awaiting_response', true)->count(),
+            'slaOverdue'   => $slaCounts['overdue'],
+            'awaitingCount'=> $slaCounts['awaiting'],
         ]);
     }
 

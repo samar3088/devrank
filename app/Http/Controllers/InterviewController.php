@@ -22,7 +22,7 @@ class InterviewController extends Controller
 
     public function report(InterviewReview $review)
     {
-        $this->interviewService->reportReview($review);
+        $this->interviewService->reportReview($review, auth()->id());
         return back()->with('success', 'Thank you — this review has been flagged for moderation.');
     }
  

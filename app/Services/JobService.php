@@ -174,7 +174,11 @@ class JobService
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                  ->orWhere('location', 'like', "%{$search}%")
+                  // Search by company too (the search box advertises it).
+                  ->orWhereHas('company', function ($c) use ($search) {
+                      $c->where('company_name', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -255,6 +259,17 @@ class JobService
         // Update job application count
         $job->increment('applications_count');
 
+        // Notify the company of the new applicant.
+        app(NotificationService::class)->notify(
+            user:    $job->user_id,
+            type:    'new_application',
+            title:   'New applicant for ' . Str::limit($job->title, 60),
+            body:    Str::limit(($user->name ?? 'A candidate') . ' applied to ' . $job->title . '.', 140),
+            url:     '/company/jobs/' . $job->id . '/applicants',
+            icon:    '📥',
+            actorId: $user->id,
+        );
+
         return ['success' => true, 'message' => 'Application submitted successfully!', 'application' => $application];
     }
 
@@ -282,8 +297,9 @@ class JobService
             ])
             ->orderByRaw("FIELD(status,'applied','reviewing','shortlisted','interview','offered','hired','rejected','withdrawn')")
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($app) use ($cutoff) {
+            ->paginate(20)
+            ->withQueryString()
+            ->through(function ($app) use ($cutoff) {
                 $c = $app->candidate;
 
                 $awaiting = $app->status === 'applied' && $app->responded_at === null;
@@ -314,6 +330,24 @@ class JobService
                     ] : null,
                 ];
             });
+    }
+
+    /**
+     * SLA counts for a job's applicants (computed over ALL applications, not just
+     * the current page — the applicants list is now paginated).
+     */
+    public function getApplicantSlaCounts(JobListing $job): array
+    {
+        $cutoff = now()->subDays((int) config('devrank.sla.response_days', 14));
+
+        $awaiting = $job->applications()
+            ->where('status', 'applied')
+            ->whereNull('responded_at');
+
+        return [
+            'awaiting' => (clone $awaiting)->count(),
+            'overdue'  => (clone $awaiting)->where('created_at', '<=', $cutoff)->count(),
+        ];
     }
 
     /**
@@ -365,6 +399,30 @@ class JobService
         }
 
         $application->update($data);
+
+        // Notify the candidate of the response — closes the SLA/"zero ghosting"
+        // loop so a status change (incl. a mandatory-reason rejection) actually
+        // reaches them. 'hired' is handled by the verified-hire flow, and a
+        // candidate-initiated 'withdrawn' needs no ping.
+        $labels = [
+            'reviewing'   => 'is reviewing your application',
+            'shortlisted' => 'shortlisted you',
+            'interview'   => 'invited you to interview',
+            'offered'     => 'sent you an offer',
+            'rejected'    => 'has responded to your application',
+        ];
+        if (isset($labels[$status])) {
+            $job = $application->jobListing;
+            $companyName = $job?->company?->company_name ?: ($job?->company?->name ?? 'A company');
+            app(NotificationService::class)->notify(
+                user:  $application->user_id,
+                type:  'application_status',
+                title: ucfirst($labels[$status]) . ' · ' . Str::limit((string) $job?->title, 50),
+                body:  Str::limit($companyName . ' ' . $labels[$status] . ' for ' . $job?->title . '.', 140),
+                url:   '/jobs/' . ($job?->slug ?? ''),
+                icon:  $status === 'rejected' ? '📩' : '✅',
+            );
+        }
 
         // Reflect the company's hiring conduct in their trust score.
         $company = $application->jobListing?->company;

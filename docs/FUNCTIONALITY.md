@@ -102,6 +102,7 @@ Monthly limit counters reset on the first request of a new calendar month.
   - **Delete** — soft delete.
 - **Job status enum:** `active` · `paused` · `closed` · `expired`. New jobs are always `active` (no draft path). A daily `jobs:expire` command flips past-expiry active jobs to `expired`.
 - **Featured** (`is_featured`) is **admin-only** — companies cannot self-promote.
+- **Applicant pipeline** (`job_applications.status`): `applied → reviewing → shortlisted → interview → offered → hired` (terminal), plus `rejected` / `withdrawn`. Rejecting requires a reason (≥10 chars). The `hired` stage is set only through the verified-hire flow (§10). The first move off `applied` stamps `responded_at` (stops the SLA clock feeding trust score).
 
 ## 6. Interests / outreach (company → candidate)
 
@@ -121,7 +122,7 @@ Monthly limit counters reset on the first request of a new calendar month.
 
 - **Leaderboard:** active candidates with `total_rank_score > 0`, ranked desc, paginated; shows likes received + topic/reply counts. Filter by **name** or **tag** (candidates with replies in topics carrying that tag). Tag dropdown from approved tags.
 - **Candidate public profile:** headline, location, bio, experience, open-to-work, rank & human score, GitHub/LinkedIn, resume, avatar; plus reply/topic counts, likes received, global rank, top-5 recent answers, and per-tag rankings. Viewing companies see their outreach status.
-- **Company public profile:** company details, up to 5 active jobs, total jobs count.
+- **Company public profile:** company details, up to 5 active jobs, total jobs count, and **real hiring-conduct signals** — trust score, **verified-hire count** (#11), applicant **response rate** (share of received applications moved off `applied`), open roles, jobs posted, member-since. _(All previously-hardcoded mock stats — "Avg Rating", "Feedback Rate", fabricated trust-factor breakdowns, "Hires this year" — have been removed in favour of these real values.)_
 - **Tag-based ranking:** for a candidate's top tags (by likes earned on their answers within each tag), computes their rank within each tag. Shared by dashboard and profile.
 - **Who-viewed tracking (`ProfileViewLog`):** rows created when a candidate accepts an interest; candidate dashboard surfaces the count; admins can browse all logs.
 
@@ -137,15 +138,33 @@ All admin routes require verified + role. **General panel** = `super_admin | sub
 - **Profile-view logs** — browse all view logs, searchable by company name.
 - **Quiz management (super_admin only)** — quiz CRUD (difficulty, time limit 5–180, passing score, max attempts 0–5, draft/published); questions (MCQ with 2–4 options & exactly one correct, or coding in JS/PHP/Python/Java/C++, marks 1–100); attempt review with per-quiz stats and AI-flag surfacing.
 
+## 10. Verified hire outcomes & salary transparency (#11)
+
+Closes the hiring loop with a **two-sided, verified** record of who actually got hired, and turns those verified offers into **aggregate, privacy-safe salary transparency**. Backed by `hire_outcomes` (one row per application) + [`HireService`](../app/Services/HireService.php); config in `config('devrank.hires.*')`.
+
+- **Company records a hire** (owner-scoped, from the Applicants view → `POST /company/applications/{application}/hire`): captures the real offer (`offered_salary`, currency, period, optional start date). The application moves to the terminal **`hired`** stage, `responded_at` is stamped, and the candidate is notified. One outcome per application (idempotent).
+- **Candidate confirms or declines** (candidate-only, `/hires` → `Hires/Index.jsx`):
+  - **Confirm** → outcome `verified`; the candidate optionally **opts in** to share their offer anonymously (`salary_shared`, default off — explicit consent).
+  - **Decline** ("this didn't happen") → outcome `declined` **and the application rolls back to `offered`**, so the pipeline stays honest.
+  - Outcome states: `pending → verified | declined`.
+- **Salary transparency** (public, `/salaries` → `Salaries/Index.jsx`): shows **aggregate-only** medians / 25th–75th / full ranges from `verified` + `salary_shared` offers — **never an individual figure**. Every bucket (overall / by experience level / by role) is **suppressed until it has `config('devrank.hires.min_sample')` (default 3) shared offers** (k-anonymity). Monthly offers are **annualised** (×12) and figures are **grouped per currency** (never blended); the largest-sample currency is reported.
+- **Trust signal:** a company's **verified-hire count** surfaces on their public profile and dashboard (a provable, positive hiring record). The penalty-based `trust_score` formula (ghosting + SLA) is intentionally left unchanged.
+- **Notifications:** `hire_recorded` (→ candidate), `hire_verified` / `hire_declined` (→ company).
+- **DPDP:** the offer figure is personal data — included in the account **data export** (`hire_outcomes`) and, on **erasure**, the salary is nulled and un-shared so it leaves all transparency aggregates (only the anonymised hire fact remains).
+- **Surfacing:** "Salaries" nav link (all roles) · candidate "🎉 My Hires" menu item + a pending-hire card on the candidate dashboard · company dashboard "Verified hires" stat and a "Hired" pipeline row.
+- **Demo data:** `DemoHireSeeder` seeds ~14 verified hires (most shared) so `/salaries` and company profiles show live values after `migrate:fresh --seed`.
+
 ---
 
 ## Known code-vs-UI gaps (as of reconstruction)
 
-These are real inconsistencies found while reading the code, worth tracking (not blockers):
+These were real inconsistencies found while reading the code. **All three have since been resolved** (kept here for history):
 
-1. **Company dashboard** renders hardcoded Trust Score / pipeline / alerts and reads stat keys the service never emits (`CompanyDashboard.jsx` vs `DashboardService::getCompanyStats`) — largely mock against live data.
-2. **Admin dashboard** references two stats not provided by `getDashboardStats` (render as 0) and shows a "coming soon" note despite the full admin panel existing.
-3. **Candidate dashboard** shows a "+15 pts for an interview review" nudge, but no such award exists in `InterviewService` — the label is cosmetic.
+1. ✅ **Company dashboard & profile** — now driven by real data (`DashboardService::getCompanyStats` / `PublicProfileService::getCompanyProfile`). The previously-hardcoded Trust Score, pipeline, "Platform Hires 42", "Avg Rating 4.8", "Feedback Rate 98%", fabricated trust-factor breakdowns and "Hires this year" have all been replaced with real signals (verified hires, applicant response rate, pipeline incl. `hired`, open roles, jobs posted).
+2. ✅ **Admin dashboard** — reads real stats; the "coming soon" note is gone (the full admin panel exists).
+3. ✅ **Interview-review nudge** — interview reviews now genuinely award `points.interview_review` (+15, reversed on delete), so the "+15 pts" label is honest.
+
+> Note: this spec was first reconstructed on 2026-09-14 and predates much of the current roadmap (Judge0 code execution, GitHub import, verifiable credentials, smart matching, AI mock-interview, seasons/challenges, skill paths, in-app notifications, response SLAs, bias-reduced hiring, and §10 verified hires). See [`CLAUDE.md`](../CLAUDE.md) and [`FEATURE-STATUS.md`](../FEATURE-STATUS.md) for the authoritative, current picture of those.
 
 ---
 

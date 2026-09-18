@@ -1,8 +1,35 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: #11 verified hire outcomes + salary transparency, #5 AI mock-interview, #3 bias-reduced hiring; polish pass (Seasons UI, bulk coding import, Reverb, HMAC receipt). **11/11 roadmap items built — roadmap COMPLETE.**_
-_Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
+_Recent: **hardening & QA pass** (security/DPDP/perf audit + manual-QA bug fixes + matching enhancement + streamed exports + paginated applicants — see below); #11 verified hire outcomes + salary transparency; #5 AI mock-interview; #3 bias-reduced hiring. **11/11 roadmap items built — roadmap COMPLETE.**_
+_Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker (24-check regression pass), security/DPDP HTTP checks, physical index inspection, npm/composer audit. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
+
+## Hardening & QA pass (latest)
+
+Four parallel audits (security+DPDP+performance, manual-QA bug hunt, comms/exports/tables inventory, matching analysis) → all findings resolved:
+
+**Bugs fixed (manual-QA):**
+- **[HIGH]** Admin quiz stats were wrong — a reused query-builder was mutated across `count()`/`avg()` calls, so `avg_score` was the average of *passing* attempts only and `ai_flagged` was undercounted. Fixed with fresh builders per aggregate (`QuizService::getQuizStats`, `Admin\QuizController::index`).
+- **[MED]** Leaderboard Forum/Answers/Likes columns always rendered 0 — `->select()` after `withCount()`/`addSelect()` clobbered the subquery columns. Fixed with `addSelect` (`LeaderboardService`).
+- **[MED]** Quiz score inflation — the answer endpoint didn't verify the question belonged to the attempt's quiz. Now scoped via `Rule::exists(...)->where('quiz_id', …)` (`QuizAttemptController`).
+- **[MED]** Interview reviews could be auto-hidden by a single user reporting 5×. Added a `review_reports` pivot (unique per reporter); auto-hide now needs 5 **distinct** reporters; can't report your own review.
+- **[MED]** A declined hire permanently blocked re-recording — `recordHire` now resets a `declined` outcome to `pending` (`HireService`).
+- **[MED]** Company dashboard "outreach left this month" used a never-incremented column; now computed from real rows (`DashboardService`).
+- **[LOW]** Applicants `<select>` mishandled a `withdrawn` value (shown as a badge now); salary aggregates no longer expose exact min/max at the k-floor (median + percentiles only).
+
+**Security:** sub_admin can no longer deactivate a super_admin (rank guard on `AdminController::toggleUser`); added `throttle` to forum post/reply/upload, job apply, and outreach send. Confirmed clean: headers, CSRF, owner-scoping, mass-assignment, XSS boundary, uploads, SQL-injection, auth/verified/active gates.
+
+**DPDP:** export + erasure completed for data added in later sessions — `github_*`, `mock_interviews`, `saved_searches`, `credential_tokens`, `profile_view_logs` (incl. IP), authored `interview_reviews`. Export is now **streamed/chunked** (`AccountService::streamExport`, DB cursor) so memory stays bounded.
+
+**Performance:** no N+1 found; index coverage strong. `MatchService` job/candidate scans now bounded (200 jobs / top-300 candidates) instead of loading the whole table into PHP.
+
+**Matching (DevRank ask #1):** candidate→job scoring now folds in **tests taken** (completed-quiz tags) alongside forum tags (`MatchService::candidateSkillTagIds` / `candidateTagMap`); job board search now also matches **company name**.
+
+**Comms:** added the two missing notifications — **new applicant → company**, and **application status change → candidate** (closes the SLA/ghosting loop, incl. rejections).
+
+**Tables:** company Applicants view is now server-side paginated (was the only list shipping all rows); everything else was already `->paginate()`d.
+
+**Deps:** monaco/`dompurify` advisory resolved via an npm `override` (`dompurify@3.4.15`) → **0 npm vulnerabilities**. `maatwebsite/excel`, `dompdf`, `yajra/datatables` remain installed but unused (candidates for pruning).
 
 ## Core platform modules
 

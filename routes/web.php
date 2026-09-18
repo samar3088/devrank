@@ -127,17 +127,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/hires',                         [\App\Http\Controllers\HireController::class, 'index'])->name('hires.index');
         Route::post('/hires/{hireOutcome}/confirm',  [\App\Http\Controllers\HireController::class, 'confirm'])->name('hires.confirm');
         Route::post('/hires/{hireOutcome}/decline',  [\App\Http\Controllers\HireController::class, 'decline'])->name('hires.decline');
-        // Forum
-        Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
-        Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->name('forum.upload-image');
+        // Forum (throttled to blunt spam/flooding)
+        Route::post('/forum',                        [ForumController::class, 'store'])->middleware('throttle:20,1')->name('forum.store');
+        Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->middleware('throttle:30,1')->name('forum.upload-image');
         Route::delete('/forum/{topic}',              [ForumController::class, 'destroyTopic'])->name('forum.destroy');
-        Route::post('/forum/{topic}/reply',          [ForumController::class, 'storeReply'])->name('forum.reply');
+        Route::post('/forum/{topic}/reply',          [ForumController::class, 'storeReply'])->middleware('throttle:30,1')->name('forum.reply');
         Route::put('/forum/reply/{reply}',           [ForumController::class, 'updateReply'])->name('forum.reply.update');
         Route::delete('/forum/reply/{reply}',        [ForumController::class, 'destroyReply'])->name('forum.reply.destroy');
         Route::post('/forum/{topic}/accept/{reply}', [ForumController::class, 'acceptReply'])->name('forum.accept');
         Route::post('/forum/reply/{reply}/like',     [ForumController::class, 'toggleLike'])->name('forum.like');
         // Jobs
-        Route::post('/jobs/{job}/apply', [JobBoardController::class, 'apply'])->name('jobs.apply');
+        Route::post('/jobs/{job}/apply', [JobBoardController::class, 'apply'])->middleware('throttle:20,1')->name('jobs.apply');
         // Interests
         Route::get('/interests',                            [InterestController::class, 'candidateIndex'])->name('interests.candidate');
         Route::post('/interests/{interestRequest}/respond', [InterestController::class, 'respond'])->name('interests.respond');
@@ -154,7 +154,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ── Company: send interest (outside /company prefix) ──────────
     Route::post('/interests/send/{candidate}', [InterestController::class, 'send'])
-        ->middleware('role:company')
+        ->middleware(['role:company', 'throttle:20,1'])
         ->name('interests.send');
 
     // ── Company ───────────────────────────────────────────────────

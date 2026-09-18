@@ -66,10 +66,9 @@ export default function SalariesIndex() {
                             from <CountUp end={data.shared_count} /> shared verified {data.shared_count === 1 ? 'offer' : 'offers'}
                         </span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginTop: 8 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginTop: 8 }}>
                         <Stat label="Median (annual)" value={money(data.overall.median, cur)} big color="var(--cyan)" />
                         <Stat label="Typical range (25th–75th)" value={`${money(data.overall.p25, cur)} – ${money(data.overall.p75, cur)}`} color="var(--text)" />
-                        <Stat label="Full range" value={`${money(data.overall.min, cur)} – ${money(data.overall.max, cur)}`} color="var(--text2)" />
                     </div>
                 </div>
 

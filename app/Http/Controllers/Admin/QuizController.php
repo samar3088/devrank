@@ -31,28 +31,30 @@ class QuizController extends Controller
     
         // Attach per-quiz pass_rate and ai_flag_count
         $quizzes->getCollection()->transform(function ($quiz) {
-            $completed = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+            // Fresh builder per aggregate — chaining where() on one shared
+            // instance mutates it and corrupts later counts.
+            $base = fn () => \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
                 ->where('status', 'completed');
-    
-            $total     = $completed->count();
-            $passed    = $completed->where('passed', true)->count();
-            $aiFlagged = $completed->where('ai_flagged', true)->count();
-    
+
+            $total     = $base()->count();
+            $passed    = $base()->where('passed', true)->count();
+            $aiFlagged = $base()->where('ai_flagged', true)->count();
+
             $quiz->pass_rate      = $total > 0 ? round(($passed / $total) * 100) : 0;
             $quiz->ai_flag_count  = $aiFlagged;
-    
+
             return $quiz;
         });
-    
-        // Global stats across all quizzes
-        $allAttempts  = \App\Models\QuizAttempt::where('status', 'completed');
-        $totalAttempts = $allAttempts->count();
-        $totalPassed   = $allAttempts->where('passed', true)->count();
-    
+
+        // Global stats across all quizzes (fresh builder per aggregate)
+        $allCompleted  = fn () => \App\Models\QuizAttempt::where('status', 'completed');
+        $totalAttempts = $allCompleted()->count();
+        $totalPassed   = $allCompleted()->where('passed', true)->count();
+
         $stats = [
             'total_attempts'   => $totalAttempts,
             'total_passed'     => $totalPassed,
-            'total_ai_flagged' => $allAttempts->where('ai_flagged', true)->count(),
+            'total_ai_flagged' => $allCompleted()->where('ai_flagged', true)->count(),
             'avg_pass_rate'    => $totalAttempts > 0
                 ? round(($totalPassed / $totalAttempts) * 100)
                 : 0,
