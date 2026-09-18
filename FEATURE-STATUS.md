@@ -1,7 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: polish pass — admin Seasons UI, bulk import supports coding+test-cases, Reverb real-time notifications, HMAC receipt on /verify. Earlier: #1 Judge0, #2 credentials, #4 matching, #8 seasons, #9 skill paths, sub_admin quiz-upload permission._
+_Recent: #3 bias-reduced hiring (identity anonymization); polish pass — admin Seasons UI, bulk coding import, Reverb real-time, HMAC receipt. **9/11 roadmap items built** — only #5 AI mock-interview and #11 verified-hires/salary remain._
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -32,7 +32,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 |---|---|---|
 | 1 | Objective code-execution grading (Judge0) | ✅ **Built** — Judge0Service runs coding submissions against hidden test cases for a provable correctness score; unlocks coding questions/challenges without AI. Off until `JUDGE0_URL` set. |
 | 2 | Verifiable embeddable rank credentials | ✅ **Built** — signed `/badge/{token}.svg` + public `/verify/{token}` audit page + dashboard share card (mint/rotate/revoke). Live-rendered, forgery-proof, human-metric gated. |
-| 3 | Bias-reduced hiring flow | 🟡 **Partial** — contact-privacy gate live; name/photo/location anonymization in discovery not built. |
+| 3 | Bias-reduced hiring flow | ✅ **Built** — opt-in `anonymous` mode masks name/photo/location in discovery (profile, leaderboard, Browse Talent) until mutual interest; rank/skills stay visible. `AnonymityService` (shared with the contact gate). |
 
 ### High-impact
 | # | Item | Status |

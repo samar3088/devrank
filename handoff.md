@@ -1,12 +1,13 @@
 # DevRank — Session Handoff
 
 _Last updated: 2026-09-18 (through session #6). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
-_Session #6 (polish pass): admin Seasons UI (`f3bcd1c`), bulk coding import (`69deada`), HMAC receipt (`17910b2`), Reverb real-time (`4559b3c`). Verified. New deps: laravel/reverb, laravel-echo, pusher-js. ⚠️ Run `composer install` + `npm install` on any older checkout._
+_Session #6 (polish pass): admin Seasons UI (`f3bcd1c`), bulk coding import (`69deada`), HMAC receipt (`17910b2`), Reverb real-time (`4559b3c`). New deps: laravel/reverb, laravel-echo, pusher-js._
+_Session #7: **#3 bias-reduced hiring** (`ef2c499`) — opt-in `users.anonymous` masks name/photo/location in discovery until mutual interest via `AnonymityService` (shared with the contact gate); enforced server-side on profile/leaderboard/Browse Talent; candidate "Go anonymous" toggle. ⚠️ New migration `users.anonymous` + `composer install`/`npm install` on any older checkout._
 
 ## Where things are (current)
 - Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `fe40b0d`).
 - Build passes (`npm run build`), all migrations run, verified working.
-- **Roadmap: 8 of 11 items built** (#1,2,4,6,7,8,9,10 ✅; #3 partial; #5,#11 not started). See "Still pending / open" below.
+- **Roadmap: 9 of 11 items built** (#1,2,3,4,6,7,8,9,10 ✅; #5,#11 not started). See "Still pending / open" below.
 - Env note: XAMPP **MySQL** was stopped and restarted this session; a `php artisan serve` runs on **:8123** for testing (stale instances get killed/restarted).
 
 ## Session #2 (2026-09-18) — roadmap execution
@@ -112,8 +113,7 @@ Built a reusable, **reduced-motion-safe, no-JS-safe** system (see CLAUDE.md “F
 
 ## Still pending / open (as of session #5)
 
-**Roadmap features NOT built** (everything else on the 11-item roadmap is ✅ — see FEATURE-STATUS.md):
-- **#3 Bias-reduced hiring — 🟡 partial.** Contact-detail gate is live; still to build: anonymize name/photo/location in company discovery until mutual interest.
+**Roadmap features NOT built** (9/11 done — see FEATURE-STATUS.md):
 - **#5 AI mock-interview — ❌.** Rehearse the actual rounds/questions from interview-board data with AI feedback (needs `ANTHROPIC_API_KEY`).
 - **#11 Verified hire outcomes + salary transparency — ❌.** Both sides confirm a hire; real-offer salary data.
 
