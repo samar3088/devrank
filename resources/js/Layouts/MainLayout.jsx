@@ -160,6 +160,13 @@ export default function MainLayout({ children }) {
                                                 </Link>
                                             )}
 
+                                            {isCandidate && (
+                                                <Link href="/skill-paths" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
+                                                    📈 Skill Paths
+                                                </Link>
+                                            )}
+
                                             {isAdmin && (
                                                 <Link href="/admin/dashboard" className="nav-dropdown-item"
                                                     onClick={() => setDropdownOpen(false)}>

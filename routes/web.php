@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/account/credential',      [\App\Http\Controllers\CredentialController::class, 'destroy'])->name('credential.destroy');
         // Smart matching — availability toggle + saved job searches (#4)
         Route::post('/candidate/open-to-work',    [\App\Http\Controllers\MatchController::class, 'toggleAvailability'])->name('candidate.availability');
+        Route::get('/skill-paths',                [\App\Http\Controllers\SkillPathController::class, 'index'])->name('skill-paths');
         Route::post('/candidate/saved-searches',  [\App\Http\Controllers\SavedSearchController::class, 'store'])->name('saved-search.store');
         Route::delete('/candidate/saved-searches/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'destroy'])->name('saved-search.destroy');
         // Forum
