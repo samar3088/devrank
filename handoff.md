@@ -1,16 +1,19 @@
 # DevRank — Session Handoff
 
-_Last updated: 2026-09-18 (through session #6). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
+_Last updated: 2026-09-18 (through session #10). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard; `docs/DEPLOYMENT.md` for the staging/production runbook._
+_Session #10 (hardening + decisions): four-way audit (security/DPDP/perf + manual-QA + comms/exports/tables inventory + matching analysis) → **all findings fixed** (`b92c24a`). 8 QA bugs fixed (incl. HIGH admin quiz-stats corruption), sub_admin↛super_admin guard + throttles, DPDP export/erasure completed + **streamed export**, `MatchService` bounded, applicants view paginated, 2 missing notifications added (new-applicant→company, status→candidate), monaco/dompurify advisory resolved via npm override (0 vulns). **DevRank ask #1** (candidate→jobs) enhanced: matching now folds in **tests taken** (quiz tags) + job search matches company name. Role-wise **Word doc** delivered (`docs/DevRank-Functionality-by-Role.docx`, untracked). **Decisions:** Judge0 → **MCQ-only** (not needed); **DevRank ask #2** (company→candidate recs) → **parked**; GitHub import code done, **OAuth registration deferred to post-deploy on the staging URL**; AI human-check on hold._
 _Session #6 (polish pass): admin Seasons UI (`f3bcd1c`), bulk coding import (`69deada`), HMAC receipt (`17910b2`), Reverb real-time (`4559b3c`). New deps: laravel/reverb, laravel-echo, pusher-js._
 _Session #9: **#11 verified hire outcomes + salary transparency** — the FINAL roadmap item. Two-sided hire confirmation (`hire_outcomes` + `HireService`): company records a hire from Applicants → candidate confirms/declines on `/hires` → new terminal `hired` pipeline stage. Public `/salaries` k-anonymised (min 3) aggregate salary bands from candidate-consented verified hires; DPDP export+erasure wired; verified-hire count replaces the mock "Platform Hires" on company profiles. **Roadmap now 11/11 — COMPLETE.** New migration `hire_outcomes` (+ `job_applications.status` enum gains `hired`)._
 _Session #8: **#5 AI mock-interview** (`3141389`) — `/mock-interview`; `MockInterviewService` builds questions from real board rounds/tips; AI-scored feedback when `DEVRANK_AI_ENABLED=true`, "prep mode" (no API cost) when off. New migration `mock_interviews`._
 _Session #7: **#3 bias-reduced hiring** (`ef2c499`) — opt-in `users.anonymous` masks name/photo/location in discovery until mutual interest via `AnonymityService` (shared with the contact gate); enforced server-side on profile/leaderboard/Browse Talent; candidate "Go anonymous" toggle. ⚠️ New migration `users.anonymous` + `composer install`/`npm install` on any older checkout._
 
 ## Where things are (current)
-- Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `fe40b0d`).
-- Build passes (`npm run build`), all migrations run, verified working.
-- **Roadmap: 11 of 11 items built — COMPLETE** (#1–#11 ✅). See "Still pending / open" below (only owner config + optional polish remain).
-- Env note: XAMPP **MySQL** was stopped and restarted this session; a `php artisan serve` runs on **:8123** for testing (stale instances get killed/restarted).
+- Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `b92c24a`).
+- Build passes (`npm run build`, 0 npm vulnerabilities), all migrations run, verified working.
+- **Roadmap: 11 of 11 items built — COMPLETE** (#1–#11 ✅), plus a full security/DPDP/perf hardening + QA pass (session #10).
+- **Code-complete & deployment-ready.** Nothing left to build. Remaining items are owner/infra actions at deploy time — see `docs/DEPLOYMENT.md`.
+- New migrations since an older checkout: `hire_outcomes` (+ `job_applications.status` gains `hired`) and `review_reports`. Run `php artisan migrate`.
+- ⚠️ To see JS/CSS changes without the dev server: `npm run build`.
 
 ## Session #2 (2026-09-18) — roadmap execution
 Delivered, each committed separately:
