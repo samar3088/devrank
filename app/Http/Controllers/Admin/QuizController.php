@@ -239,47 +239,92 @@ class QuizController extends Controller
     }
 
     /**
-     * Bulk-add MCQ questions from a pasted JSON array — the fast way to load a
-     * weekly challenge / test. Each item: { body, marks?, explanation?,
-     * options: [{ option_text, is_correct }] } with exactly one correct option.
-     * Coding questions aren't bulk-importable (they need AI grading / review).
+     * Bulk-add questions from a pasted JSON array — the fast way to load a test /
+     * weekly challenge. Each item is either:
+     *   MCQ:    { type?:"mcq", body, marks?, explanation?, options:[{option_text,is_correct}] }
+     *   Coding: { type:"coding", body, marks?, language?, starter_code?,
+     *             test_cases:[{input?, expected_output, is_sample?, weight?}] }
+     * (type defaults to "mcq"). Coding items require a grader (Judge0 or AI), and
+     * ≥1 test case when Judge0 is on.
      */
     public function storeQuestionsBulk(Request $request, Quiz $quiz)
     {
         $validated = $request->validate([
             'questions'                        => ['required', 'array', 'min:1', 'max:100'],
+            'questions.*.type'                 => ['nullable', 'in:mcq,coding'],
             'questions.*.body'                 => ['required', 'string'],
             'questions.*.marks'                => ['nullable', 'integer', 'min:1', 'max:100'],
             'questions.*.explanation'          => ['nullable', 'string'],
-            'questions.*.options'              => ['required', 'array', 'min:2', 'max:4'],
+            'questions.*.language'             => ['nullable', 'string', 'in:javascript,php,python,java,cpp'],
+            'questions.*.starter_code'         => ['nullable', 'string'],
+            'questions.*.options'              => ['nullable', 'array', 'min:2', 'max:4'],
             'questions.*.options.*.option_text'=> ['required', 'string'],
             'questions.*.options.*.is_correct' => ['required', 'boolean'],
+            'questions.*.test_cases'                   => ['nullable', 'array', 'max:30'],
+            'questions.*.test_cases.*.input'           => ['nullable', 'string'],
+            'questions.*.test_cases.*.expected_output' => ['required', 'string'],
+            'questions.*.test_cases.*.is_sample'       => ['boolean'],
+            'questions.*.test_cases.*.weight'          => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
 
-        // Validate exactly one correct option per question before writing any.
+        $judge0  = (bool) config('devrank.judge0.enabled');
+        $codingEnabled = $judge0 || config('devrank.ai.enabled', false);
+
+        // Validate every item up front (all-or-nothing).
         foreach ($validated['questions'] as $i => $q) {
-            $correct = collect($q['options'])->where('is_correct', true)->count();
-            if ($correct !== 1) {
-                return back()->withErrors(['bulk' => "Question " . ($i + 1) . " must have exactly one correct option."]);
+            $type = $q['type'] ?? 'mcq';
+            $n = $i + 1;
+            if ($type === 'mcq') {
+                $opts = $q['options'] ?? [];
+                if (count($opts) < 2) {
+                    return back()->withErrors(['bulk' => "Question $n (MCQ) needs 2–4 options."]);
+                }
+                if (collect($opts)->where('is_correct', true)->count() !== 1) {
+                    return back()->withErrors(['bulk' => "Question $n must have exactly one correct option."]);
+                }
+            } else { // coding
+                if (! $codingEnabled) {
+                    return back()->withErrors(['bulk' => "Question $n is coding, but coding needs a grader (enable Judge0 or AI)."]);
+                }
+                if ($judge0 && empty($q['test_cases'])) {
+                    return back()->withErrors(['bulk' => "Question $n (coding) needs at least one test case."]);
+                }
             }
         }
 
         $order = (int) $quiz->questions()->max('order_column');
         foreach ($validated['questions'] as $q) {
+            $type = $q['type'] ?? 'mcq';
             $question = $quiz->questions()->create([
                 'body'         => $q['body'],
-                'type'         => 'mcq',
+                'type'         => $type,
+                'language'     => $type === 'coding' ? ($q['language'] ?? 'javascript') : null,
+                'starter_code' => $type === 'coding' ? ($q['starter_code'] ?? null) : null,
                 'marks'        => $q['marks'] ?? 1,
                 'explanation'  => $q['explanation'] ?? null,
                 'order_column' => ++$order,
             ]);
-            foreach (array_values($q['options']) as $j => $opt) {
-                QuizOption::create([
-                    'question_id'  => $question->id,
-                    'option_text'  => $opt['option_text'],
-                    'is_correct'   => $opt['is_correct'],
-                    'order_column' => $j,
-                ]);
+
+            if ($type === 'mcq') {
+                foreach (array_values($q['options']) as $j => $opt) {
+                    QuizOption::create([
+                        'question_id'  => $question->id,
+                        'option_text'  => $opt['option_text'],
+                        'is_correct'   => $opt['is_correct'],
+                        'order_column' => $j,
+                    ]);
+                }
+            } else {
+                foreach (array_values($q['test_cases'] ?? []) as $j => $tc) {
+                    \App\Models\QuestionTestCase::create([
+                        'question_id'     => $question->id,
+                        'input'           => $tc['input'] ?? null,
+                        'expected_output' => $tc['expected_output'],
+                        'is_sample'       => $tc['is_sample'] ?? false,
+                        'weight'          => $tc['weight'] ?? 1,
+                        'order_column'    => $j,
+                    ]);
+                }
             }
         }
 

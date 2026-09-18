@@ -129,7 +129,8 @@ export default function AdminQuizQuestions() {
                 <div style={{ background: 'var(--surface)', border: '1px solid var(--violet-border)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 24 }} data-reveal="scale">
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--violet-bright)' }}>Bulk import MCQ questions (JSON)</div>
                     <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 12 }}>
-                        Paste an array of questions. Each: <code>{'{ "body": "...", "marks": 1, "options": [{ "option_text": "...", "is_correct": true }, ...] }'}</code> — exactly one correct option.
+                        Paste a JSON array. MCQ: <code>{'{ "body": "...", "marks": 1, "options": [{ "option_text": "...", "is_correct": true }, ...] }'}</code> (exactly one correct).
+                        {judge0Enabled && <> Coding: <code>{'{ "type": "coding", "body": "...", "language": "javascript", "marks": 20, "test_cases": [{ "input": "5", "expected_output": "10", "is_sample": true }, ...] }'}</code>.</>}
                     </p>
                     <textarea
                         className="form-input"
