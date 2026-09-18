@@ -18,6 +18,7 @@ export default function CandidateProfile() {
         auth,
         aiEnabled,
         contact_unlocked,
+        identity_locked,
     } = usePage().props;
 
     const isCompanyViewer = auth?.user?.roles?.includes('company');
@@ -49,7 +50,7 @@ export default function CandidateProfile() {
                         <div className="profile-hero" data-reveal>
                             <div className="profile-header" style={{ alignItems: 'flex-start' }}>
                                 <div className="profile-avatar-wrap">
-                                    <div className="avatar-xl">{getInitials(user.name)}</div>
+                                    <div className="avatar-xl">{identity_locked ? '🕶' : getInitials(user.name)}</div>
                                     {user.open_to_work && <span className="open-to-work">Open to Work</span>}
                                 </div>
                                 <div style={{ flex: 1 }}>
@@ -65,8 +66,14 @@ export default function CandidateProfile() {
 
                                     {/* Subtitle */}
                                     <div style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '12px' }}>
-                                        {user.headline || 'Developer'} · {user.location || 'India'}
+                                        {user.headline || 'Developer'}{identity_locked ? '' : ` · ${user.location || 'India'}`}
                                     </div>
+
+                                    {identity_locked && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text2)', background: 'rgba(124,92,255,.1)', border: '1px solid rgba(124,92,255,.28)', borderRadius: 8, padding: '8px 12px', marginBottom: 12 }}>
+                                            🕶 <span><strong>Bias-reduced profile.</strong> This candidate is evaluated on rank &amp; verified skills first — their name, photo and location unlock once they accept your interest.</span>
+                                        </div>
+                                    )}
 
                                     {/* Badges */}
                                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>

@@ -77,7 +77,7 @@ export default function CandidateDashboard() {
                 <CredentialCard token={stats?.credential_token} userId={user?.id} />
 
                 {/* ── Smart job matches (#4) ─────────────────────── */}
-                <MatchesCard matches={stats?.job_matches ?? []} openToWork={stats?.open_to_work} />
+                <MatchesCard matches={stats?.job_matches ?? []} openToWork={stats?.open_to_work} anonymous={stats?.anonymous} />
 
                 {/* ── Top Stats Row ──────────────────────────────── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }} data-reveal-stagger="80">
@@ -305,23 +305,35 @@ export default function CandidateDashboard() {
     );
 }
 
-function MatchesCard({ matches, openToWork }) {
+function MatchesCard({ matches, openToWork, anonymous }) {
     const [busy, setBusy] = useState(false);
     const color = (s) => (s >= 70 ? 'var(--emerald, #10b981)' : s >= 45 ? 'var(--cyan)' : 'var(--text3)');
 
-    function toggle() {
+    function toggle(url) {
         setBusy(true);
-        router.post('/candidate/open-to-work', {}, { preserveScroll: true, onFinish: () => setBusy(false) });
+        router.post(url, {}, { preserveScroll: true, onFinish: () => setBusy(false) });
     }
 
     return (
         <div className="dash-card" data-reveal="fade" style={{ marginBottom: 24 }}>
             <div className="dash-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                 <h4>🎯 Top job matches for you</h4>
-                <button type="button" className={`btn-sm ${openToWork ? 'btn-primary-sm' : 'btn-outline-sm'} pop-on-active`} disabled={busy} onClick={toggle}>
-                    {openToWork ? '✓ Open to work' : 'Set open to work'}
-                </button>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button type="button" className={`btn-sm ${anonymous ? 'btn-primary-sm' : 'btn-outline-sm'} pop-on-active`} disabled={busy}
+                        title="Hide your name/photo/location from companies until you accept their interest — they evaluate your rank and skills first"
+                        onClick={() => toggle('/candidate/anonymous')}>
+                        {anonymous ? '🕶 Anonymous' : 'Go anonymous'}
+                    </button>
+                    <button type="button" className={`btn-sm ${openToWork ? 'btn-primary-sm' : 'btn-outline-sm'} pop-on-active`} disabled={busy} onClick={() => toggle('/candidate/open-to-work')}>
+                        {openToWork ? '✓ Open to work' : 'Set open to work'}
+                    </button>
+                </div>
             </div>
+            {anonymous && (
+                <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: -6, marginBottom: 10 }}>
+                    🕶 Bias-reduced mode on — companies see your rank &amp; skills, not your identity, until you accept their interest.
+                </div>
+            )}
 
             {matches.length > 0 ? (
                 <div data-reveal-stagger="55">

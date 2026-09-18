@@ -34,17 +34,25 @@ class MatchController extends Controller
         $selectedId = (int) $request->input('job', $jobs->first()->id);
         $job = JobListing::with('tags:id')->where('user_id', $company->id)->findOrFail($selectedId);
 
-        $matches = collect($this->matches->candidatesForJob($job, 20))->map(fn ($m) => [
-            'score' => $m['score'],
-            'candidate' => [
-                'id'          => $m['candidate']->id,
-                'name'        => $m['candidate']->name,
-                'headline'    => $m['candidate']->headline,
-                'location'    => $m['candidate']->location,
-                'rank_score'  => (int) $m['candidate']->total_rank_score,
-                'experience'  => $m['candidate']->experience_level,
-            ],
-        ]);
+        $anon = app(\App\Services\AnonymityService::class);
+        $revealSet = $anon->revealSet($company);
+
+        $matches = collect($this->matches->candidatesForJob($job, 20))->map(function ($m) use ($anon, $revealSet) {
+            $c = $m['candidate'];
+            $masked = $anon->shouldMask($c->id, (bool) $c->anonymous, $revealSet);
+            return [
+                'score' => $m['score'],
+                'candidate' => [
+                    'id'          => $c->id,
+                    'name'        => $masked ? $anon->handle($c->id) : $c->name,
+                    'headline'    => $c->headline,
+                    'location'    => $masked ? null : $c->location,
+                    'rank_score'  => (int) $c->total_rank_score,
+                    'experience'  => $c->experience_level,
+                    'masked'      => $masked,
+                ],
+            ];
+        });
 
         return Inertia::render('Company/Talent', [
             'jobs'          => $jobs,
@@ -62,5 +70,16 @@ class MatchController extends Controller
         return back()->with('success', $user->open_to_work
             ? 'You are now visible to companies as open to work.'
             : 'You are no longer listed as open to work.');
+    }
+
+    /** Candidate toggles bias-reduced "anonymous" discovery mode (#3). */
+    public function toggleAnonymous(Request $request)
+    {
+        $user = $request->user();
+        $user->forceFill(['anonymous' => ! $user->anonymous])->save();
+
+        return back()->with('success', $user->anonymous
+            ? 'Anonymous mode on — companies see your rank and skills first, not your identity, until you accept their interest.'
+            : 'Anonymous mode off — your name and profile are visible in discovery.');
     }
 }

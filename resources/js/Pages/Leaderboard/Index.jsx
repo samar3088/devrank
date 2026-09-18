@@ -144,10 +144,13 @@ export default function LeaderboardIndex() {
                                     </td>
                                     <td>
                                         <div className="lb-user-cell">
-                                            <div className="home-avatar">{getInitials(candidate.name)}</div>
+                                            <div className="home-avatar">{candidate.masked ? '🕶' : getInitials(candidate.name)}</div>
                                             <div>
-                                                <span className="lb-user-name">{candidate.name}</span>
-                                                <div className="lb-user-meta">{candidate.location || 'India'} · {candidate.years_of_experience || '—'} yrs</div>
+                                                <span className="lb-user-name">
+                                                    {candidate.name}
+                                                    {candidate.masked && <span title="Anonymous — this candidate is evaluated on merit until they accept your interest" style={{ marginLeft: 6, fontSize: 11, color: 'var(--text3)' }}>anonymous</span>}
+                                                </span>
+                                                <div className="lb-user-meta">{candidate.masked ? 'Identity hidden' : `${candidate.location || 'India'} · ${candidate.years_of_experience || '—'} yrs`}</div>
                                             </div>
                                         </div>
                                     </td>

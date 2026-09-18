@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\InterestRequest;
 use App\Models\Reply;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -18,22 +16,33 @@ class PublicProfileService
             ->where('is_active', true)
             ->select([
                 'id', 'name', 'headline', 'location', 'bio',
-                'years_of_experience', 'open_to_work', 'total_rank_score',
+                'years_of_experience', 'open_to_work', 'anonymous', 'total_rank_score',
                 'human_score', 'github_url', 'linkedin_url',
                 'resume_path as resume_url', 'email', 'avatar',
             ])
             ->firstOrFail();
 
-        // Contact details (email / resume / social links) are PRIVATE. They are
-        // only exposed to: the candidate themselves, an admin, or a company whose
-        // interest this candidate has ACCEPTED. Everyone else gets nulls — enforced
-        // here so the data never even reaches an unauthorised client.
-        $contactUnlocked = $this->canViewContact($userId);
+        // "Mutual interest" gate — single rule for both contact + identity: reveal
+        // to the candidate, an admin, or a company whose interest they ACCEPTED.
+        $contactUnlocked = app(AnonymityService::class)->canReveal($userId);
+
+        // Contact details (email / resume / social links) are PRIVATE — nulled
+        // here so the data never reaches an unauthorised client.
         if (! $contactUnlocked) {
             $user->email        = null;
             $user->resume_url   = null;
             $user->github_url   = null;
             $user->linkedin_url = null;
+        }
+
+        // Bias-reduced hiring (#3): an anonymous candidate's identity (name /
+        // avatar / location) is masked until mutual interest — merit stays visible.
+        $identityLocked = $user->anonymous && ! $contactUnlocked;
+        if ($identityLocked) {
+            $anon = app(AnonymityService::class);
+            $user->name     = $anon->handle($userId);
+            $user->avatar   = null;
+            $user->location = null;
         }
 
         $repliesCount  = $user->replies()->where('status', 'visible')->count();
@@ -77,41 +86,10 @@ class PublicProfileService
             'recent_answers'   => $recentAnswers,
             'tag_rankings'     => $tagRankings,
             'contact_unlocked' => $contactUnlocked,
+            'identity_locked'  => $identityLocked,
         ];
     }
 
-    /**
-     * Who may see a candidate's private contact details:
-     *  - the candidate themselves
-     *  - any admin (super_admin / sub_admin)
-     *  - a company whose interest this candidate has ACCEPTED
-     * Guests, other candidates, and companies without an accepted interest cannot.
-     */
-    private function canViewContact(int $candidateId): bool
-    {
-        $viewer = Auth::user();
-
-        if (! $viewer) {
-            return false;
-        }
-
-        if ($viewer->id === $candidateId) {
-            return true;
-        }
-
-        if ($viewer->hasRole(['super_admin', 'sub_admin'])) {
-            return true;
-        }
-
-        if ($viewer->hasRole('company')) {
-            return InterestRequest::where('company_id', $viewer->id)
-                ->where('candidate_id', $candidateId)
-                ->where('status', 'accepted')
-                ->exists();
-        }
-
-        return false;
-    }
 
     // ── Company public profile ────────────────────────────────────
     public function getCompanyProfile(int $userId): array

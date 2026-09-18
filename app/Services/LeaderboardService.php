@@ -33,10 +33,29 @@ class LeaderboardService
             });
         }
 
-        return $query->orderByDesc('total_rank_score')
-            ->select('id', 'name', 'location', 'years_of_experience', 'total_rank_score', 'human_score')
+        $result = $query->orderByDesc('total_rank_score')
+            ->select('id', 'name', 'location', 'years_of_experience', 'total_rank_score', 'human_score', 'avatar', 'anonymous')
             ->paginate($perPage)
             ->withQueryString();
+
+        // Bias-reduced hiring (#3): mask anonymous candidates' identity for
+        // viewers without mutual interest — merit (rank/score) stays visible.
+        $anon = app(AnonymityService::class);
+        $revealSet = $anon->revealSet();
+        $result->getCollection()->transform(function ($u) use ($anon, $revealSet) {
+            if ($anon->shouldMask($u->id, (bool) $u->anonymous, $revealSet)) {
+                $u->name     = $anon->handle($u->id);
+                $u->location = null;
+                $u->avatar   = null;
+                $u->masked   = true;
+            } else {
+                $u->masked = false;
+            }
+            unset($u->anonymous);
+            return $u;
+        });
+
+        return $result;
     }
 
     /**

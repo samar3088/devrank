@@ -118,6 +118,11 @@ class DemoScoreVariationSeeder extends Seeder
             User::where('id', $reply->user_id)->increment('total_rank_score', $pts);
         }
 
+        // A few candidates opt into bias-reduced "anonymous" mode (#3) so the
+        // feature is visible in a fresh demo (identity masked in discovery).
+        \App\Models\User::role('candidate')->inRandomOrder()->take(3)
+            ->update(['anonymous' => true]);
+
         // ── recompute the derived scores from everything above ──
         app(ScoreService::class)->recomputeAll();
 

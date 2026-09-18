@@ -51,9 +51,10 @@ export default function Talent() {
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ fontWeight: 600 }}>
                                                 <Link href={`/candidate/${m.candidate.id}`} className="link-underline">{m.candidate.name}</Link>
+                                                {m.candidate.masked && <span title="Anonymous — evaluated on merit until they accept your interest" style={{ marginLeft: 6, fontSize: 11, color: 'var(--text3)' }}>🕶 anonymous</span>}
                                             </div>
                                             <div style={{ fontSize: 13, color: 'var(--text3)' }}>
-                                                {m.candidate.headline || 'Developer'}{m.candidate.experience ? ` · ${m.candidate.experience}` : ''} · {m.candidate.location || 'Location N/A'}
+                                                {m.candidate.headline || 'Developer'}{m.candidate.experience ? ` · ${m.candidate.experience}` : ''}{m.candidate.masked ? '' : ` · ${m.candidate.location || 'Location N/A'}`}
                                             </div>
                                         </div>
                                         <span className="app-score" style={{ marginRight: 10 }}>{m.candidate.rank_score.toLocaleString()} pts</span>
