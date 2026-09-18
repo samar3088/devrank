@@ -1,6 +1,7 @@
 # DevRank — Session Handoff
 
-_Last updated: 2026-09-18 (through session #5). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
+_Last updated: 2026-09-18 (through session #6). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
+_Session #6 (polish pass): admin Seasons UI (`f3bcd1c`), bulk coding import (`69deada`), HMAC receipt (`17910b2`), Reverb real-time (`4559b3c`). Verified. New deps: laravel/reverb, laravel-echo, pusher-js. ⚠️ Run `composer install` + `npm install` on any older checkout._
 
 ## Where things are (current)
 - Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `fe40b0d`).
@@ -116,12 +117,12 @@ Built a reusable, **reduced-motion-safe, no-JS-safe** system (see CLAUDE.md “F
 - **#5 AI mock-interview — ❌.** Rehearse the actual rounds/questions from interview-board data with AI feedback (needs `ANTHROPIC_API_KEY`).
 - **#11 Verified hire outcomes + salary transparency — ❌.** Both sides confirm a hire; real-offer salary data.
 
-**Polish / infra (optional, none blocking):**
-- **Admin UI to create/activate/rotate seasons** — currently seasons are created via `SeasonSeeder`/tinker only; no admin screen (real gap for running #8 in production).
-- **Bulk question import is MCQ-only** — coding questions + test cases still added one at a time.
-- WebSocket push (Reverb) to replace the 45s notification polling.
-- Optional HMAC "receipt" on the `/verify` page (screenshot re-verification) — nice-to-have from `docs/CREDENTIALS_SCOPE.md`.
-- Bump `monaco-editor` (last 2 npm advisories).
+**Polish / infra — DONE (session #6):**
+- ✅ **Admin Seasons UI** (`/admin/seasons`, `Admin\SeasonController`) — create/activate/close/delete; single active season; gated by `quizzes.manage`.
+- ✅ **Bulk import supports coding + test cases** — `{type:"coding",language,test_cases:[…]}` alongside MCQ.
+- ✅ **Reverb real-time notifications** — additive to polling, guarded/no-op until configured (`BROADCAST_CONNECTION=reverb` + `reverb:start`).
+- ✅ **HMAC receipt** on `/verify` (`CredentialService::receipt`).
+- ⏸ **`monaco-editor` advisory won't-fix:** 0.56.0 (latest) pulls a transitive dompurify advisory with no non-breaking fix; low impact (CDN code editor, not the forum XSS boundary). `npm audit fix` doesn't resolve it. Leave until Monaco ships a fixed dompurify.
 
 **Owner config before go-live (not code):**
 - `.env` for staging: `APP_DEBUG=false`, `APP_ENV=production`, `LOG_LEVEL=warning`, `APP_URL`, real SMTP, **HTTPS** (activates HSTS + secure cookies), `DEVRANK_GRIEVANCE_EMAIL`/`DEVRANK_ENTITY_NAME`.

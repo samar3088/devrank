@@ -1,7 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: built #1 Judge0 code execution (unlocks coding challenges), #4 matching, #8 seasons/leagues/weekly-challenges, #9 skill paths, #2 credentials; sub_admin quiz-upload permission; rank-up + admin-moderation notifications._
+_Recent: polish pass — admin Seasons UI, bulk import supports coding+test-cases, Reverb real-time notifications, HMAC receipt on /verify. Earlier: #1 Judge0, #2 credentials, #4 matching, #8 seasons, #9 skill paths, sub_admin quiz-upload permission._
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -44,7 +44,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 ### Engagement
 | # | Item | Status |
 |---|---|---|
-| 7 | Real-time in-app notifications | ✅ Built (polling; Reverb/WebSocket optional later). |
+| 7 | Real-time in-app notifications | ✅ Built — 45s polling **+ optional Reverb WebSocket push** (additive; enable via `BROADCAST_CONNECTION=reverb` + `reverb:start`). |
 | 8 | Seasons / leagues / weekly challenges | ✅ **Built** — seasons + season_scores, weekly-challenge quizzes (timed, season-linked), Gold/Silver/Bronze leagues, public /challenges page, admin bulk question import. |
 | 9 | Skill paths | ✅ **Built** — per-skill "climb / new" paths recommending unattempted quizzes + open questions (/skill-paths). |
 
