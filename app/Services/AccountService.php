@@ -59,6 +59,8 @@ class AccountService
             'interests_sent'     => $user->sentInterests()->get(['id', 'candidate_id', 'status', 'message', 'created_at'])->toArray(),
             'quiz_attempts'      => DB::table('quiz_attempts')->where('user_id', $user->id)
                                         ->get(['id', 'quiz_id', 'status', 'score', 'created_at'])->toArray(),
+            'hire_outcomes'      => \App\Models\HireOutcome::where('candidate_id', $user->id)
+                                        ->get(['id', 'role_title', 'status', 'offered_salary', 'salary_currency', 'salary_period', 'salary_shared', 'starts_on', 'created_at'])->toArray(),
             'notifications'      => \App\Models\UserNotification::where('user_id', $user->id)
                                         ->get(['id', 'type', 'title', 'body', 'read_at', 'created_at'])->toArray(),
         ];
@@ -101,6 +103,12 @@ class AccountService
             // Remove pending outreach addressed to / from this person (their PII in messages).
             $user->receivedInterests()->delete();
             $user->sentInterests()->delete();
+
+            // Scrub the candidate's compensation from any hire outcomes and pull
+            // them out of the public salary-transparency aggregates (their offer
+            // figure is personal data), keeping only the anonymised hire fact.
+            \App\Models\HireOutcome::where('candidate_id', $user->id)
+                ->update(['offered_salary' => null, 'salary_shared' => false]);
 
             // Soft-delete the account itself.
             $user->delete();

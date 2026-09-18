@@ -105,10 +105,28 @@ class PublicProfileService
             ->limit(5)
             ->get();
 
+        // Real response rate — share of received applications the company has
+        // actually responded to (moved off "applied"). Null when none received.
+        $jobIds = $user->jobListings()->pluck('id');
+        $responseRate = null;
+        if ($jobIds->isNotEmpty()) {
+            $totalApps = \App\Models\JobApplication::whereIn('jobs_listing_id', $jobIds)->count();
+            if ($totalApps > 0) {
+                $responded = \App\Models\JobApplication::whereIn('jobs_listing_id', $jobIds)
+                    ->where('status', '!=', 'applied')
+                    ->count();
+                $responseRate = (int) round(100 * $responded / $totalApps);
+            }
+        }
+
         return [
             'company'     => $user,
             'active_jobs' => $activeJobs,
             'jobs_count'  => $user->jobListings()->count(),
+            // Verified hires (#11) — a provable, two-sided hiring track record.
+            'verified_hires' => app(HireService::class)->verifiedHireCount($user->id),
+            // Real hiring-conduct signal (replaces the old hardcoded mock stats).
+            'response_rate'  => $responseRate,
         ];
     }
 

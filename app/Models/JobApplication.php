@@ -40,6 +40,11 @@ class JobApplication extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function hireOutcome()
+    {
+        return $this->hasOne(HireOutcome::class, 'job_application_id');
+    }
+
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);

@@ -88,6 +88,9 @@ class DashboardService
             // Verifiable embeddable rank credential (#2) — token or null (opt-in).
             'credential_token' => optional(app(CredentialService::class)->activeToken($user))->token,
 
+            // Verified hire outcomes (#11) — hires a company recorded, awaiting confirmation.
+            'pending_hires' => app(HireService::class)->pendingForCandidate($user->id),
+
             // Smart matching (#4) + bias-reduced hiring (#3)
             'open_to_work' => (bool) $user->open_to_work,
             'anonymous'    => (bool) $user->anonymous,
@@ -176,6 +179,8 @@ class DashboardService
             'total_applicants'         => $totalApplications, // alias for the dashboard card
             'new_applications'         => $appCount('applied'),
             'trust_score'              => (int) ($user->trust_score ?? 0),
+            // Verified hires (#11) — provable hiring track record.
+            'verified_hires'           => app(HireService::class)->verifiedHireCount($user->id),
 
             // Outreach / interest
             'interests_sent'           => $interestsSent,
@@ -198,6 +203,7 @@ class DashboardService
                 'shortlisted' => $appCount('shortlisted'),
                 'interview'   => $appCount('interview'),
                 'offered'     => $appCount('offered'),
+                'hired'       => $appCount('hired'),
                 'rejected'    => $appCount('rejected'),
             ],
 

@@ -2,13 +2,14 @@
 
 _Last updated: 2026-09-18 (through session #6). Read `CLAUDE.md` first for durable project context; `docs/FUNCTIONALITY.md` for the full feature/role spec; `FEATURE-STATUS.md` for the roadmap scorecard._
 _Session #6 (polish pass): admin Seasons UI (`f3bcd1c`), bulk coding import (`69deada`), HMAC receipt (`17910b2`), Reverb real-time (`4559b3c`). New deps: laravel/reverb, laravel-echo, pusher-js._
+_Session #9: **#11 verified hire outcomes + salary transparency** — the FINAL roadmap item. Two-sided hire confirmation (`hire_outcomes` + `HireService`): company records a hire from Applicants → candidate confirms/declines on `/hires` → new terminal `hired` pipeline stage. Public `/salaries` k-anonymised (min 3) aggregate salary bands from candidate-consented verified hires; DPDP export+erasure wired; verified-hire count replaces the mock "Platform Hires" on company profiles. **Roadmap now 11/11 — COMPLETE.** New migration `hire_outcomes` (+ `job_applications.status` enum gains `hired`)._
 _Session #8: **#5 AI mock-interview** (`3141389`) — `/mock-interview`; `MockInterviewService` builds questions from real board rounds/tips; AI-scored feedback when `DEVRANK_AI_ENABLED=true`, "prep mode" (no API cost) when off. New migration `mock_interviews`._
 _Session #7: **#3 bias-reduced hiring** (`ef2c499`) — opt-in `users.anonymous` masks name/photo/location in discovery until mutual interest via `AnonymityService` (shared with the contact gate); enforced server-side on profile/leaderboard/Browse Talent; candidate "Go anonymous" toggle. ⚠️ New migration `users.anonymous` + `composer install`/`npm install` on any older checkout._
 
 ## Where things are (current)
 - Branch **`main`**, **all work committed and pushed** to `origin/main` (latest `fe40b0d`).
 - Build passes (`npm run build`), all migrations run, verified working.
-- **Roadmap: 10 of 11 items built** (#1–#10 ✅; only #11 verified-hires/salary left). See "Still pending / open" below.
+- **Roadmap: 11 of 11 items built — COMPLETE** (#1–#11 ✅). See "Still pending / open" below (only owner config + optional polish remain).
 - Env note: XAMPP **MySQL** was stopped and restarted this session; a `php artisan serve` runs on **:8123** for testing (stale instances get killed/restarted).
 
 ## Session #2 (2026-09-18) — roadmap execution
@@ -112,10 +113,11 @@ Built a reusable, **reduced-motion-safe, no-JS-safe** system (see CLAUDE.md “F
 ## Candidate contact privacy gate — DONE
 - Public candidate profile now **hides `email` / `resume` / `github_url` / `linkedin_url`** unless the viewer is the candidate, an admin, or a **company whose interest that candidate ACCEPTED**. Enforced server-side in `PublicProfileService::getCandidateProfile` (`canViewContact` nulls the fields — real boundary, not a UI hide). Page reads `contact_unlocked`. Verified for guest / other-candidate / company-without-accept (locked, nulled) and accepted-company / self / admin (unlocked). Applicant-view résumé (candidates who applied) intentionally NOT gated — they consented by applying.
 
-## Still pending / open (as of session #5)
+## Still pending / open (as of session #9)
 
-**Roadmap features NOT built** (10/11 done — see FEATURE-STATUS.md):
-- **#11 Verified hire outcomes + salary transparency — ❌** (the last one). Both sides confirm a hire; real-offer salary data.
+**Roadmap features NOT built:** none — **all 11/11 built** (see FEATURE-STATUS.md). #11 done this session.
+
+⚠️ **Run `php artisan migrate`** on any DB predating session #9 — new migration `hire_outcomes` and the `job_applications.status` enum now includes `hired`.
 
 **Polish / infra — DONE (session #6):**
 - ✅ **Admin Seasons UI** (`/admin/seasons`, `Admin\SeasonController`) — create/activate/close/delete; single active season; gated by `quizzes.manage`.
@@ -133,6 +135,6 @@ Built a reusable, **reduced-motion-safe, no-JS-safe** system (see CLAUDE.md “F
 
 ## To pick up in a fresh session
 1. `git status` clean; `php artisan migrate` on any older DB. `npm run build` if unsure. If demo data is stale: `php artisan migrate:fresh --seed`.
-2. Next roadmap pick: **#5 AI mock-interview** (data moat) or **#3 bias-reduced hiring** (extends the contact gate; DEI selling point). **#11 verified hires + salary** is the other open item.
-3. Highest-value non-roadmap build: **admin Seasons UI** so #8 can be run without the seeder.
+2. **Roadmap is complete (11/11).** Remaining work is owner go-live config only.
+3. Polish DONE this session: `DemoHireSeeder` seeds ~14 verified hires (12 shared) so `/salaries` shows live bands + company profiles show real counts; company dashboard now shows a **Verified hires** stat + a **Hired** pipeline row; **all mock company-profile data replaced with real signals** — `CompanyProfile.jsx` "Avg Rating 4.8", "Feedback Rate 98%", fabricated Trust-Score Factors 1-3, the "Hires this year 14 / 18 days" sidebar, and "Founded 2016 / Remote-first" About fields are gone, replaced by real verified-hires / applicant-response-rate / open-roles / jobs-posted / member-since (`response_rate` added to `PublicProfileService`; `TrustFactor` component removed).
 4. For staging: owner `.env` + HTTPS + cron + (optionally) `JUDGE0_URL`/GitHub OAuth, then deploy.

@@ -65,6 +65,9 @@ Route::get('/interviews', [InterviewController::class, 'index'])->name('intervie
 // ── Seasons / leagues / weekly challenges (public, #8) ───────────
 Route::get('/challenges', [\App\Http\Controllers\SeasonController::class, 'index'])->name('challenges.index');
 
+// ── Salary transparency (public, #11) — aggregate, k-anonymised ──
+Route::get('/salaries', [\App\Http\Controllers\HireController::class, 'salaries'])->name('salaries.index');
+
 // ── Public quiz — result BEFORE {slug} to avoid catch-all conflict ─
 Route::get('/quiz',                  [QuizController::class, 'index'])->name('quiz.index');
 Route::get('/quiz/result/{attempt}', [QuizAttemptController::class, 'result'])->name('quiz.result');
@@ -120,6 +123,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/mock-interview/{mock}/submit', [\App\Http\Controllers\MockInterviewController::class, 'submit'])->middleware('throttle:10,1')->name('mock.submit');
         Route::post('/candidate/saved-searches',  [\App\Http\Controllers\SavedSearchController::class, 'store'])->name('saved-search.store');
         Route::delete('/candidate/saved-searches/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'destroy'])->name('saved-search.destroy');
+        // Verified hire outcomes (#11) — confirm/decline a hire a company recorded
+        Route::get('/hires',                         [\App\Http\Controllers\HireController::class, 'index'])->name('hires.index');
+        Route::post('/hires/{hireOutcome}/confirm',  [\App\Http\Controllers\HireController::class, 'confirm'])->name('hires.confirm');
+        Route::post('/hires/{hireOutcome}/decline',  [\App\Http\Controllers\HireController::class, 'decline'])->name('hires.decline');
         // Forum
         Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
         Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->name('forum.upload-image');
@@ -166,6 +173,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Applicants (view who applied + move them through the pipeline)
         Route::get('/jobs/{job}/applicants',             [\App\Http\Controllers\Company\JobController::class, 'applicants'])->name('jobs.applicants');
         Route::put('/applications/{application}/status', [\App\Http\Controllers\Company\JobController::class, 'updateApplicationStatus'])->name('applications.status');
+        // Record a verified hire (#11)
+        Route::post('/applications/{application}/hire',  [\App\Http\Controllers\Company\JobController::class, 'hire'])->name('applications.hire');
     });
 
     // ── Admin quiz — super_admin always; sub_admin when granted quizzes.manage ─

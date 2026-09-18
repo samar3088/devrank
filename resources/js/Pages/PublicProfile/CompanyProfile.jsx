@@ -5,7 +5,7 @@ import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
 
 export default function CompanyProfile() {
-    const { company, active_jobs, total_jobs_posted } = usePage().props;
+    const { company, active_jobs, jobs_count, total_jobs_posted, verified_hires, response_rate } = usePage().props;
     const [activeTab, setActiveTab] = useState('trust');
 
     function getInitials(name) {
@@ -64,27 +64,27 @@ export default function CompanyProfile() {
                                 </div>
                             </div>
 
-                            {/* Quick Stats — 5 columns */}
-                            <div className="company-quick-stats" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                            {/* Quick Stats — real signals only (4 columns) */}
+                            <div className="company-quick-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                                 <div className="company-quick-stat">
                                     <div className="company-quick-stat-value" style={{ color: 'var(--cyan)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={trustScore} /></div>
                                     <div className="company-quick-stat-label">Trust Score</div>
                                 </div>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={42} /></div>
-                                    <div className="company-quick-stat-label">Platform Hires</div>
-                                </div>
-                                <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={4.8} decimals={1} /></div>
-                                    <div className="company-quick-stat-label">Avg Rating</div>
+                                    <div className="company-quick-stat-value" style={{ color: 'var(--emerald)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={verified_hires || 0} /></div>
+                                    <div className="company-quick-stat-label">Verified Hires</div>
                                 </div>
                                 <div className="company-quick-stat">
                                     <div className="company-quick-stat-value" style={{ color: 'var(--champagne)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={active_jobs?.length || 0} /></div>
                                     <div className="company-quick-stat-label">Open Jobs</div>
                                 </div>
                                 <div className="company-quick-stat">
-                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}><CountUp end={98} suffix="%" /></div>
-                                    <div className="company-quick-stat-label">Feedback Rate</div>
+                                    <div className="company-quick-stat-value" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem' }}>
+                                        {response_rate === null || response_rate === undefined
+                                            ? <span style={{ color: 'var(--text3)' }}>—</span>
+                                            : <CountUp end={response_rate} suffix="%" />}
+                                    </div>
+                                    <div className="company-quick-stat-label">Response Rate</div>
                                 </div>
                             </div>
                         </div>
@@ -98,51 +98,36 @@ export default function CompanyProfile() {
                             <button className={`profile-tab ${activeTab === 'about' ? 'active' : ''}`} onClick={() => setActiveTab('about')}>ℹ️ About</button>
                         </div>
 
-                        {/* Trust Score Tab */}
+                        {/* Trust Score Tab — real signals only */}
                         {activeTab === 'trust' && (
                             <div data-reveal>
                                 <div className="dash-card" style={{ marginBottom: '20px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                        <h4>Company Trust Score Breakdown</h4>
+                                        <h4>Company Trust Score</h4>
                                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2rem', color: 'var(--cyan)' }}><CountUp end={trustScore} /><span style={{ fontSize: '1rem', color: 'var(--text3)' }}>/100</span></div>
                                     </div>
-                                    <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '20px' }}>Recalculated weekly from verified platform data. Cannot be purchased or manipulated.</p>
-
-                                    {/* Factor 1 */}
-                                    <TrustFactor
-                                        title="Factor 1 — Hiring Process Quality"
-                                        score={91}
-                                        rows={[
-                                            { name: 'Feedback compliance rate', value: '98%', width: 98, color: 'var(--emerald)' },
-                                            { name: 'Avg response time', value: '38 hrs', width: 92 },
-                                            { name: 'Ghosting rate', value: '2%', width: 4, color: 'var(--emerald)' },
-                                            { name: 'Offer-to-join ratio', value: '86%', width: 86 },
-                                        ]}
-                                    />
-
-                                    {/* Factor 2 */}
-                                    <TrustFactor
-                                        title="Factor 2 — Candidate Experience"
-                                        score={88}
-                                        badgeColor="cyan"
-                                        rows={[
-                                            { name: 'Work env. avg score', value: '4.4/5', width: 88 },
-                                            { name: 'Interview experience rating', value: '4.8/5', width: 96 },
-                                            { name: '"Would recommend" ratio', value: '82%', width: 82, color: 'var(--emerald)' },
-                                        ]}
-                                    />
-
-                                    {/* Factor 3 */}
-                                    <TrustFactor
-                                        title="Factor 3 — Platform Engagement"
-                                        score={90}
-                                        badgeColor="cyan"
-                                        rows={[
-                                            { name: 'Profile completeness', value: '100%', width: 100 },
-                                            { name: 'Job post frequency', value: 'Monthly', width: 80 },
-                                            { name: 'Forum participation', value: 'Active', width: 70 },
-                                        ]}
-                                    />
+                                    <p style={{ fontSize: '14px', color: 'var(--text2)', lineHeight: 1.8, marginBottom: '20px' }}>
+                                        Recalculated from verified platform data — it can’t be purchased or manipulated. The score blends two
+                                        signals: <strong>interview-board ghosting rate</strong> (from candidate reviews) and{' '}
+                                        <strong>application-response conduct</strong> (leaving applicants unanswered past the response SLA lowers it).
+                                        Honest, timely rejections never hurt it — only ghosting and silence do.
+                                    </p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+                                        <div className="dash-card" style={{ margin: 0, textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--emerald)' }}><CountUp end={verified_hires || 0} /></div>
+                                            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Verified hires</div>
+                                        </div>
+                                        <div className="dash-card" style={{ margin: 0, textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.6rem', fontWeight: 800 }}>
+                                                {response_rate === null || response_rate === undefined ? '—' : <><CountUp end={response_rate} />%</>}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Applicant response rate</div>
+                                        </div>
+                                        <div className="dash-card" style={{ margin: 0, textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--champagne)' }}><CountUp end={active_jobs?.length || 0} /></div>
+                                            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Open roles</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -203,11 +188,9 @@ export default function CompanyProfile() {
                             <div className="dash-card">
                                 <h4 style={{ marginBottom: '14px' }}>About {company.company_name}</h4>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                                    <AboutField label="Founded" value="2016" />
-                                    <AboutField label="Size" value={`${company.company_size || '—'} employees`} />
+                                    <AboutField label="Size" value={company.company_size ? `${company.company_size} employees` : '—'} />
                                     <AboutField label="Industry" value={company.industry || '—'} />
                                     <AboutField label="Headquarters" value={company.location || '—'} />
-                                    <AboutField label="Work Mode" value="Remote-first" />
                                     <AboutField label="Website" value={company.company_website} isLink />
                                 </div>
                                 <p style={{ fontSize: '14px', color: 'var(--text2)', lineHeight: '1.8' }}>
@@ -223,8 +206,6 @@ export default function CompanyProfile() {
                         <div className="profile-sidebar-card" data-reveal="right" style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '48px', fontWeight: 800, marginBottom: '4px' }}><CountUp end={trustScore} /></div>
                             <div style={{ fontSize: '13px', color: 'var(--text3)' }}>Trust Score / 100</div>
-                            <div style={{ color: 'var(--champagne)', fontSize: '20px', marginTop: '8px', letterSpacing: '2px' }}>★★★★★</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>4.8 Average Rating</div>
                             <hr className="profile-divider" />
                             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                                 {trustScore >= 80 && <span className="badge badge-amber">🏅 Transparent</span>}
@@ -244,15 +225,17 @@ export default function CompanyProfile() {
                             </div>
                         </div>
 
-                        {/* Hiring Activity */}
+                        {/* Hiring Activity — real signals */}
                         <div className="profile-sidebar-card">
                             <h4 style={{ marginBottom: '12px' }}>Hiring Activity</h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: 'var(--text2)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Hires this year</span><strong style={{ color: 'var(--emerald)' }}>14</strong></div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Avg time to hire</span><strong>18 days</strong></div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Rejection feedback rate</span><strong style={{ color: 'var(--emerald)' }}>98%</strong></div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ghosting incidents</span><strong style={{ color: 'var(--emerald)' }}>1</strong></div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Platform since</span><strong>Jan 2024</strong></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Verified hires</span><strong style={{ color: 'var(--emerald)' }}>{verified_hires || 0}</strong></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Applicant response rate</span><strong style={{ color: response_rate >= 80 ? 'var(--emerald)' : undefined }}>{response_rate === null || response_rate === undefined ? '—' : `${response_rate}%`}</strong></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Open roles</span><strong>{active_jobs?.length || 0}</strong></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Jobs posted</span><strong>{jobs_count ?? active_jobs?.length ?? 0}</strong></div>
+                                {company.created_at && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Platform since</span><strong>{new Date(company.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</strong></div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -260,26 +243,6 @@ export default function CompanyProfile() {
                 <FullFooter />
             </div>
         </MainLayout>
-    );
-}
-
-function TrustFactor({ title, score, badgeColor = 'green', rows }) {
-    return (
-        <div style={{ marginBottom: '20px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ fontWeight: 700, fontSize: '15px' }}>{title}</div>
-                <span className={`badge badge-${badgeColor}`}>{score}/100</span>
-            </div>
-            {rows.map((row, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < rows.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', width: '200px', flexShrink: 0 }}>{row.name}</span>
-                    <div className="pillar-bar" style={{ flex: 1 }}>
-                        <div className="pillar-fill bar-grow" data-reveal="none" style={{ '--bar-w': `${row.width}%`, background: row.color || 'var(--violet-bright)' }}></div>
-                    </div>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: row.color || 'var(--cyan)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{row.value}</span>
-                </div>
-            ))}
-        </div>
     );
 }
 

@@ -82,6 +82,7 @@ export default function CompanyDashboard() {
                                 ['Shortlisted', p.shortlisted || 0, 'pipeline-fill-reviewed'],
                                 ['Interview', p.interview || 0, 'pipeline-fill-interview'],
                                 ['Offered', p.offered || 0, 'pipeline-fill-offered'],
+                                ['Hired', p.hired || 0, 'pipeline-fill-offered'],
                                 ['Rejected', p.rejected || 0, 'pipeline-fill-rejected'],
                             ];
                             const max = Math.max(1, ...rows.map(r => r[1]));
@@ -103,6 +104,7 @@ export default function CompanyDashboard() {
                         Your Trust Score reflects how you treat candidates — it blends your <strong>interview-ghosting rate</strong> (from candidate reviews) with your <strong>application-response conduct</strong> (leaving applicants unanswered past the response SLA lowers it). Honest, timely rejections never hurt it — only ghosting and silence do.
                     </p>
                     <div style={{ display: 'flex', gap: 28, marginTop: 20 }}>
+                        <div><div style={{ fontSize: 22, fontWeight: 700, color: 'var(--emerald)' }}><CountUp end={stats?.verified_hires || 0} /></div><div style={{ fontSize: 12, color: 'var(--text3)' }}>Verified hires</div></div>
                         <div><div style={{ fontSize: 22, fontWeight: 700 }}><CountUp end={stats?.outreach_accepted || 0} /></div><div style={{ fontSize: 12, color: 'var(--text3)' }}>Outreach accepted</div></div>
                         <div><div style={{ fontSize: 22, fontWeight: 700 }}><CountUp end={stats?.outreach_pending || 0} /></div><div style={{ fontSize: 12, color: 'var(--text3)' }}>Awaiting reply</div></div>
                     </div>

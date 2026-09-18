@@ -41,6 +41,9 @@ export default function CandidateDashboard() {
                     </div>
                 </div>
 
+                {/* ── Pending hire confirmations (#11) ────────────── */}
+                <PendingHiresCard hires={stats?.pending_hires ?? []} />
+
                 {/* ── GitHub verified import (roadmap #6) ─────────── */}
                 {githubEnabled && (
                     gh?.verified ? (
@@ -302,6 +305,29 @@ export default function CandidateDashboard() {
                 <FullFooter />
             </div>
         </MainLayout>
+    );
+}
+
+function PendingHiresCard({ hires }) {
+    if (!hires || hires.length === 0) return null;
+
+    return (
+        <div className="dash-card hover-lift" data-reveal="fade" style={{ marginBottom: 24, borderColor: 'var(--champagne)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 30 }}>🎉</div>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontWeight: 700 }}>
+                        {hires.length === 1
+                            ? `${hires[0].company} marked you as hired for ${hires[0].role_title}`
+                            : `You have ${hires.length} hires to confirm`}
+                    </div>
+                    <div style={{ color: 'var(--text3)', fontSize: 13, marginTop: 4 }}>
+                        Confirm to build your verified track record — and optionally help others with anonymous salary data.
+                    </div>
+                </div>
+                <Link href="/hires" className="btn btn-primary btn-sm pop-on-active">Review &amp; confirm →</Link>
+            </div>
+        </div>
     );
 }
 

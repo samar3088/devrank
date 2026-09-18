@@ -12,6 +12,14 @@ return [
         'expiry_days' => 30,
     ],
 
+    // Verified hire outcomes + salary transparency (#11).
+    'hires' => [
+        // k-anonymity floor: a salary aggregate (overall / by-role / by-level)
+        // is only published once at least this many candidates have opted into
+        // sharing within that bucket, so no individual figure can be inferred.
+        'min_sample' => (int) env('DEVRANK_SALARY_MIN_SAMPLE', 3),
+    ],
+
     // Company response SLA (feeds trust_score, enforces hiring conduct).
     'sla' => [
         // Days a company has to respond to (i.e. move off "applied") a job

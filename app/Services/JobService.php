@@ -276,8 +276,11 @@ class JobService
         $cutoff = now()->subDays((int) config('devrank.sla.response_days', 14));
 
         return $job->applications()
-            ->with('candidate:id,name,email,total_rank_score,human_score,resume_path,headline,location')
-            ->orderByRaw("FIELD(status,'applied','reviewing','shortlisted','interview','offered','rejected','withdrawn')")
+            ->with([
+                'candidate:id,name,email,total_rank_score,human_score,resume_path,headline,location',
+                'hireOutcome:id,job_application_id,status,offered_salary,salary_currency,salary_period',
+            ])
+            ->orderByRaw("FIELD(status,'applied','reviewing','shortlisted','interview','offered','hired','rejected','withdrawn')")
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($app) use ($cutoff) {
@@ -294,6 +297,12 @@ class JobService
                     'applied_at'    => optional($app->created_at)->diffForHumans(),
                     'awaiting_response' => $awaiting,
                     'sla_overdue'   => $awaiting && $app->created_at !== null && $app->created_at->lte($cutoff),
+                    'hire'          => $app->hireOutcome ? [
+                        'status'          => $app->hireOutcome->status,
+                        'offered_salary'  => $app->hireOutcome->offered_salary,
+                        'salary_currency' => $app->hireOutcome->salary_currency,
+                        'salary_period'   => $app->hireOutcome->salary_period,
+                    ] : null,
                     'candidate'     => $c ? [
                         'id'          => $c->id,
                         'name'        => $c->name,

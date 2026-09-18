@@ -1,7 +1,7 @@
 # DevRank — Feature Status
 
 _Last verified: 2026-09-18. Legend: ✅ done & verified · 🟡 partial / scoped · ❌ not started._
-_Recent: #5 AI mock-interview, #3 bias-reduced hiring; polish pass (Seasons UI, bulk coding import, Reverb, HMAC receipt). **10/11 roadmap items built** — only #11 verified-hires/salary remains._
+_Recent: #11 verified hire outcomes + salary transparency, #5 AI mock-interview, #3 bias-reduced hiring; polish pass (Seasons UI, bulk coding import, Reverb, HMAC receipt). **11/11 roadmap items built — roadmap COMPLETE.**_
 _Verification method: route audit (all roles → 200), rolled-back write-flow tests in tinker, security/DPDP HTTP checks, physical index inspection. See `docs/SECURITY_DPDP.md` and `CLAUDE.md`._
 
 ## Core platform modules
@@ -52,7 +52,7 @@ _Verification method: route audit (all roles → 200), rolled-back write-flow te
 | # | Item | Status |
 |---|---|---|
 | 10 | **Enforced response SLAs** | ✅ **Built** — mandatory rejection reasons + trust-score penalty for un-responded applications past SLA. |
-| 11 | Verified hire outcomes + salary transparency | ❌ Not started. |
+| 11 | Verified hire outcomes + salary transparency | ✅ **Built** — two-sided hire confirmation (`hire_outcomes`, `HireService`): company records a hire from Applicants → candidate confirms/declines on `/hires` → new terminal `hired` stage. Public `/salaries` shows k-anonymised (min 3), currency-grouped, candidate-consented aggregate medians/ranges; never individual figures. Verified-hire count on company profile (replaced mock); DPDP export+erasure wired. |
 
 ## Security & DPDP
 | Area | Status |

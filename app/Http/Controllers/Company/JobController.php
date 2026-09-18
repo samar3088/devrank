@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Company;
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
 use App\Models\JobListing;
+use App\Services\HireService;
 use App\Services\JobService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -211,5 +212,27 @@ class JobController extends Controller
         );
 
         return back()->with('success', 'Applicant status updated.');
+    }
+
+    /**
+     * Record a verified hire for an applicant (#11). Captures the real offer
+     * figure; the candidate then confirms it on their side.
+     */
+    public function hire(Request $request, JobApplication $application, HireService $hireService)
+    {
+        if ($application->jobListing->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'offered_salary'  => ['nullable', 'integer', 'min:0', 'max:1000000000'],
+            'salary_currency' => ['nullable', 'string', 'size:3'],
+            'salary_period'   => ['nullable', 'in:yearly,monthly'],
+            'starts_on'       => ['nullable', 'date'],
+        ]);
+
+        $hireService->recordHire($application, $validated);
+
+        return back()->with('success', 'Hire recorded — the candidate has been asked to confirm.');
     }
 }

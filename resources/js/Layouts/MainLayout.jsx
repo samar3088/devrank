@@ -46,6 +46,7 @@ export default function MainLayout({ children }) {
                 { href: '/leaderboard', label: 'Leaderboard' },
                 { href: '/jobs',        label: 'Jobs' },
                 { href: '/interviews',  label: 'Interviews' },
+                { href: '/salaries',    label: 'Salaries' },
             ];
         }
 
@@ -57,6 +58,7 @@ export default function MainLayout({ children }) {
             { href: '/quiz',        label: 'Quizzes' },
             { href: '/challenges',  label: 'Challenges' },
             { href: '/interviews',  label: 'Interviews' },
+            { href: '/salaries',    label: 'Salaries' },
         ];
     }
 
@@ -158,6 +160,13 @@ export default function MainLayout({ children }) {
                                                 <Link href="/interests" className="nav-dropdown-item"
                                                     onClick={() => setDropdownOpen(false)}>
                                                     💌 Interests
+                                                </Link>
+                                            )}
+
+                                            {isCandidate && (
+                                                <Link href="/hires" className="nav-dropdown-item"
+                                                    onClick={() => setDropdownOpen(false)}>
+                                                    🎉 My Hires
                                                 </Link>
                                             )}
 

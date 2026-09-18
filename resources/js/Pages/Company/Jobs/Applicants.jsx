@@ -9,8 +9,15 @@ const STATUS_LABELS = {
     shortlisted: 'Shortlisted',
     interview: 'Interview',
     offered: 'Offered',
+    hired: 'Hired',
     rejected: 'Rejected',
     withdrawn: 'Withdrawn',
+};
+
+const HIRE_BADGE = {
+    pending:  { label: '🎉 Hired · awaiting candidate', color: 'var(--champagne)' },
+    verified: { label: '✓ Hire verified', color: 'var(--emerald, #10b981)' },
+    declined: { label: '↩ Hire declined', color: 'var(--text3)' },
 };
 
 export default function Applicants() {
@@ -89,6 +96,10 @@ function ApplicantRow({ a, statuses }) {
     const [status, setStatus] = useState(a.status);
     const [reason, setReason] = useState(a.rejection_reason || '');
     const [saving, setSaving] = useState(false);
+    const [hireOpen, setHireOpen] = useState(false);
+
+    const hire = a.hire;
+    const isHired = a.status === 'hired' || (hire && hire.status !== 'declined');
 
     function submit(newStatus, rejectionReason) {
         setSaving(true);
@@ -148,18 +159,29 @@ function ApplicantRow({ a, statuses }) {
                     <span style={{ fontSize: 12, color: 'var(--text4)' }}>No résumé</span>
                 )}
 
-                <select
-                    id={`status-${a.id}`}
-                    className="form-input"
-                    value={status}
-                    onChange={onStatusChange}
-                    disabled={saving}
-                    style={{ width: 'auto', padding: '6px 10px', fontSize: 13 }}
-                >
-                    {statuses.map((s) => (
-                        <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
-                    ))}
-                </select>
+                {isHired ? (
+                    <span style={{ fontSize: 13, fontWeight: 700, color: (HIRE_BADGE[hire?.status] || HIRE_BADGE.pending).color, whiteSpace: 'nowrap' }}>
+                        {(HIRE_BADGE[hire?.status] || HIRE_BADGE.pending).label}
+                    </span>
+                ) : (
+                    <>
+                        <select
+                            id={`status-${a.id}`}
+                            className="form-input"
+                            value={status}
+                            onChange={onStatusChange}
+                            disabled={saving}
+                            style={{ width: 'auto', padding: '6px 10px', fontSize: 13 }}
+                        >
+                            {statuses.map((s) => (
+                                <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
+                            ))}
+                        </select>
+                        <button type="button" className="btn-sm btn-primary-sm pop-on-active" onClick={() => setHireOpen((o) => !o)} title="Record a verified hire">
+                            🎉 Mark hired
+                        </button>
+                    </>
+                )}
 
                 {a.cover_letter && (
                     <button type="button" className="btn-sm btn-ghost pop-on-active" onClick={() => setOpen((o) => !o)}>
@@ -168,7 +190,11 @@ function ApplicantRow({ a, statuses }) {
                 )}
             </div>
 
-            {open && (
+            {hireOpen && !isHired && (
+                <HireForm applicationId={a.id} candidateName={c.name} onDone={() => setHireOpen(false)} />
+            )}
+
+            {open && !hireOpen && (
                 <div style={{ flexBasis: '100%', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
                     {a.cover_letter && (
                         <p style={{ color: 'var(--text2)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', marginBottom: status === 'rejected' ? 16 : 0 }}>
@@ -206,6 +232,69 @@ function ApplicantRow({ a, statuses }) {
                     )}
                 </div>
             )}
+        </div>
+    );
+}
+
+function HireForm({ applicationId, candidateName, onDone }) {
+    const [salary, setSalary] = useState('');
+    const [currency, setCurrency] = useState('INR');
+    const [period, setPeriod] = useState('yearly');
+    const [startsOn, setStartsOn] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    function submit() {
+        setSaving(true);
+        router.post(
+            `/company/applications/${applicationId}/hire`,
+            {
+                offered_salary: salary === '' ? null : Number(salary),
+                salary_currency: currency,
+                salary_period: period,
+                starts_on: startsOn || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => onDone?.(),
+                onFinish: () => setSaving(false),
+            }
+        );
+    }
+
+    return (
+        <div style={{ flexBasis: '100%', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 10 }}>
+                Record a verified hire for <strong>{candidateName}</strong>. Add the offer figure (optional) — {candidateName?.split(' ')[0] || 'the candidate'} confirms
+                it on their side, and only they decide whether it feeds anonymous salary transparency.
+            </div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <label style={{ fontSize: 12, color: 'var(--text3)' }}>
+                    Offered salary
+                    <input type="number" min="0" className="form-input" value={salary} onChange={(e) => setSalary(e.target.value)}
+                        placeholder="e.g. 1800000" style={{ display: 'block', width: 160, marginTop: 4 }} />
+                </label>
+                <label style={{ fontSize: 12, color: 'var(--text3)' }}>
+                    Currency
+                    <input type="text" maxLength={3} className="form-input" value={currency}
+                        onChange={(e) => setCurrency(e.target.value.toUpperCase())} style={{ display: 'block', width: 80, marginTop: 4 }} />
+                </label>
+                <label style={{ fontSize: 12, color: 'var(--text3)' }}>
+                    Period
+                    <select className="form-input" value={period} onChange={(e) => setPeriod(e.target.value)} style={{ display: 'block', width: 110, marginTop: 4 }}>
+                        <option value="yearly">per year</option>
+                        <option value="monthly">per month</option>
+                    </select>
+                </label>
+                <label style={{ fontSize: 12, color: 'var(--text3)' }}>
+                    Start date
+                    <input type="date" className="form-input" value={startsOn} onChange={(e) => setStartsOn(e.target.value)}
+                        style={{ display: 'block', width: 150, marginTop: 4 }} />
+                </label>
+                <button type="button" className="btn-sm btn-primary-sm pop-on-active" disabled={saving} onClick={submit}>
+                    {saving ? 'Recording…' : 'Record hire'}
+                </button>
+                <button type="button" className="btn-sm btn-ghost" disabled={saving} onClick={() => onDone?.()}>Cancel</button>
+            </div>
         </div>
     );
 }
