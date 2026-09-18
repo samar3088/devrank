@@ -59,6 +59,12 @@ return [
         ],
     ],
 
+    // Verifiable embeddable rank credentials (#2). Secret keys the optional HMAC
+    // receipt stamped on the verify page; falls back to APP_KEY.
+    'credentials' => [
+        'secret' => env('DEVRANK_CREDENTIAL_SECRET', env('APP_KEY')),
+    ],
+
     // DPDP (Digital Personal Data Protection Act, 2023) — data-fiduciary details
     // surfaced in the privacy notice and grievance flow. Override via env in prod.
     'privacy' => [

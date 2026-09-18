@@ -39,6 +39,10 @@ Route::middleware('guest')->group(function () {
 Route::get('/privacy', [\App\Http\Controllers\LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terms',   [\App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
 
+// ── Verifiable rank credentials (public, #2) ─────────────────────
+Route::get('/verify/{token}',   [\App\Http\Controllers\VerifyController::class, 'show'])->name('credential.verify');
+Route::get('/badge/{token}.svg', [\App\Http\Controllers\BadgeController::class, 'show'])->name('credential.badge');
+
 // ── Forum public — create BEFORE {slug} catch-all ─────────────────
 Route::get('/forum/create', [ForumController::class, 'create'])
     ->middleware(['auth', 'verified', 'role:candidate'])
@@ -98,6 +102,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // GitHub import (verified rank signal)
         Route::get('/auth/github/redirect', [\App\Http\Controllers\GithubController::class, 'redirect'])->name('github.redirect');
         Route::get('/auth/github/callback', [\App\Http\Controllers\GithubController::class, 'callback'])->name('github.callback');
+        // Verifiable rank credential controls (mint/rotate/revoke the badge)
+        Route::post('/account/credential',        [\App\Http\Controllers\CredentialController::class, 'store'])->name('credential.store');
+        Route::post('/account/credential/rotate', [\App\Http\Controllers\CredentialController::class, 'rotate'])->name('credential.rotate');
+        Route::delete('/account/credential',      [\App\Http\Controllers\CredentialController::class, 'destroy'])->name('credential.destroy');
         // Forum
         Route::post('/forum',                        [ForumController::class, 'store'])->name('forum.store');
         Route::post('/forum/upload-image',           [ForumController::class, 'uploadImage'])->name('forum.upload-image');

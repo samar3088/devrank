@@ -1,4 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
@@ -71,6 +72,9 @@ export default function CandidateDashboard() {
                         </div>
                     )
                 )}
+
+                {/* ── Verifiable rank credential (#2) ─────────────── */}
+                <CredentialCard token={stats?.credential_token} userId={user?.id} />
 
                 {/* ── Top Stats Row ──────────────────────────────── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }} data-reveal-stagger="80">
@@ -295,6 +299,91 @@ export default function CandidateDashboard() {
                 <FullFooter />
             </div>
         </MainLayout>
+    );
+}
+
+function CredentialCard({ token, userId }) {
+    const [busy, setBusy] = useState(false);
+    const [copied, setCopied] = useState('');
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const badgeUrl = `${origin}/badge/${token}.svg`;
+    const verifyUrl = `${origin}/verify/${token}`;
+    const markdown = `[![DevRank](${badgeUrl})](${verifyUrl})`;
+    const html = `<a href="${verifyUrl}"><img src="${badgeUrl}" alt="DevRank Verified"></a>`;
+
+    function act(method, url) {
+        setBusy(true);
+        router[method](url, {}, { preserveScroll: true, onFinish: () => setBusy(false) });
+    }
+
+    function copy(text, key) {
+        navigator.clipboard?.writeText(text).then(() => {
+            setCopied(key);
+            setTimeout(() => setCopied(''), 1500);
+        });
+    }
+
+    if (!token) {
+        return (
+            <div className="dash-card hover-lift" data-reveal="fade" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 30 }}>🎖️</div>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontWeight: 600 }}>Share your verified rank</div>
+                    <div style={{ color: 'var(--text3)', fontSize: 13, marginTop: 4 }}>
+                        Get a signed “DevRank Verified” badge for your GitHub README, LinkedIn or portfolio — it links to a public, auditable page proving how your rank was earned.
+                    </div>
+                </div>
+                <button type="button" className="btn btn-primary btn-sm pop-on-active" disabled={busy} onClick={() => act('post', '/account/credential')}>
+                    {busy ? 'Generating…' : 'Generate badge'}
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="dash-card" data-reveal="fade" style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
+                <div style={{ fontSize: 24 }}>🎖️</div>
+                <div style={{ flex: 1, minWidth: 180 }}>
+                    <div style={{ fontWeight: 600 }}>Your verified rank badge</div>
+                    <div style={{ color: 'var(--text3)', fontSize: 13 }}>Embed it anywhere — it always shows your live rank.</div>
+                </div>
+                <a href={verifyUrl} target="_blank" rel="noopener" className="btn-sm btn-outline-sm pop-on-active">View public page ↗</a>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+                <img src={badgeUrl} alt="DevRank Verified badge" style={{ height: 28 }} />
+            </div>
+
+            {[
+                { key: 'md', label: 'Markdown (README)', value: markdown },
+                { key: 'html', label: 'HTML', value: html },
+                { key: 'url', label: 'Link (LinkedIn / résumé)', value: verifyUrl },
+            ].map((row) => (
+                <div key={row.key} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>{row.label}</div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+                        <code style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'var(--bg2, #0f172a)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>
+                            {row.value}
+                        </code>
+                        <button type="button" className="btn-sm btn-outline-sm pop-on-active" onClick={() => copy(row.value, row.key)}>
+                            {copied === row.key ? 'Copied ✓' : 'Copy'}
+                        </button>
+                    </div>
+                </div>
+            ))}
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 14, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                <button type="button" className="btn-sm btn-ghost" disabled={busy} onClick={() => act('post', '/account/credential/rotate')}>
+                    Rotate link
+                </button>
+                <button type="button" className="btn-sm btn-ghost" disabled={busy} style={{ color: 'var(--rose, #ef4444)' }}
+                    onClick={() => { if (confirm('Revoke your badge? All existing embeds will stop working.')) act('delete', '/account/credential'); }}>
+                    Revoke
+                </button>
+            </div>
+        </div>
     );
 }
 

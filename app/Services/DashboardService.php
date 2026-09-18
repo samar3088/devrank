@@ -85,6 +85,9 @@ class DashboardService
                 'stats'      => $user->github_stats,
             ],
 
+            // Verifiable embeddable rank credential (#2) — token or null (opt-in).
+            'credential_token' => optional(app(CredentialService::class)->activeToken($user))->token,
+
             // Rank
             'rank_score'          => $user->total_rank_score,
             'human_score'         => $user->human_score ?? 0,
