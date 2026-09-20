@@ -105,24 +105,28 @@ class PublicProfileService
             ->limit(5)
             ->get();
 
+        // All job ids once (was re-querying jobListings() for ids and again for
+        // the count) — jobs_count derives from the same collection.
+        $jobIds = $user->jobListings()->pluck('id');
+
         // Real response rate — share of received applications the company has
         // actually responded to (moved off "applied"). Null when none received.
-        $jobIds = $user->jobListings()->pluck('id');
+        // Total + responded in one grouped-less aggregate query.
         $responseRate = null;
         if ($jobIds->isNotEmpty()) {
-            $totalApps = \App\Models\JobApplication::whereIn('jobs_listing_id', $jobIds)->count();
+            $apps = \App\Models\JobApplication::whereIn('jobs_listing_id', $jobIds)
+                ->selectRaw("COUNT(*) as total, SUM(status <> 'applied') as responded")
+                ->first();
+            $totalApps = (int) ($apps->total ?? 0);
             if ($totalApps > 0) {
-                $responded = \App\Models\JobApplication::whereIn('jobs_listing_id', $jobIds)
-                    ->where('status', '!=', 'applied')
-                    ->count();
-                $responseRate = (int) round(100 * $responded / $totalApps);
+                $responseRate = (int) round(100 * (int) $apps->responded / $totalApps);
             }
         }
 
         return [
             'company'     => $user,
             'active_jobs' => $activeJobs,
-            'jobs_count'  => $user->jobListings()->count(),
+            'jobs_count'  => $jobIds->count(),
             // Verified hires (#11) — a provable, two-sided hiring track record.
             'verified_hires' => app(HireService::class)->verifiedHireCount($user->id),
             // Real hiring-conduct signal (replaces the old hardcoded mock stats).

@@ -17,7 +17,22 @@ class SeasonController extends Controller
 {
     public function index()
     {
-        $seasons = Season::orderByDesc('starts_at')->get()->map(function (Season $s) {
+        // Challenge + active-player counts per season in two grouped queries
+        // (was 2 queries per season row — N+1).
+        $seasonList     = Season::orderByDesc('starts_at')->get();
+        $seasonIds      = $seasonList->pluck('id');
+        $challengeCounts = Quiz::whereIn('season_id', $seasonIds)
+            ->where('is_challenge', true)
+            ->selectRaw('season_id, COUNT(*) as c')
+            ->groupBy('season_id')
+            ->pluck('c', 'season_id');
+        $playerCounts   = SeasonScore::whereIn('season_id', $seasonIds)
+            ->where('points', '>', 0)
+            ->selectRaw('season_id, COUNT(*) as c')
+            ->groupBy('season_id')
+            ->pluck('c', 'season_id');
+
+        $seasons = $seasonList->map(function (Season $s) use ($challengeCounts, $playerCounts) {
             return [
                 'id'          => $s->id,
                 'name'        => $s->name,
@@ -26,8 +41,8 @@ class SeasonController extends Controller
                 'is_active'   => $s->is_active,
                 'live'        => $s->is_active && $s->starts_at->lte(now()) && $s->ends_at->gte(now()),
                 'days_left'   => $s->daysLeft(),
-                'challenges'  => Quiz::where('season_id', $s->id)->where('is_challenge', true)->count(),
-                'players'     => SeasonScore::where('season_id', $s->id)->where('points', '>', 0)->count(),
+                'challenges'  => (int) ($challengeCounts[$s->id] ?? 0),
+                'players'     => (int) ($playerCounts[$s->id] ?? 0),
             ];
         });
 

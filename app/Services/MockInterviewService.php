@@ -32,18 +32,30 @@ class MockInterviewService
     /** Companies with interview reviews (for the practice picker), with roles. */
     public function practiceOptions(): array
     {
-        return InterviewReview::visible()
+        // Top companies by review count (query 1).
+        $companies = InterviewReview::visible()
             ->selectRaw('company_name, COUNT(*) as reviews')
             ->groupBy('company_name')
             ->orderByDesc('reviews')
             ->limit(30)
+            ->get();
+
+        // All distinct roles for those companies in ONE query (was a query per
+        // company — N+1), grouped in PHP.
+        $rolesByCompany = InterviewReview::visible()
+            ->whereIn('company_name', $companies->pluck('company_name'))
+            ->select('company_name', 'role_applied')
+            ->distinct()
+            ->orderBy('role_applied')
             ->get()
-            ->map(fn ($r) => [
-                'company' => $r->company_name,
-                'reviews' => (int) $r->reviews,
-                'roles'   => InterviewReview::visible()->where('company_name', $r->company_name)
-                    ->distinct()->orderBy('role_applied')->pluck('role_applied')->take(8)->values(),
-            ])->all();
+            ->groupBy('company_name');
+
+        return $companies->map(fn ($r) => [
+            'company' => $r->company_name,
+            'reviews' => (int) $r->reviews,
+            'roles'   => ($rolesByCompany[$r->company_name] ?? collect())
+                ->pluck('role_applied')->take(8)->values(),
+        ])->all();
     }
 
     /**

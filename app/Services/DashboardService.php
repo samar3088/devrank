@@ -52,17 +52,20 @@ class DashboardService
         $quizzesPassed  = $completedAttempts->where('passed', true)->count();
         $totalQuizPts   = (int) $completedAttempts->sum('rank_points_awarded');
 
-        // Job applications
-        $totalApplications = $user->jobApplications()->count();
-        $pendingApplications = $user->jobApplications()
-            ->whereIn('status', ['applied', 'reviewing'])->count();
+        // Job applications — one grouped query instead of two counts on the same relation.
+        $appCounts = $user->jobApplications()
+            ->selectRaw('status, COUNT(*) as c')->groupBy('status')->pluck('c', 'status');
+        $totalApplications   = (int) $appCounts->sum();
+        $pendingApplications = (int) (($appCounts['applied'] ?? 0) + ($appCounts['reviewing'] ?? 0));
         $monthlyAppRemaining = max(0,
             config('devrank.limits.monthly_applications', 5) - $user->monthly_job_applications
         );
 
-        // Interest requests
-        $interestsPending  = $user->receivedInterests()->where('status', 'pending')->count();
-        $interestsAccepted = $user->receivedInterests()->where('status', 'accepted')->count();
+        // Interest requests — one grouped query instead of two counts on the same relation.
+        $interestCounts    = $user->receivedInterests()
+            ->selectRaw('status, COUNT(*) as c')->groupBy('status')->pluck('c', 'status');
+        $interestsPending  = (int) ($interestCounts['pending'] ?? 0);
+        $interestsAccepted = (int) ($interestCounts['accepted'] ?? 0);
 
         // Profile views (how many companies viewed)
         $profileViews = \App\Models\ProfileViewLog::where('candidate_id', $user->id)->count();

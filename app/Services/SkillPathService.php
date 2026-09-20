@@ -25,9 +25,6 @@ class SkillPathService
         $standingByTag = collect($engaged)->keyBy('tag_id');
         $engagedIds = $standingByTag->keys()->all();
 
-        // 2. Quizzes the candidate has already attempted (to recommend the rest).
-        $attemptedQuizIds = DB::table('quiz_attempts')->where('user_id', $userId)->pluck('quiz_id')->all();
-
         // 3. Candidate pool: engaged skills where they aren't #1 (room to climb),
         //    plus top skills that actually have content they haven't engaged with.
         $climb = collect($engaged)->filter(fn ($t) => $t['rank'] > 1)->pluck('tag_id');
@@ -45,6 +42,18 @@ class SkillPathService
 
         $tags = Tag::whereIn('id', $tagIds)->get(['id', 'name', 'slug'])->keyBy('id');
 
+        // Recommendable quizzes (not yet attempted) for ALL candidate tags in one
+        // query — whereDoesntHave avoids pulling every attempted quiz_id into PHP,
+        // grouped by tag so we don't re-query per tag in the loop below.
+        $quizzesByTag = Quiz::where('status', 'published')
+            ->whereIn('tag_id', $tagIds)
+            ->whereDoesntHave('attempts', fn ($q) => $q->where('user_id', $userId))
+            ->get(['id', 'title', 'slug', 'difficulty', 'tag_id'])
+            ->groupBy('tag_id');
+
+        // Answer-opportunity counts for ALL candidate tags in one grouped query.
+        $openTopicsByTag = $this->unansweredTopicCounts($userId, $tagIds);
+
         $paths = [];
         foreach ($tagIds as $tagId) {
             $tag = $tags->get($tagId);
@@ -52,18 +61,15 @@ class SkillPathService
                 continue;
             }
 
-            $quizzes = Quiz::where('status', 'published')
-                ->where('tag_id', $tagId)
-                ->whereNotIn('id', $attemptedQuizIds)
-                ->limit(3)
-                ->get(['id', 'title', 'slug', 'difficulty'])
+            $quizzes = ($quizzesByTag[$tagId] ?? collect())
+                ->take(3)
                 ->map(fn ($q) => [
                     'title'      => $q->title,
                     'slug'       => $q->slug,
                     'difficulty' => $q->difficulty,
-                ])->all();
+                ])->values()->all();
 
-            $openTopics = $this->unansweredTopicCount($userId, $tagId);
+            $openTopics = (int) ($openTopicsByTag[$tagId] ?? 0);
 
             // Skip a skill that offers no actionable next step.
             if (empty($quizzes) && $openTopics === 0) {
@@ -90,12 +96,15 @@ class SkillPathService
         return $paths;
     }
 
-    /** Topics in a tag the candidate hasn't replied to yet (answer opportunities). */
-    private function unansweredTopicCount(int $userId, int $tagId): int
+    /**
+     * Open-topic answer-opportunity counts per tag (topics the candidate hasn't
+     * replied to), for a set of tags in ONE grouped query. Returns [tag_id => count].
+     */
+    private function unansweredTopicCounts(int $userId, $tagIds): \Illuminate\Support\Collection
     {
         return DB::table('topics')
             ->join('topic_tag', 'topics.id', '=', 'topic_tag.topic_id')
-            ->where('topic_tag.tag_id', $tagId)
+            ->whereIn('topic_tag.tag_id', $tagIds)
             ->where('topics.status', 'open')
             ->whereNull('topics.deleted_at')
             ->whereNotExists(function ($q) use ($userId) {
@@ -103,7 +112,8 @@ class SkillPathService
                     ->whereColumn('replies.topic_id', 'topics.id')
                     ->where('replies.user_id', $userId);
             })
-            ->distinct('topics.id')
-            ->count('topics.id');
+            ->groupBy('topic_tag.tag_id')
+            ->selectRaw('topic_tag.tag_id as tag_id, COUNT(DISTINCT topics.id) as c')
+            ->pluck('c', 'tag_id');
     }
 }

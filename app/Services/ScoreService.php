@@ -187,6 +187,7 @@ class ScoreService
         $notifier = app(NotificationService::class);
         $position = 0;
         $sent = 0;
+        $positionUpdates = []; // [id => new position] — flushed in one bulk update
 
         foreach ($candidates as $candidate) {
             $position++;
@@ -207,8 +208,22 @@ class ScoreService
             }
 
             if ($previous !== $position) {
-                $candidate->forceFill(['last_rank_position' => $position])->save();
+                $positionUpdates[(int) $candidate->id] = $position;
             }
+        }
+
+        // One bulk CASE update instead of a save() per candidate (this runs daily
+        // over every candidate). ids/positions are integers, so the raw CASE is
+        // injection-safe. Only last_rank_position is touched — score invariants
+        // are untouched here.
+        if (! empty($positionUpdates)) {
+            $case = 'CASE id';
+            foreach ($positionUpdates as $id => $pos) {
+                $case .= " WHEN {$id} THEN {$pos}";
+            }
+            $case .= ' END';
+            User::whereIn('id', array_keys($positionUpdates))
+                ->update(['last_rank_position' => DB::raw($case)]);
         }
 
         return $sent;

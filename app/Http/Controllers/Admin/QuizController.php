@@ -29,32 +29,40 @@ class QuizController extends Controller
             ->latest()
             ->paginate(20);
     
-        // Attach per-quiz pass_rate and ai_flag_count
-        $quizzes->getCollection()->transform(function ($quiz) {
-            // Fresh builder per aggregate — chaining where() on one shared
-            // instance mutates it and corrupts later counts.
-            $base = fn () => \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
-                ->where('status', 'completed');
+        // Per-quiz completed/passed/flagged counts in ONE grouped query for the
+        // whole page (was 3 aggregate queries per row → 60 on a full page).
+        // NOTE: alias the SUMs to names that are NOT model attributes — an alias
+        // of `passed`/`ai_flagged` would be run through QuizAttempt's boolean cast
+        // and collapse the sum to 0/1.
+        $perQuiz = QuizAttempt::whereIn('quiz_id', $quizzes->getCollection()->pluck('id'))
+            ->where('status', 'completed')
+            ->selectRaw('quiz_id, COUNT(*) as total, SUM(passed) as passed_count, SUM(ai_flagged) as flagged_count')
+            ->groupBy('quiz_id')
+            ->get()
+            ->keyBy('quiz_id');
 
-            $total     = $base()->count();
-            $passed    = $base()->where('passed', true)->count();
-            $aiFlagged = $base()->where('ai_flagged', true)->count();
+        $quizzes->getCollection()->transform(function ($quiz) use ($perQuiz) {
+            $row       = $perQuiz->get($quiz->id);
+            $total     = (int) ($row->total ?? 0);
+            $passed    = (int) ($row->passed_count ?? 0);
 
             $quiz->pass_rate      = $total > 0 ? round(($passed / $total) * 100) : 0;
-            $quiz->ai_flag_count  = $aiFlagged;
+            $quiz->ai_flag_count  = (int) ($row->flagged_count ?? 0);
 
             return $quiz;
         });
 
-        // Global stats across all quizzes (fresh builder per aggregate)
-        $allCompleted  = fn () => \App\Models\QuizAttempt::where('status', 'completed');
-        $totalAttempts = $allCompleted()->count();
-        $totalPassed   = $allCompleted()->where('passed', true)->count();
+        // Global stats across all quizzes in ONE grouped-less aggregate query.
+        $global        = QuizAttempt::where('status', 'completed')
+            ->selectRaw('COUNT(*) as total, SUM(passed) as passed_count, SUM(ai_flagged) as flagged_count')
+            ->first();
+        $totalAttempts = (int) ($global->total ?? 0);
+        $totalPassed   = (int) ($global->passed_count ?? 0);
 
         $stats = [
             'total_attempts'   => $totalAttempts,
             'total_passed'     => $totalPassed,
-            'total_ai_flagged' => $allCompleted()->where('ai_flagged', true)->count(),
+            'total_ai_flagged' => (int) ($global->flagged_count ?? 0),
             'avg_pass_rate'    => $totalAttempts > 0
                 ? round(($totalPassed / $totalAttempts) * 100)
                 : 0,
