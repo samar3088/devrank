@@ -16,7 +16,7 @@ _Session #7: **#3 bias-reduced hiring** (`ef2c499`) — opt-in `users.anonymous`
 - New migrations since an older checkout: `hire_outcomes`, `review_reports` (+ `job_applications.status` gains `hired`). Run `php artisan migrate`.
 
 ## Still pending / next session (as of #11)
-- **GitHub OAuth** — register an app on the **www** URL (`https://www.samatasrivastva.com/auth/github/callback`), set `GITHUB_CLIENT_ID/SECRET` in the server `.env`, `config:clear`. Code is done; UI hidden until then.
+- ✅ **GitHub OAuth — DONE (configured on production).** OAuth app registered on the www URL, `GITHUB_CLIENT_ID/SECRET` set in the server `.env`, `config:cache`d; Connect-GitHub card live on the candidate dashboard. (Callback: `https://www.samatasrivastva.com/auth/github/callback`.)
 - **Real SMTP** — currently Mailtrap sandbox; swap `MAIL_*` + `MAIL_FROM_ADDRESS` for production email when ready.
 - **Go public** — when ready to be indexed: set `APP_INDEXABLE=true` + change `public/robots.txt` to allow, then `config:cache`.
 - **Social URLs** — footer social icons use placeholder `#` hrefs (`SocialLinks` in `Components/Footer.jsx`); swap in real profile URLs when provided.
