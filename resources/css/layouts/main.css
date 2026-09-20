@@ -80,6 +80,18 @@
     color: var(--text3);
 }
 
+/* The full-width footer breaks out of its page container horizontally, but the
+   container's 80px bottom padding still renders BELOW it as a blank bar. When the
+   footer is the last child of a padded page container, cancel that padding.
+   Scoped to a direct-child footer, so pages that render the footer OUTSIDE the
+   container (Home, Legal, profiles) are unaffected. */
+.container > .home-footer:last-child,
+.jobs-container > .home-footer:last-child,
+.forum-container > .home-footer:last-child,
+.profile-container > .home-footer:last-child {
+    margin-bottom: -80px;
+}
+
 /* ── Logo ────────────────────────────────────────────────── */
 .nav-logo {
     display: flex;
