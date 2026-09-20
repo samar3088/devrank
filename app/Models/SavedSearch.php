@@ -25,16 +25,20 @@ class SavedSearch extends Model
     {
         $f = $this->filters ?? [];
 
+        // Each filter may be a single value or an array (multi-select).
+        $matches = fn ($filter, $value) => empty($filter)
+            || in_array($value, (array) $filter, true);
+
         if (! empty($f['tag_id']) && ! $job->tags->contains('id', (int) $f['tag_id'])) {
             return false;
         }
-        if (! empty($f['job_type']) && $f['job_type'] !== $job->job_type) {
+        if (! $matches($f['job_type'] ?? null, $job->job_type)) {
             return false;
         }
-        if (! empty($f['work_mode']) && $f['work_mode'] !== $job->work_mode) {
+        if (! $matches($f['work_mode'] ?? null, $job->work_mode)) {
             return false;
         }
-        if (! empty($f['experience']) && $f['experience'] !== $job->experience_level) {
+        if (! $matches($f['experience'] ?? null, $job->experience_level)) {
             return false;
         }
         if (! empty($f['search'])) {

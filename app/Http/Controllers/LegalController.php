@@ -23,4 +23,20 @@ class LegalController extends Controller
             'updatedAt' => 'September 2026',
         ]);
     }
+
+    public function cookies()
+    {
+        return Inertia::render('Legal/Cookies', [
+            'entity'         => config('devrank.privacy.entity_name'),
+            'grievanceEmail' => config('devrank.privacy.grievance_email'),
+            'updatedAt'      => 'September 2026',
+        ]);
+    }
+
+    public function about()
+    {
+        return Inertia::render('Legal/About', [
+            'entity' => config('devrank.privacy.entity_name'),
+        ]);
+    }
 }

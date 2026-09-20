@@ -110,7 +110,7 @@ export default function NotificationBell() {
                 aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
             >
                 🔔
-                {unread > 0 && <span className="notif-badge">{unread > 9 ? '9+' : unread}</span>}
+                <span className={`notif-badge${unread > 0 ? '' : ' is-zero'}`}>{unread > 9 ? '9+' : unread}</span>
             </button>
 
             {open && (

@@ -38,7 +38,15 @@ export default function MainLayout({ children }) {
     }, []);
 
     function getNavLinks() {
-        if (isAdmin) return []; // Admin uses sidebar
+        if (isAdmin) {
+            // Admin has the sidebar, but keep the top bar useful (not blank).
+            return [
+                { href: '/admin/dashboard', label: 'Dashboard' },
+                { href: '/leaderboard',     label: 'Leaderboard' },
+                { href: '/jobs',            label: 'Jobs' },
+                { href: '/forum',           label: 'Forum' },
+            ];
+        }
 
         if (isCompany) {
             return [
@@ -81,8 +89,8 @@ export default function MainLayout({ children }) {
             <nav className={`navbar${isAdmin ? ' navbar--admin' : ''}`}>
                 <div className="navbar-inner">
 
-                    {/* Logo */}
-                    <Link href="/" className="nav-logo">
+                    {/* Logo — signed-in users land on their dashboard, guests on home */}
+                    <Link href={user ? '/dashboard' : '/'} className="nav-logo">
                         <span className="nav-logo-mark">DR</span>
                         <span className="nav-logo-text">Dev<span>Rank</span></span>
                     </Link>
@@ -126,6 +134,7 @@ export default function MainLayout({ children }) {
                                                 ? (roles.includes('super_admin') ? 'Super Admin' : 'Sub Admin')
                                                 : user.name}
                                         </span>
+                                        <span className={`nav-caret${dropdownOpen ? ' open' : ''}`} aria-hidden="true">▾</span>
                                     </div>
 
                                     {dropdownOpen && (
@@ -181,13 +190,6 @@ export default function MainLayout({ children }) {
                                                 <Link href="/mock-interview" className="nav-dropdown-item"
                                                     onClick={() => setDropdownOpen(false)}>
                                                     🎤 Mock Interview
-                                                </Link>
-                                            )}
-
-                                            {isAdmin && (
-                                                <Link href="/admin/dashboard" className="nav-dropdown-item"
-                                                    onClick={() => setDropdownOpen(false)}>
-                                                    ⚙️ Admin Panel
                                                 </Link>
                                             )}
 

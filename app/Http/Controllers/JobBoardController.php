@@ -17,11 +17,16 @@ class JobBoardController extends Controller
      */
     public function index(Request $request)
     {
+        // Filters are multi-select — normalise each to an array of values.
+        $jobType    = array_values(array_filter((array) $request->input('job_type', [])));
+        $workMode   = array_values(array_filter((array) $request->input('work_mode', [])));
+        $experience = array_values(array_filter((array) $request->input('experience', [])));
+
         $jobs = $this->jobService->getPublicJobs(
             $request->input('search'),
-            $request->input('job_type'),
-            $request->input('work_mode'),
-            $request->input('experience'),
+            $jobType,
+            $workMode,
+            $experience,
             $request->input('tag')
         );
 
@@ -32,9 +37,9 @@ class JobBoardController extends Controller
             'tags' => $tags,
             'filters' => [
                 'search' => $request->input('search', ''),
-                'job_type' => $request->input('job_type', ''),
-                'work_mode' => $request->input('work_mode', ''),
-                'experience' => $request->input('experience', ''),
+                'job_type' => $jobType,
+                'work_mode' => $workMode,
+                'experience' => $experience,
                 'tag' => $request->input('tag', ''),
             ],
         ]);

@@ -25,6 +25,20 @@ export default function JobsIndex() {
         setSearch('');
     }
 
+    // Multi-select filters: toggle a value in/out of the array for a filter key.
+    function asArray(key) {
+        const v = filters?.[key];
+        return Array.isArray(v) ? v : (v ? [v] : []);
+    }
+    function toggleFilter(key, value) {
+        const cur = asArray(key);
+        const next = cur.includes(value) ? cur.filter(v => v !== value) : [...cur, value];
+        applyFilters({ [key]: next });
+    }
+    function isChecked(key, value) {
+        return asArray(key).includes(value);
+    }
+
     function formatSalary(min, max, currency) {
         if (!min && !max) return null;
         const fmt = (n) => {
@@ -74,9 +88,9 @@ export default function JobsIndex() {
                                     alerts: true,
                                     filters: {
                                         search: filters?.search || search || null,
-                                        job_type: filters?.job_type || null,
-                                        work_mode: filters?.work_mode || null,
-                                        experience: filters?.experience || null,
+                                        job_type: filters?.job_type?.length ? filters.job_type : null,
+                                        work_mode: filters?.work_mode?.length ? filters.work_mode : null,
+                                        experience: filters?.experience?.length ? filters.experience : null,
                                         tag_id: filters?.tag ? parseInt(filters.tag) : null,
                                     },
                                 }, { preserveScroll: true });
@@ -107,48 +121,45 @@ export default function JobsIndex() {
                             <button className="filter-clear" onClick={clearFilters}>Clear all</button>
                         </div>
 
-                        {/* Job Type */}
+                        {/* Job Type (multi-select) */}
                         <div className="filter-section">
                             <div className="filter-title">Job Type</div>
                             {['full-time', 'contract', 'internship', 'part-time', 'freelance'].map(type => (
                                 <label key={type} className="filter-option">
                                     <input
-                                        type="radio"
-                                        name="job_type"
-                                        checked={filters?.job_type === type}
-                                        onChange={() => applyFilters({ job_type: type })}
+                                        type="checkbox"
+                                        checked={isChecked('job_type', type)}
+                                        onChange={() => toggleFilter('job_type', type)}
                                     />
                                     {type.charAt(0).toUpperCase() + type.slice(1)}
                                 </label>
                             ))}
                         </div>
 
-                        {/* Work Mode */}
+                        {/* Work Mode (multi-select) */}
                         <div className="filter-section">
                             <div className="filter-title">Work Mode</div>
                             {['remote', 'hybrid', 'onsite'].map(mode => (
                                 <label key={mode} className="filter-option">
                                     <input
-                                        type="radio"
-                                        name="work_mode"
-                                        checked={filters?.work_mode === mode}
-                                        onChange={() => applyFilters({ work_mode: mode })}
+                                        type="checkbox"
+                                        checked={isChecked('work_mode', mode)}
+                                        onChange={() => toggleFilter('work_mode', mode)}
                                     />
                                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
                                 </label>
                             ))}
                         </div>
 
-                        {/* Experience */}
+                        {/* Experience (multi-select) */}
                         <div className="filter-section">
                             <div className="filter-title">Experience Level</div>
                             {['junior', 'mid', 'senior', 'lead'].map(level => (
                                 <label key={level} className="filter-option">
                                     <input
-                                        type="radio"
-                                        name="experience"
-                                        checked={filters?.experience === level}
-                                        onChange={() => applyFilters({ experience: level })}
+                                        type="checkbox"
+                                        checked={isChecked('experience', level)}
+                                        onChange={() => toggleFilter('experience', level)}
                                     />
                                     {level.charAt(0).toUpperCase() + level.slice(1)}
                                 </label>

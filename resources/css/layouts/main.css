@@ -41,6 +41,45 @@
     color: var(--text3);
 }
 
+/* Down caret on the user pill — signals it's a dropdown. */
+.nav-caret {
+    margin-left: 4px;
+    font-size: 11px;
+    color: var(--text3);
+    transition: transform .18s ease;
+}
+.nav-caret.open { transform: rotate(180deg); }
+
+/* Footer social icons (below the brand blurb). */
+.footer-social {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+}
+.footer-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--text3);
+    background: var(--surface2, rgba(255,255,255,.04));
+    border: 1px solid var(--border);
+    transition: color .18s ease, border-color .18s ease, transform .18s ease;
+}
+.footer-social a:hover {
+    color: var(--violet-bright);
+    border-color: var(--violet-bright);
+    transform: translateY(-2px);
+}
+
+/* Notification badge in the "zero / caught up" state — muted, not alarming. */
+.notif-badge.is-zero {
+    background: var(--surface2, rgba(255,255,255,.08));
+    color: var(--text3);
+}
+
 /* ── Logo ────────────────────────────────────────────────── */
 .nav-logo {
     display: flex;

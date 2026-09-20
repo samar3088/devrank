@@ -38,6 +38,8 @@ Route::middleware('guest')->group(function () {
 // ── Legal / privacy (public) ─────────────────────────────────────
 Route::get('/privacy', [\App\Http\Controllers\LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terms',   [\App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/cookies', [\App\Http\Controllers\LegalController::class, 'cookies'])->name('legal.cookies');
+Route::get('/about',   [\App\Http\Controllers\LegalController::class, 'about'])->name('legal.about');
 
 // ── Verifiable rank credentials (public, #2) ─────────────────────
 Route::get('/verify/{token}',   [\App\Http\Controllers\VerifyController::class, 'show'])->name('credential.verify');

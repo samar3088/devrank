@@ -361,8 +361,8 @@ export default function CandidateProfile() {
                         </div>
                     </div>
                 </div>
-                <FullFooter />
             </div>
+            <FullFooter />
         </MainLayout>
     );
 }

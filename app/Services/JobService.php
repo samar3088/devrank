@@ -160,8 +160,13 @@ class JobService
     /**
      * Get public job listings with filters
      */
-    public function getPublicJobs(?string $search = null, ?string $jobType = null, ?string $workMode = null, ?string $experience = null, ?int $tagId = null, int $perPage = 15)
+    public function getPublicJobs(?string $search = null, $jobType = null, $workMode = null, $experience = null, ?int $tagId = null, int $perPage = 15)
     {
+        // Filters may arrive as a single value or an array (multi-select).
+        $jobType    = array_values(array_filter((array) $jobType));
+        $workMode   = array_values(array_filter((array) $workMode));
+        $experience = array_values(array_filter((array) $experience));
+
         $query = JobListing::with([
             'company:id,name,company_name,trust_score',
             'tags:id,name,slug',
@@ -182,16 +187,16 @@ class JobService
             });
         }
 
-        if ($jobType) {
-            $query->where('job_type', $jobType);
+        if (! empty($jobType)) {
+            $query->whereIn('job_type', $jobType);
         }
 
-        if ($workMode) {
-            $query->where('work_mode', $workMode);
+        if (! empty($workMode)) {
+            $query->whereIn('work_mode', $workMode);
         }
 
-        if ($experience) {
-            $query->where('experience_level', $experience);
+        if (! empty($experience)) {
+            $query->whereIn('experience_level', $experience);
         }
 
         if ($tagId) {
