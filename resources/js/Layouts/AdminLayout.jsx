@@ -95,6 +95,9 @@ export default function AdminLayout({ children, title, stats = {} }) {
                     {children}
                 </main>
             </div>
+            <footer className="app-footer">
+                © {new Date().getFullYear()} DevRank. All rights reserved.
+            </footer>
         </MainLayout>
     );
 }

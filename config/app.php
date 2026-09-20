@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Whether search engines may index the site. Default false (staging/private).
+    // Set APP_INDEXABLE=true only when you want the site publicly indexed.
+    'indexable' => (bool) env('APP_INDEXABLE', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

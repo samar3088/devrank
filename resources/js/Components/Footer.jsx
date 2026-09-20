@@ -34,15 +34,15 @@ export function FullFooter() {
                     <div className="footer-col">
                         <h5>Legal</h5>
                         <ul>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Terms of Service</a></li>
-                            <li><a href="#">Cookie Policy</a></li>
-                            <li><a href="#">Contact</a></li>
+                            <li><Link href="/privacy">Privacy Policy</Link></li>
+                            <li><Link href="/terms">Terms of Service</Link></li>
+                            <li><Link href="/privacy">Cookie Policy</Link></li>
+                            <li><Link href="/privacy">Contact</Link></li>
                         </ul>
                     </div>
                 </div>
                 <div className="footer-bottom">
-                    <span>© 2026 DevRank. All rights reserved.</span>
+                    <span>© {new Date().getFullYear()} DevRank. All rights reserved.</span>
                     <span>Made with 🔥 for developers who know their stuff</span>
                 </div>
             </div>
@@ -55,7 +55,7 @@ export function SimpleFooter() {
         <footer className="home-footer" style={{ marginTop: '0', padding: '24px 0' }}>
             <div className="home-container">
                 <div className="footer-bottom" style={{ borderTop: 'none', paddingTop: '0' }}>
-                    <span>© 2026 DevRank</span>
+                    <span>© {new Date().getFullYear()} DevRank</span>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', fontSize: '16px' }}>
                         <span className="nav-logo-mark" style={{ width: '24px', height: '24px', fontSize: '10px' }}>DR</span>
                         <span className="nav-logo-text" style={{ fontSize: '16px' }}>Dev<span>Rank</span></span>

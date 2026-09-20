@@ -78,7 +78,7 @@ export default function MainLayout({ children }) {
     return (
         <>
             <PageLoader />
-            <nav className="navbar">
+            <nav className={`navbar${isAdmin ? ' navbar--admin' : ''}`}>
                 <div className="navbar-inner">
 
                     {/* Logo */}

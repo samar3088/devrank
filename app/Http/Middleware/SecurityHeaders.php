@@ -35,6 +35,12 @@ class SecurityHeaders
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
+        // Keep search engines out while the site isn't meant to be indexed
+        // (covers assets/non-HTML too, complementing robots.txt + the meta tag).
+        if (! config('app.indexable')) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
         return $response;
     }
 }

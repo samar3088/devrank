@@ -89,6 +89,9 @@ export default function CompanyLayout({ children, fullWidthHeader }) {
                     </div>
                 </div>
             </div>
+            <footer className="app-footer">
+                © {new Date().getFullYear()} DevRank. All rights reserved.
+            </footer>
         </MainLayout>
     );
 }
