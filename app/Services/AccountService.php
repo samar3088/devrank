@@ -69,7 +69,7 @@ class AccountService
             'forum_topics'       => $user->topics()->select('id', 'title', 'slug', 'created_at'),
             'forum_replies'      => $user->replies()->select('id', 'topic_id', 'body', 'is_accepted', 'created_at'),
             'forum_likes'        => $user->likes()->select('id', 'likeable_type', 'likeable_id', 'created_at'),
-            'job_applications'   => $user->jobApplications()->select('id', 'jobs_listing_id', 'status', 'cover_letter', 'created_at'),
+            'job_applications'   => $user->jobApplications()->select('id', 'jobs_listing_id', 'status', 'cover_letter', 'resume_path', 'shared_fields', 'created_at'),
             'interests_received' => $user->receivedInterests()->select('id', 'company_id', 'status', 'message', 'created_at'),
             'interests_sent'     => $user->sentInterests()->select('id', 'candidate_id', 'status', 'message', 'created_at'),
             'quiz_attempts'      => DB::table('quiz_attempts')->where('user_id', $user->id)
@@ -201,6 +201,15 @@ class AccountService
             $user->savedSearches()->delete();                                   // saved job filters
             DB::table('credential_tokens')->where('user_id', $user->id)->delete();
             \App\Models\ProfileViewLog::where('candidate_id', $user->id)->update(['ip_address' => null]);
+
+            // Scrub personal data from their job applications (résumé, cover letter,
+            // and the shared-contact consent) — the application row itself is kept
+            // so the company's pipeline history stays intact.
+            $user->jobApplications()->update([
+                'resume_path'   => null,
+                'cover_letter'  => null,
+                'shared_fields' => null,
+            ]);
 
             // Soft-delete the account itself.
             $user->delete();

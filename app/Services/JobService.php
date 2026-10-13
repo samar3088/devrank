@@ -255,6 +255,7 @@ class JobService
             'user_id' => $user->id,
             'cover_letter' => $data['cover_letter'] ?? null,
             'resume_path' => $data['resume_path'] ?? null,
+            'shared_fields' => $data['shared_fields'] ?? [],
             'status' => 'applied',
         ]);
 
@@ -297,7 +298,7 @@ class JobService
 
         return $job->applications()
             ->with([
-                'candidate:id,name,email,total_rank_score,human_score,resume_path,headline,location',
+                'candidate:id,name,email,phone,github_url,linkedin_url,total_rank_score,human_score,resume_path,headline,location',
                 'hireOutcome:id,job_application_id,status,offered_salary,salary_currency,salary_period',
             ])
             ->orderByRaw("FIELD(status,'applied','reviewing','shortlisted','interview','offered','hired','rejected','withdrawn')")
@@ -309,12 +310,24 @@ class JobService
 
                 $awaiting = $app->status === 'applied' && $app->responded_at === null;
 
+                // Only the contact fields the candidate consented to share at
+                // apply time (server-side gate — never leak the rest).
+                $sf = $app->shared_fields ?? [];
+                $sharedContact = array_filter([
+                    'email'        => in_array('email', $sf, true) ? $c?->email : null,
+                    'phone'        => in_array('phone', $sf, true) ? $c?->phone : null,
+                    'location'     => in_array('location', $sf, true) ? $c?->location : null,
+                    'github_url'   => in_array('github', $sf, true) ? $c?->github_url : null,
+                    'linkedin_url' => in_array('linkedin', $sf, true) ? $c?->linkedin_url : null,
+                ], fn ($v) => ! empty($v));
+
                 return [
                     'id'            => $app->id,
                     'status'        => $app->status,
                     'cover_letter'  => $app->cover_letter,
                     'rejection_reason' => $app->rejection_reason,
                     'resume_path'   => $app->resume_path ?: ($c->resume_path ?? null),
+                    'shared_contact' => $sharedContact ?: null,
                     'applied_at'    => optional($app->created_at)->diffForHumans(),
                     'awaiting_response' => $awaiting,
                     'sla_overdue'   => $awaiting && $app->created_at !== null && $app->created_at->lte($cutoff),

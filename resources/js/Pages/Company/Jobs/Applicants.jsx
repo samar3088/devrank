@@ -171,6 +171,15 @@ function ApplicantRow({ a, statuses }) {
                         </span>
                     )}
                 </div>
+                {a.shared_contact && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }} title="Contact details the candidate chose to share">
+                        {a.shared_contact.email && <a href={`mailto:${a.shared_contact.email}`} className="app-contact-chip">✉ {a.shared_contact.email}</a>}
+                        {a.shared_contact.phone && <span className="app-contact-chip">📞 {a.shared_contact.phone}</span>}
+                        {a.shared_contact.location && <span className="app-contact-chip">📍 {a.shared_contact.location}</span>}
+                        {a.shared_contact.github_url && <a href={a.shared_contact.github_url} target="_blank" rel="noopener noreferrer" className="app-contact-chip">GitHub ↗</a>}
+                        {a.shared_contact.linkedin_url && <a href={a.shared_contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="app-contact-chip">LinkedIn ↗</a>}
+                    </div>
+                )}
             </div>
 
             <div className="app-right" style={{ gap: 10 }}>

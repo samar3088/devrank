@@ -239,6 +239,15 @@
     font-family: 'Geist', system-ui, sans-serif;
     line-height: 1.2;
 }
+
+/* Display-only tags (e.g. job-listing skills) — not interactive, so no hand cursor. */
+.tag.tag-static {
+    cursor: default;
+}
+.tag.tag-static:hover {
+    border-color: var(--border);
+    color: var(--text2);
+}
 .tag.active {
     border-color: var(--cyan);
     color: var(--cyan);

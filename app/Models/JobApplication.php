@@ -15,6 +15,7 @@ class JobApplication extends Model
         'user_id',
         'cover_letter',
         'resume_path',
+        'shared_fields',
         'status',
         'rejection_reason',
         'company_notes',
@@ -22,7 +23,8 @@ class JobApplication extends Model
     ];
 
     protected $casts = [
-        'responded_at' => 'datetime',
+        'responded_at'  => 'datetime',
+        'shared_fields' => 'array',
     ];
 
     public function jobListing()

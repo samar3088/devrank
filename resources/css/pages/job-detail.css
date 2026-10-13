@@ -265,6 +265,61 @@
     color: #fff;
 }
 
+/* Apply form — résumé upload + info-sharing consent */
+.apply-field-group { margin-bottom: 12px; }
+.apply-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 6px;
+}
+.apply-field-hint {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 400;
+    margin-top: 6px;
+}
+.apply-upload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg2);
+    border: 1px dashed var(--border3);
+    border-radius: var(--r);
+    padding: 9px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+.apply-upload:hover { border-color: var(--violet); }
+.apply-upload-btn {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--violet-bright);
+    white-space: nowrap;
+}
+.apply-upload-name {
+    font-size: 11.5px;
+    color: var(--text3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.apply-share-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+.apply-share-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--text2);
+    cursor: pointer;
+}
+.apply-share-opt input { accent-color: var(--violet); width: 14px; height: 14px; cursor: pointer; }
+
 .save-btn-full {
     width: 100%;
     display: flex;

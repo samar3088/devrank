@@ -3,20 +3,30 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import MultiSelect from '@/Components/MultiSelect';
+
+const FILTER_OPTIONS = [
+    { value: 'latest', label: '🆕 Latest' },
+    { value: 'pinned', label: '📌 Pinned' },
+    { value: 'hot', label: '🔥 Hot' },
+    { value: 'unanswered', label: '❓ Unanswered' },
+    { value: 'solved', label: '✅ Solved' },
+];
 
 export default function ForumIndex() {
     const { topics, categories, topContributors, trendingTags, filters, auth, flash } = usePage().props;
     const [search, setSearch] = useState(filters?.search || '');
+    const selectedFilters = filters?.filters || [];
     const user = auth?.user;
     const isCompany = user?.roles?.includes('company');
 
-    const hasFilters = !!(filters?.search || filters?.category || filters?.tag || (filters?.filter && filters.filter !== 'all'));
+    const hasFilters = !!(filters?.search || filters?.category || filters?.tag || selectedFilters.length > 0);
 
     function go(params) {
         router.get('/forum', {
             search: filters?.search,
             category: filters?.category,
-            filter: filters?.filter,
+            filters: selectedFilters,
             tag: filters?.tag,
             ...params,
         }, { preserveState: true, replace: true });
@@ -32,8 +42,9 @@ export default function ForumIndex() {
         router.get('/forum', {}, { preserveState: true, replace: true });
     }
 
-    function handleFilter(filter) {
-        go({ filter });
+    // Multi-select filter dropdown applies immediately (keeps the search text).
+    function applyFilters(nextFilters) {
+        go({ filters: nextFilters });
     }
 
     function handleCategory(categoryId) {
@@ -86,8 +97,15 @@ export default function ForumIndex() {
                     </div>
                 )}
 
-                {/* Filters */}
+                {/* Filters — multi-select dropdown before the search box */}
                 <div className="forum-filters">
+                    <MultiSelect
+                        options={FILTER_OPTIONS}
+                        selected={selectedFilters}
+                        onChange={applyFilters}
+                        placeholder="All topics"
+                        searchPlaceholder="Filter…"
+                    />
                     <form onSubmit={handleSearch} className="forum-search-form">
                         <input
                             type="text"
@@ -101,15 +119,6 @@ export default function ForumIndex() {
                             <button type="button" className="filter-btn" onClick={handleReset}>Clear</button>
                         )}
                     </form>
-                    {['all', 'latest', 'hot', 'unanswered', 'solved'].map(f => (
-                        <button
-                            key={f}
-                            className={`filter-btn ${(filters?.filter || 'all') === f ? 'active' : ''}`}
-                            onClick={() => handleFilter(f === 'all' ? '' : f)}
-                        >
-                            {f === 'all' ? 'All' : f === 'hot' ? 'Hot 🔥' : f.charAt(0).toUpperCase() + f.slice(1)}
-                        </button>
-                    ))}
                 </div>
 
                 {/* Active tag filter chip */}

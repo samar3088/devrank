@@ -55,16 +55,30 @@ class JobBoardController extends Controller
 
         $hasApplied = false;
         $canApply = false;
+        $shareable = null;
 
         if (auth()->check() && auth()->user()->isCandidate()) {
             $hasApplied = $this->jobService->hasApplied(auth()->id(), $job->id);
             $canApply = auth()->user()->canApplyToJob();
+
+            // Which contact fields the candidate actually has, so the apply form
+            // only offers the ones worth sharing.
+            $u = auth()->user();
+            $shareable = [
+                'email'      => (bool) $u->email,
+                'phone'      => (bool) $u->phone,
+                'location'   => (bool) $u->location,
+                'github'     => (bool) $u->github_url,
+                'linkedin'   => (bool) $u->linkedin_url,
+                'has_resume' => (bool) $u->resume_path,
+            ];
         }
 
         return Inertia::render('JobBoard/Show', [
             'job' => $job,
             'hasApplied' => $hasApplied,
             'canApply' => $canApply,
+            'shareable' => $shareable,
         ]);
     }
 
@@ -78,10 +92,23 @@ class JobBoardController extends Controller
         }
 
         $validated = $request->validate([
-            'cover_letter' => ['nullable', 'string', 'max:2000'],
+            'cover_letter'    => ['nullable', 'string', 'max:2000'],
+            'resume'          => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'], // 5 MB
+            'shared_fields'   => ['nullable', 'array'],
+            'shared_fields.*' => ['string', 'in:email,phone,location,github,linkedin'],
         ]);
 
-        $result = $this->jobService->applyToJob($request->user(), $jobId, $validated);
+        $data = [
+            'cover_letter'  => $validated['cover_letter'] ?? null,
+            'shared_fields' => array_values($validated['shared_fields'] ?? []),
+        ];
+
+        // Optional résumé upload (overrides the profile résumé for this application).
+        if ($request->hasFile('resume')) {
+            $data['resume_path'] = $request->file('resume')->store('resumes', 'public');
+        }
+
+        $result = $this->jobService->applyToJob($request->user(), $jobId, $data);
 
         if (!$result['success']) {
             return back()->with('error', $result['message']);

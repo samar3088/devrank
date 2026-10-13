@@ -59,7 +59,7 @@ export default function MultiSelect({
         ? placeholder
         : count === 1
             ? (options.find(o => o.value === selected[0])?.label || `1 selected`)
-            : `${count} skills selected`;
+            : `${count} selected`;
 
     return (
         <div className="ms-wrap" ref={wrapRef}>

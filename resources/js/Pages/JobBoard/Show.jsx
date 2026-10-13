@@ -1,11 +1,12 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import CountUp from '@/Components/CountUp';
 import { FullFooter } from '@/Components/Footer';
 
 export default function JobShow() {
-    const { job, auth, hasApplied, canApply, flash } = usePage().props;
+    const { job, auth, hasApplied, canApply, flash, shareable } = usePage().props;
 
     function getInitials(name) {
         if (!name) return '?';
@@ -101,7 +102,7 @@ export default function JobShow() {
                             </div>
                             {job.tags?.length > 0 && (
                                 <div className="tags" style={{ marginTop: '16px' }}>
-                                    {job.tags.map(tag => <span key={tag.id} className="tag">{tag.name}</span>)}
+                                    {job.tags.map(tag => <span key={tag.id} className="tag tag-static">{tag.name}</span>)}
                                 </div>
                             )}
                         </div>
@@ -152,7 +153,7 @@ export default function JobShow() {
                                 ✅ You've already applied
                             </div>
                         ) : auth?.user && !auth.user.roles?.includes('company') ? (
-                            <ApplyForm jobId={job.id} canApply={canApply} />
+                            <ApplyForm jobId={job.id} canApply={canApply} shareable={shareable} />
                         ) : auth?.user?.roles?.includes('company') ? (
                             <div style={{ textAlign: 'center', padding: '12px', color: 'var(--text3)', fontSize: '13px' }}>
                                 Companies cannot apply to jobs.
@@ -191,15 +192,38 @@ export default function JobShow() {
     );
 }
 
-function ApplyForm({ jobId, canApply }) {
-    const form = useForm({ cover_letter: '' });
+const SHARE_FIELDS = [
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'location', label: 'Location' },
+    { key: 'github', label: 'GitHub' },
+    { key: 'linkedin', label: 'LinkedIn' },
+];
+
+function ApplyForm({ jobId, canApply, shareable }) {
+    // Only offer the contact fields the candidate actually has on their profile.
+    const shareOptions = SHARE_FIELDS.filter(f => shareable?.[f.key]);
+    const [resumeName, setResumeName] = useState('');
+
+    const form = useForm({
+        cover_letter: '',
+        resume: null,
+        // Default to sharing everything available — the candidate can uncheck.
+        shared_fields: shareOptions.map(o => o.key),
+    });
 
     function handleSubmit(e) {
         e.preventDefault();
         form.post(`/jobs/${jobId}/apply`, {
             preserveScroll: true,
-            onSuccess: () => form.reset(),
+            forceFormData: true, // needed for the résumé file upload
+            onSuccess: () => { form.reset(); setResumeName(''); },
         });
+    }
+
+    function toggleShare(key) {
+        const cur = form.data.shared_fields;
+        form.setData('shared_fields', cur.includes(key) ? cur.filter(k => k !== key) : [...cur, key]);
     }
 
     if (!canApply) {
@@ -228,6 +252,45 @@ function ApplyForm({ jobId, canApply }) {
             {form.errors.cover_letter && (
                 <div style={{ color: 'var(--coral)', fontSize: '12px', marginBottom: '8px' }}>{form.errors.cover_letter}</div>
             )}
+
+            {/* Résumé upload */}
+            <div className="apply-field-group">
+                <label className="apply-field-label">Résumé {shareable?.has_resume && <span className="apply-field-hint">(optional — your profile résumé is used otherwise)</span>}</label>
+                <label className="apply-upload">
+                    <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        style={{ display: 'none' }}
+                        onChange={e => { const f = e.target.files?.[0] || null; form.setData('resume', f); setResumeName(f?.name || ''); }}
+                    />
+                    <span className="apply-upload-btn">📎 {resumeName ? 'Change file' : 'Upload résumé'}</span>
+                    <span className="apply-upload-name">{resumeName || 'PDF, DOC, DOCX · max 5 MB'}</span>
+                </label>
+                {form.errors.resume && (
+                    <div style={{ color: 'var(--coral)', fontSize: '12px', marginTop: '6px' }}>{form.errors.resume}</div>
+                )}
+            </div>
+
+            {/* Information sharing consent */}
+            {shareOptions.length > 0 && (
+                <div className="apply-field-group">
+                    <label className="apply-field-label">Share with this employer</label>
+                    <div className="apply-share-opts">
+                        {shareOptions.map(o => (
+                            <label key={o.key} className="apply-share-opt">
+                                <input
+                                    type="checkbox"
+                                    checked={form.data.shared_fields.includes(o.key)}
+                                    onChange={() => toggleShare(o.key)}
+                                />
+                                <span>{o.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <div className="apply-field-hint">Only the details you tick are revealed to this company.</div>
+                </div>
+            )}
+
             <LoadingButton type="submit" loading={form.processing} className="apply-btn-full pop-on-active">
                 {form.processing ? 'Submitting...' : 'Apply Now'}
             </LoadingButton>

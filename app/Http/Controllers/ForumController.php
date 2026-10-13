@@ -20,7 +20,7 @@ class ForumController extends Controller
         $topics = $this->forumService->getTopics(
             $request->input('search'),
             $request->input('category'),
-            $request->input('filter'),
+            $request->input('filters', []),
             $request->input('tag'),
         );
 
@@ -32,7 +32,7 @@ class ForumController extends Controller
             'filters'          => [
                 'search'   => $request->input('search', ''),
                 'category' => $request->input('category', ''),
-                'filter'   => $request->input('filter', 'all'),
+                'filters'  => array_values(array_filter((array) $request->input('filters', []))),
                 'tag'      => $request->input('tag', ''),
             ],
         ]);

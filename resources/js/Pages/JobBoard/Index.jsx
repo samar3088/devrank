@@ -236,7 +236,7 @@ export default function JobsIndex() {
                                         {job.tags?.length > 0 && (
                                             <div className="tags">
                                                 {job.tags.map(tag => (
-                                                    <span key={tag.id} className="tag">{tag.name}</span>
+                                                    <span key={tag.id} className="tag tag-static">{tag.name}</span>
                                                 ))}
                                             </div>
                                         )}

@@ -3,7 +3,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { promptDialog } from '@/lib/dialog';
 
 function getCookie(name) {
@@ -36,6 +36,9 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Wr
     const fileInput = useRef(null);
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState('');
+    // Tracks the HTML the editor last emitted, so we can tell an EXTERNAL value
+    // change (e.g. a form reset after submit) from the editor's own edits.
+    const lastEmitted = useRef(value);
 
     const editor = useEditor({
         extensions: [
@@ -47,12 +50,24 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Wr
         content: value,
         onUpdate: ({ editor }) => {
             const html = editor.getText().trim() === '' ? '' : editor.getHTML();
+            lastEmitted.current = html;
             onChange?.(html);
         },
         editorProps: {
             attributes: { class: 'rt-surface', 'aria-label': 'Rich text editor' },
         },
     });
+
+    // Sync EXTERNAL value changes into the editor (e.g. the parent resets the
+    // field to '' after a successful submit) — without clobbering the caret while
+    // the user is typing (those edits already match lastEmitted).
+    useEffect(() => {
+        if (!editor) return;
+        if (value !== lastEmitted.current) {
+            editor.commands.setContent(value || '', false);
+            lastEmitted.current = value;
+        }
+    }, [value, editor]);
 
     if (!editor) return null;
 

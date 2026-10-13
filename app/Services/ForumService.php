@@ -52,8 +52,11 @@ class ForumService
     }
 
     // ── Topic listing ────────────────────────────────────────────
-    public function getTopics(?string $search, ?string $category, ?string $filter, ?string $tag = null)
+    public function getTopics(?string $search, ?string $category, $filters = null, ?string $tag = null)
     {
+        // Multi-select filter modes (any of: latest, hot, unanswered, solved).
+        $filters = array_values(array_filter((array) $filters));
+
         $query = Topic::with([
             'user:id,name',
             'category:id,name,slug,icon,color',
@@ -89,15 +92,29 @@ class ForumService
             });
         }
 
-        match ($filter) {
-            'hot'        => $query->where('is_hot', true)->orderByDesc('views_count'),
-            'week'       => $query->where('created_at', '>=', now()->subWeek())->orderByDesc('replies_count'),
-            'unanswered' => $query->where('replies_count', 0)->orderByDesc('created_at'),
-            'solved'     => $query->whereHas('replies', fn ($q) => $q->where('is_accepted', true))->orderByDesc('created_at'),
-            'latest'     => $query->orderByDesc('created_at'),
-            // Default: pinned first, then newest activity.
-            default      => $query->orderByDesc('is_pinned')->orderByDesc('last_reply_at')->orderByDesc('created_at'),
-        };
+        // Content filters combine with OR — e.g. "Hot" + "Unanswered" shows topics
+        // that are hot OR unanswered. (Grouped so it ANDs with search/category/tag.)
+        $content = array_values(array_intersect($filters, ['pinned', 'hot', 'unanswered', 'solved']));
+        if (! empty($content)) {
+            $query->where(function ($q) use ($content) {
+                foreach ($content as $f) {
+                    match ($f) {
+                        'pinned'     => $q->orWhere('is_pinned', true),
+                        'hot'        => $q->orWhere('is_hot', true),
+                        'unanswered' => $q->orWhere('replies_count', 0),
+                        'solved'     => $q->orWhereHas('replies', fn ($r) => $r->where('is_accepted', true)),
+                        default      => null,
+                    };
+                }
+            });
+        }
+
+        // Sort: "Latest" forces newest-first; otherwise pinned → newest activity.
+        if (in_array('latest', $filters, true)) {
+            $query->orderByDesc('created_at');
+        } else {
+            $query->orderByDesc('is_pinned')->orderByDesc('last_reply_at')->orderByDesc('created_at');
+        }
 
         return $query->paginate(15)->withQueryString();
     }
