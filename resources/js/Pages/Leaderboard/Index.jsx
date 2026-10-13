@@ -3,33 +3,34 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
+import MultiSelect from '@/Components/MultiSelect';
 
 export default function LeaderboardIndex() {
     const { candidates, tags, filters, aiEnabled } = usePage().props;
     const [search, setSearch] = useState(filters?.search || '');
+    const selectedTags = filters?.tags || [];
     const firstPage = (candidates?.current_page ?? 1) === 1;
+    const hasAny = !!(search || filters?.search || selectedTags.length > 0);
 
     function handleSearch(e) {
         e.preventDefault();
-        router.get('/leaderboard', { search, tag: filters?.tag }, {
+        router.get('/leaderboard', { search, tags: selectedTags }, {
             preserveState: true,
             replace: true,
         });
     }
 
-    function clearSearch() {
+    // Skills multi-select applies immediately (keeps the current search text).
+    function applyTags(nextTags) {
+        router.get('/leaderboard', { search: filters?.search, tags: nextTags }, {
+            preserveState: true,
+            replace: true,
+        });
+    }
+
+    function clearAll() {
         setSearch('');
-        router.get('/leaderboard', { search: '', tag: filters?.tag }, {
-            preserveState: true,
-            replace: true,
-        });
-    }
-
-    function handleTag(tagSlug) {
-        router.get('/leaderboard', {
-            search: filters?.search,
-            tag: filters?.tag === tagSlug ? '' : tagSlug,
-        }, {
+        router.get('/leaderboard', {}, {
             preserveState: true,
             replace: true,
         });
@@ -54,17 +55,7 @@ export default function LeaderboardIndex() {
         return '';
     }
 
-    const tagButtons = [
-        { slug: '', label: 'All Skills' },
-        { slug: 'react', label: '⚛️ React' },
-        { slug: 'node-js', label: '🟢 Node.js' },
-        { slug: 'system-design', label: '🏗️ System Design' },
-        { slug: 'laravel', label: '🔴 Laravel' },
-        { slug: 'aws', label: '☁️ AWS' },
-        { slug: 'python', label: '🐍 Python' },
-        { slug: 'sql', label: '🗄️ SQL' },
-        { slug: 'docker', label: '🐳 Docker' },
-    ];
+    const skillOptions = (tags || []).map(t => ({ value: t.slug, label: t.name }));
 
     return (
         <MainLayout>
@@ -90,23 +81,17 @@ export default function LeaderboardIndex() {
                     </div>
                 </div>
 
-                {/* Tag Filter */}
-                <div className="tag-filter" data-reveal="fade">
-                    {tagButtons.map(t => (
-                        <button
-                            key={t.slug}
-                            className={`tag-filter-btn ${(filters?.tag || '') === t.slug ? 'active' : ''}`}
-                            onClick={() => handleTag(t.slug)}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
-                </div>
-
                 {/* Table */}
                 <div className="lb-table-wrap" data-reveal>
                     <div className="lb-controls">
                         <div className="lb-controls-left">
+                            <MultiSelect
+                                options={skillOptions}
+                                selected={selectedTags}
+                                onChange={applyTags}
+                                placeholder="All skills"
+                                searchPlaceholder="Filter skills…"
+                            />
                             <form onSubmit={handleSearch} className="lb-search-form">
                                 <input
                                     type="text"
@@ -116,8 +101,8 @@ export default function LeaderboardIndex() {
                                     onChange={e => setSearch(e.target.value)}
                                 />
                                 <button type="submit" className="btn-sm btn-primary-sm">Search</button>
-                                {(search || filters?.search) && (
-                                    <button type="button" className="btn-sm btn-outline-sm" onClick={clearSearch}>Clear</button>
+                                {hasAny && (
+                                    <button type="button" className="btn-sm btn-outline-sm" onClick={clearAll}>Clear</button>
                                 )}
                             </form>
                         </div>

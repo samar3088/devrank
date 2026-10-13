@@ -4,14 +4,17 @@ import { initReveal, scanReveal } from './lib/reveal';
 
 createInertiaApp({
     title: (title) => title ? `${title} — DevRank` : 'DevRank',
+    // Lazy page resolution: each page is its own chunk, fetched on demand
+    // (no `eager`), so the initial bundle only carries the shell + first page.
+    // Inertia caches resolved components, so back/forward is instant.
     resolve: name => {
-        const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true });
-        const page = pages[`./Pages/${name}.jsx`];
-        if (!page) {
+        const pages = import.meta.glob('./Pages/**/*.jsx');
+        const importPage = pages[`./Pages/${name}.jsx`];
+        if (!importPage) {
             console.error(`Page not found: ./Pages/${name}.jsx`);
-            console.error('Available pages:', Object.keys(pages));
+            return Promise.reject(new Error(`Page not found: ./Pages/${name}.jsx`));
         }
-        return page;
+        return importPage();
     },
     setup({ el, App, props }) {
         createRoot(el).render(<App {...props} />);

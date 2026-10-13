@@ -1,0 +1,105 @@
+/* Searchable multi-select dropdown (Components/MultiSelect.jsx) */
+
+.ms-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.ms-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    border-radius: var(--r);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Geist', system-ui, sans-serif;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.ms-toggle:hover { border-color: var(--border3); }
+.ms-toggle.has-value { color: var(--text); border-color: var(--violet-border); }
+.ms-toggle-label { flex: 1; text-align: left; white-space: nowrap; }
+.ms-caret { font-size: 10px; color: var(--text3); }
+
+.ms-panel {
+    position: absolute;
+    z-index: 60;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 260px;
+    max-width: 80vw;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: 10px;
+    animation: ms-pop 0.14s ease;
+}
+
+.ms-search {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+.ms-search:focus { border-color: var(--violet); }
+.ms-search::placeholder { color: var(--text3); }
+
+.ms-options {
+    max-height: 240px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ms-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    border-radius: var(--r);
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+.ms-option:hover { background: var(--surface2); color: var(--text); }
+.ms-option input { accent-color: var(--violet); width: 15px; height: 15px; cursor: pointer; }
+
+.ms-empty {
+    padding: 10px 8px;
+    font-size: 13px;
+    color: var(--text3);
+}
+
+.ms-clear {
+    width: 100%;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    border-radius: var(--r);
+    padding: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ms-clear:hover { color: var(--coral); border-color: var(--coral-border); }
+
+@keyframes ms-pop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ms-panel { animation: none; } }

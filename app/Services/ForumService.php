@@ -15,7 +15,11 @@ class ForumService
     // ── Categories ───────────────────────────────────────────────
     public function getCategories()
     {
+        // withCount so the sidebar can show real topic counts, ordered by the
+        // busiest categories first (then sort_order as a stable tie-break).
         return Category::where('is_active', true)
+            ->withCount('topics')
+            ->orderByDesc('topics_count')
             ->orderBy('sort_order')
             ->get(['id', 'name', 'slug', 'icon', 'color', 'description']);
     }

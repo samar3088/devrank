@@ -98,7 +98,7 @@ export default function ForumIndex() {
                         />
                         <button type="submit" className="filter-btn filter-btn-primary">Search</button>
                         {hasFilters && (
-                            <button type="button" className="filter-btn" onClick={handleReset}>Reset</button>
+                            <button type="button" className="filter-btn" onClick={handleReset}>Clear</button>
                         )}
                     </form>
                     {['all', 'latest', 'hot', 'unanswered', 'solved'].map(f => (

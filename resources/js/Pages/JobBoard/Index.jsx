@@ -21,9 +21,16 @@ export default function JobsIndex() {
         });
     }
 
+    // "Clear all" in the filter panel clears the facet filters only — the search
+    // text is preserved.
     function clearFilters() {
-        router.get('/jobs', {}, { preserveState: true, replace: true });
+        router.get('/jobs', { search: filters?.search || undefined }, { preserveState: true, replace: true });
+    }
+
+    // Clear button next to Search clears the search text only (facets preserved).
+    function clearSearch() {
         setSearch('');
+        applyFilters({ search: '' });
     }
 
     // Multi-select filters: toggle a value in/out of the array for a filter key.
@@ -112,6 +119,9 @@ export default function JobsIndex() {
                         onChange={e => setSearch(e.target.value)}
                     />
                     <button type="submit" className="btn-sm btn-primary-sm" style={{ padding: '10px 20px' }}>Search</button>
+                    {(search || filters?.search) && (
+                        <button type="button" className="btn-sm btn-outline-sm" style={{ padding: '10px 18px' }} onClick={clearSearch}>Clear</button>
+                    )}
                 </form>
 
                 <div className="jobs-layout">

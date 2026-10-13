@@ -16,7 +16,7 @@ class LeaderboardController extends Controller
     {
         $candidates = $this->leaderboardService->getCandidates(
             $request->input('search'),
-            $request->input('tag')
+            $request->input('tags', [])
         );
 
         $tags = $this->leaderboardService->getTags();
@@ -26,7 +26,7 @@ class LeaderboardController extends Controller
             'tags' => $tags,
             'filters' => [
                 'search' => $request->input('search', ''),
-                'tag' => $request->input('tag', ''),
+                'tags'   => array_values(array_filter((array) $request->input('tags', []))),
             ],
         ]);
     }

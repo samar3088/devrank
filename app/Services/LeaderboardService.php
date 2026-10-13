@@ -11,8 +11,12 @@ class LeaderboardService
     /**
      * Get ranked candidates with filters and pagination
      */
-    public function getCandidates(?string $search = null, ?string $tagSlug = null, int $perPage = 20)
+    public function getCandidates(?string $search = null, $tags = null, int $perPage = 20)
     {
+        // Multi-select skills: one or many tag slugs → candidates with activity
+        // in ANY of them (OR match).
+        $tagSlugs = array_values(array_filter((array) $tags, fn ($t) => $t !== '' && $t !== null));
+
         $query = User::role('candidate')
             ->where('is_active', true)
             ->where('total_rank_score', '>', 0)
@@ -27,9 +31,9 @@ class LeaderboardService
             $query->where('name', 'like', "%{$search}%");
         }
 
-        if ($tagSlug) {
-            $query->whereHas('replies.topic.tags', function ($q) use ($tagSlug) {
-                $q->where('slug', $tagSlug);
+        if (! empty($tagSlugs)) {
+            $query->whereHas('replies.topic.tags', function ($q) use ($tagSlugs) {
+                $q->whereIn('slug', $tagSlugs);
             });
         }
 
