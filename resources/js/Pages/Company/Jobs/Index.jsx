@@ -2,6 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import CompanyLayout from '@/Layouts/CompanyLayout';
 import CountUp from '@/Components/CountUp';
+import { confirmDialog } from '@/lib/dialog';
 
 export default function JobsIndex() {
     const { jobs, monthlyPostsRemaining, flash, filters } = usePage().props;
@@ -53,9 +54,8 @@ export default function JobsIndex() {
     }
 
     function handleDelete(jobId) {
-        if (confirm('Are you sure you want to delete this job?')) {
-            router.delete(`/company/jobs/${jobId}`);
-        }
+        confirmDialog('Are you sure you want to delete this job?', { title: 'Delete job', confirmText: 'Delete', danger: true })
+            .then(ok => { if (ok) router.delete(`/company/jobs/${jobId}`); });
     }
 
     return (

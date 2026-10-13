@@ -3,6 +3,7 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
+import { confirmDialog } from '@/lib/dialog';
 
 export default function CandidateDashboard() {
     const { stats, auth, aiEnabled, githubEnabled } = usePage().props;
@@ -467,7 +468,7 @@ function CredentialCard({ token, userId }) {
                     Rotate link
                 </button>
                 <button type="button" className="btn-sm btn-ghost" disabled={busy} style={{ color: 'var(--rose, #ef4444)' }}
-                    onClick={() => { if (confirm('Revoke your badge? All existing embeds will stop working.')) act('delete', '/account/credential'); }}>
+                    onClick={() => confirmDialog('Revoke your badge? All existing embeds will stop working.', { title: 'Revoke badge', confirmText: 'Revoke', danger: true }).then(ok => { if (ok) act('delete', '/account/credential'); })}>
                     Revoke
                 </button>
             </div>

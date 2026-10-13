@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import CountUp from '@/Components/CountUp';
 import { AdminPagination } from '@/Pages/Admin/AdminShared';
+import { confirmDialog } from '@/lib/dialog';
 
 const DIFFICULTY_COLOR = { easy: 'green', medium: 'amber', hard: 'red' };
 
@@ -9,8 +10,8 @@ export default function AdminQuizIndex() {
     const { quizzes, stats, auth } = usePage().props;
     const canDelete = (auth?.user?.permissions ?? []).includes('quizzes.delete');
 
-    function destroy(id) {
-        if (!confirm('Delete this quiz? All attempts will also be deleted.')) return;
+    async function destroy(id) {
+        if (!await confirmDialog('Delete this quiz? All attempts will also be deleted.', { title: 'Delete quiz', confirmText: 'Delete', danger: true })) return;
         router.delete(`/admin/quiz/${id}`, { preserveScroll: true });
     }
 

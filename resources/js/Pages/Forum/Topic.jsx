@@ -3,6 +3,7 @@ import { useState, lazy, Suspense } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import { FullFooter } from '@/Components/Footer';
+import { confirmDialog } from '@/lib/dialog';
 
 const RichTextEditor = lazy(() => import('@/Components/RichTextEditor'));
 const editorFallback = <div style={{ padding: 16, color: 'var(--text3)', border: '1px solid var(--border2)', borderRadius: 'var(--r-lg)' }}>Loading editor…</div>;
@@ -24,8 +25,8 @@ export default function ForumTopic() {
         });
     }
 
-    function deleteTopic() {
-        if (!confirm('Delete this topic? This cannot be undone.')) return;
+    async function deleteTopic() {
+        if (!await confirmDialog('Delete this topic? This cannot be undone.', { title: 'Delete topic', confirmText: 'Delete', danger: true })) return;
         router.delete(`/forum/${topic.id}`, { preserveScroll: false });
     }
 
@@ -264,8 +265,8 @@ function ReplyCard({ reply, topic, authUser, isCandidate, isTopicOwner, getIniti
         });
     }
 
-    function deleteReply() {
-        if (!confirm('Delete this answer?')) return;
+    async function deleteReply() {
+        if (!await confirmDialog('Delete this answer?', { title: 'Delete answer', confirmText: 'Delete', danger: true })) return;
         router.delete(`/forum/reply/${reply.id}`, { preserveScroll: true });
     }
 

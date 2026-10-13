@@ -5,6 +5,7 @@ import LoadingButton from '@/Components/LoadingButton';
 import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
 import { DIFFICULTY_COLORS } from '@/constants';
+import { confirmDialog } from '@/lib/dialog';
 
 export default function QuizShow() {
     const { quiz, summary, auth, flash } = usePage().props;
@@ -20,14 +21,14 @@ export default function QuizShow() {
             ? '1 attempt only'
             : `${quiz.max_attempts} attempts allowed`;
 
-    function startQuiz() {
+    async function startQuiz() {
         const attemptNum = (summary?.completed_count ?? 0) + 1;
         const isRetake   = attemptNum > 1;
         const msg = isRetake
             ? `Start attempt ${attemptNum} of ${quiz.max_attempts === 0 ? '∞' : quiz.max_attempts}? Your best score will be kept for ranking.`
             : `You have ${quiz.time_limit_minutes} minutes. ${quiz.max_attempts === 1 ? 'This quiz can only be attempted once.' : `You have ${quiz.max_attempts === 0 ? 'unlimited' : quiz.max_attempts} attempts.`} Ready?`;
 
-        if (!confirm(msg)) return;
+        if (!await confirmDialog(msg, { title: isRetake ? 'Start retake' : 'Start quiz', confirmText: 'Start' })) return;
         setStarting(true);
         router.post(`/quiz/${quiz.id}/start`, {}, {
             onFinish: () => setStarting(false),

@@ -10,26 +10,39 @@ export default function ForumIndex() {
     const user = auth?.user;
     const isCompany = user?.roles?.includes('company');
 
+    const hasFilters = !!(filters?.search || filters?.category || filters?.tag || (filters?.filter && filters.filter !== 'all'));
+
+    function go(params) {
+        router.get('/forum', {
+            search: filters?.search,
+            category: filters?.category,
+            filter: filters?.filter,
+            tag: filters?.tag,
+            ...params,
+        }, { preserveState: true, replace: true });
+    }
+
     function handleSearch(e) {
         e.preventDefault();
-        router.get('/forum', { search, category: filters?.category, filter: filters?.filter }, {
-            preserveState: true,
-            replace: true,
-        });
+        go({ search });
+    }
+
+    function handleReset() {
+        setSearch('');
+        router.get('/forum', {}, { preserveState: true, replace: true });
     }
 
     function handleFilter(filter) {
-        router.get('/forum', { search: filters?.search, category: filters?.category, filter }, {
-            preserveState: true,
-            replace: true,
-        });
+        go({ filter });
     }
 
     function handleCategory(categoryId) {
-        router.get('/forum', { search: filters?.search, category: categoryId || '', filter: filters?.filter }, {
-            preserveState: true,
-            replace: true,
-        });
+        go({ category: categoryId || '' });
+    }
+
+    function handleTag(tagSlug) {
+        // Toggle: clicking the active tag clears it.
+        go({ tag: filters?.tag === tagSlug ? '' : tagSlug });
     }
 
     function getInitials(name) {
@@ -75,7 +88,7 @@ export default function ForumIndex() {
 
                 {/* Filters */}
                 <div className="forum-filters">
-                    <form onSubmit={handleSearch}>
+                    <form onSubmit={handleSearch} className="forum-search-form">
                         <input
                             type="text"
                             className="forum-search-input"
@@ -83,6 +96,10 @@ export default function ForumIndex() {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
+                        <button type="submit" className="filter-btn filter-btn-primary">Search</button>
+                        {hasFilters && (
+                            <button type="button" className="filter-btn" onClick={handleReset}>Reset</button>
+                        )}
                     </form>
                     {['all', 'latest', 'hot', 'unanswered', 'solved'].map(f => (
                         <button
@@ -94,6 +111,15 @@ export default function ForumIndex() {
                         </button>
                     ))}
                 </div>
+
+                {/* Active tag filter chip */}
+                {filters?.tag && (
+                    <div className="forum-active-tag" data-reveal="fade">
+                        Showing topics tagged
+                        <strong> #{filters.tag}</strong>
+                        <button type="button" className="forum-active-tag-clear" onClick={() => handleTag(filters.tag)}>✕ clear</button>
+                    </div>
+                )}
 
                 {/* Main Layout */}
                 <div className="forum-layout" style={{ marginTop: '24px' }}>
@@ -109,15 +135,15 @@ export default function ForumIndex() {
                                 <div
                                     key={topic.id}
                                     data-reveal="fade"
-                                    className={`topic-card hover-lift ${topic.is_pinned ? 'pinned' : ''} ${topic.is_hot ? 'hot' : ''} ${topic.accepted_reply_id ? 'solved' : ''}`}
+                                    className={`topic-card hover-lift ${topic.is_pinned ? 'pinned' : ''} ${topic.is_hot ? 'hot' : ''} ${topic.is_solved ? 'solved' : ''}`}
                                 >
                                     <div>
                                         {/* Badges */}
-                                        {(topic.is_pinned || topic.is_hot || topic.accepted_reply_id) && (
+                                        {(topic.is_pinned || topic.is_hot || topic.is_solved) && (
                                             <div className="topic-badges">
                                                 {topic.is_pinned && <span className="badge badge-amber">📌 Pinned</span>}
                                                 {topic.is_hot && <span className="badge badge-red">🔥 Hot</span>}
-                                                {topic.accepted_reply_id && <span className="badge badge-green">✅ Solved</span>}
+                                                {topic.is_solved && <span className="badge badge-green">✅ Solved</span>}
                                             </div>
                                         )}
                                         <Link href={`/forum/${topic.slug}`} className="topic-title">
@@ -132,7 +158,14 @@ export default function ForumIndex() {
                                             {topic.tags && topic.tags.length > 0 && (
                                                 <div className="tags">
                                                     {topic.tags.map(tag => (
-                                                        <span key={tag.id} className="tag">{tag.name}</span>
+                                                        <button
+                                                            key={tag.id}
+                                                            type="button"
+                                                            className="tag tag-clickable"
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTag(tag.slug); }}
+                                                        >
+                                                            {tag.name}
+                                                        </button>
                                                     ))}
                                                 </div>
                                             )}
@@ -217,7 +250,14 @@ export default function ForumIndex() {
                             <h4>Trending Tags</h4>
                             <div className="tags">
                                 {trendingTags.map(tag => (
-                                    <span key={tag.id} className="tag">{tag.name}</span>
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        className={`tag tag-clickable ${filters?.tag === tag.slug ? 'active' : ''}`}
+                                        onClick={() => handleTag(tag.slug)}
+                                    >
+                                        {tag.name}
+                                    </button>
                                 ))}
                             </div>
                         </div>

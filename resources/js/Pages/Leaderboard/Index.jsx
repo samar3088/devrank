@@ -17,6 +17,14 @@ export default function LeaderboardIndex() {
         });
     }
 
+    function clearSearch() {
+        setSearch('');
+        router.get('/leaderboard', { search: '', tag: filters?.tag }, {
+            preserveState: true,
+            replace: true,
+        });
+    }
+
     function handleTag(tagSlug) {
         router.get('/leaderboard', {
             search: filters?.search,
@@ -99,7 +107,7 @@ export default function LeaderboardIndex() {
                 <div className="lb-table-wrap" data-reveal>
                     <div className="lb-controls">
                         <div className="lb-controls-left">
-                            <form onSubmit={handleSearch}>
+                            <form onSubmit={handleSearch} className="lb-search-form">
                                 <input
                                     type="text"
                                     className="lb-search"
@@ -107,6 +115,10 @@ export default function LeaderboardIndex() {
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                 />
+                                <button type="submit" className="btn-sm btn-primary-sm">Search</button>
+                                {(search || filters?.search) && (
+                                    <button type="button" className="btn-sm btn-outline-sm" onClick={clearSearch}>Clear</button>
+                                )}
                             </form>
                         </div>
                         <span style={{ fontSize: '13px', color: 'var(--text3)' }}>
@@ -124,13 +136,12 @@ export default function LeaderboardIndex() {
                                 <th>Answers</th>
                                 <th>Likes</th>
                                 <th>Total Score</th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody data-reveal-stagger={firstPage ? '45' : undefined}>
                             {candidates?.data?.length === 0 && (
                                 <tr>
-                                    <td colSpan={aiEnabled ? 8 : 7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
+                                    <td colSpan={aiEnabled ? 7 : 6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text3)' }}>
                                         No candidates found matching your filters.
                                     </td>
                                 </tr>
@@ -167,9 +178,6 @@ export default function LeaderboardIndex() {
                                     <td className="mono">{candidate.likes_received || 0}</td>
                                     <td>
                                         <strong className="score-total">{candidate.total_rank_score?.toLocaleString() || 0}</strong>
-                                    </td>
-                                    <td>
-                                        <Link href="#" className="btn-sm btn-outline-sm">View</Link>
                                     </td>
                                 </tr>
                             ))}

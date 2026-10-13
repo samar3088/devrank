@@ -20,7 +20,8 @@ class ForumController extends Controller
         $topics = $this->forumService->getTopics(
             $request->input('search'),
             $request->input('category'),
-            $request->input('filter')
+            $request->input('filter'),
+            $request->input('tag'),
         );
 
         return Inertia::render('Forum/Index', [
@@ -32,6 +33,7 @@ class ForumController extends Controller
                 'search'   => $request->input('search', ''),
                 'category' => $request->input('category', ''),
                 'filter'   => $request->input('filter', 'all'),
+                'tag'      => $request->input('tag', ''),
             ],
         ]);
     }

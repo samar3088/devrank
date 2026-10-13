@@ -1,6 +1,7 @@
 import { useForm, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { confirmDialog } from '@/lib/dialog';
 
 export default function AdminSeasons() {
     const { seasons, auth } = usePage().props;
@@ -88,7 +89,7 @@ export default function AdminSeasons() {
                                         : <button className="admin-action-btn" onClick={() => router.post(`/admin/seasons/${s.id}/close`, {}, { preserveScroll: true })}>Close</button>}
                                     {canDelete && (
                                         <button className="admin-action-btn red" style={{ marginLeft: 6 }}
-                                            onClick={() => { if (confirm(`Delete “${s.name}”? Its season scores are removed.`)) router.delete(`/admin/seasons/${s.id}`, { preserveScroll: true }); }}>
+                                            onClick={() => confirmDialog(`Delete “${s.name}”? Its season scores are removed.`, { title: 'Delete season', confirmText: 'Delete', danger: true }).then(ok => { if (ok) router.delete(`/admin/seasons/${s.id}`, { preserveScroll: true }); })}>
                                             Delete
                                         </button>
                                     )}

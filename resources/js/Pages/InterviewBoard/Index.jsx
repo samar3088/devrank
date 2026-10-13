@@ -3,6 +3,7 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
+import { confirmDialog } from '@/lib/dialog';
 
 const OUTCOME_CONFIG = {
     selected: { label: 'Selected', cls: 'outcome-selected', icon: '✅' },
@@ -200,14 +201,14 @@ function ReviewCard({ review, authUserId }) {
     const isOwner = authUserId === review.user_id;
     const exp = review.experience_rating || 0;
 
-    function deleteReview() {
-        if (!confirm('Delete this review?')) return;
+    async function deleteReview() {
+        if (!await confirmDialog('Delete this review?', { title: 'Delete review', confirmText: 'Delete', danger: true })) return;
         router.delete(`/interviews/${review.id}`, { preserveScroll: true });
     }
 
-    function reportReview() {
+    async function reportReview() {
         if (!authUserId) { router.visit('/account'); return; }
-        if (!confirm('Flag this review for moderation?')) return;
+        if (!await confirmDialog('Flag this review for moderation?', { title: 'Report review', confirmText: 'Report' })) return;
         router.post(`/interviews/${review.id}/report`, {}, { preserveScroll: true });
     }
 

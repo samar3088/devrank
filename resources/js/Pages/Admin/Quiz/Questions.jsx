@@ -2,6 +2,7 @@ import { useForm, usePage, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import LoadingButton from '@/Components/LoadingButton';
+import { confirmDialog } from '@/lib/dialog';
 
 const EMPTY_OPTION = { option_text: '', is_correct: false };
 const DEFAULT_OPTIONS = [
@@ -95,8 +96,8 @@ export default function AdminQuizQuestions() {
         });
     }
 
-    function deleteQuestion(questionId) {
-        if (!confirm('Delete this question? This cannot be undone.')) return;
+    async function deleteQuestion(questionId) {
+        if (!await confirmDialog('Delete this question? This cannot be undone.', { title: 'Delete question', confirmText: 'Delete', danger: true })) return;
         router.delete(`/admin/quiz/${quiz.id}/questions/${questionId}`, { preserveScroll: true });
     }
 

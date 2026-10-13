@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
+import { confirmDialog } from '@/lib/dialog';
 
 function formatSalary(amount, currency, period) {
     if (amount == null) return null;
@@ -67,8 +68,8 @@ function HireRow({ h }) {
         });
     }
 
-    function doDecline() {
-        if (!window.confirm('Mark this hire as not confirmed? The company will be notified and the application returns to “offered”.')) return;
+    async function doDecline() {
+        if (!await confirmDialog('Mark this hire as not confirmed? The company will be notified and the application returns to “offered”.', { title: 'Decline hire', confirmText: 'Decline', danger: true })) return;
         setBusy(true);
         router.post(`/hires/${h.id}/decline`, {}, { preserveScroll: true, onFinish: () => setBusy(false) });
     }

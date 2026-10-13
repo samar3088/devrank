@@ -4,6 +4,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useRef, useState } from 'react';
+import { promptDialog } from '@/lib/dialog';
 
 function getCookie(name) {
     const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -55,9 +56,9 @@ export default function RichTextEditor({ value = '', onChange, placeholder = 'Wr
 
     if (!editor) return null;
 
-    function addLink() {
+    async function addLink() {
         const prev = editor.getAttributes('link').href || '';
-        const url = window.prompt('Link URL', prev);
+        const url = await promptDialog('Link URL', prev, { title: 'Insert link', placeholder: 'https://…', confirmText: 'Apply' });
         if (url === null) return;
         if (url === '') {
             editor.chain().focus().extendMarkRange('link').unsetLink().run();

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 import CountUp from '@/Components/CountUp';
+import { promptDialog } from '@/lib/dialog';
 
 export default function JobsIndex() {
     const { jobs, tags, filters, auth } = usePage().props;
@@ -80,8 +81,8 @@ export default function JobsIndex() {
                             type="button"
                             className="btn-sm btn-outline-sm pop-on-active"
                             style={{ padding: '10px 18px', fontSize: '14px' }}
-                            onClick={() => {
-                                const name = window.prompt('Name this search — we’ll alert you when matching jobs are posted:', search || 'My search');
+                            onClick={async () => {
+                                const name = await promptDialog('Name this search — we’ll alert you when matching jobs are posted:', search || 'My search', { title: 'Save this search', confirmText: 'Save & alert' });
                                 if (!name) return;
                                 router.post('/candidate/saved-searches', {
                                     name,

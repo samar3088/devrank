@@ -48,7 +48,7 @@ class ForumService
     }
 
     // ── Topic listing ────────────────────────────────────────────
-    public function getTopics(?string $search, ?string $categorySlug, ?string $filter)
+    public function getTopics(?string $search, ?string $category, ?string $filter, ?string $tag = null)
     {
         $query = Topic::with([
             'user:id,name',
@@ -56,6 +56,8 @@ class ForumService
             'tags:id,name,slug',
         ])
         ->withCount('replies')
+        // Solved = has an accepted answer (there is no accepted_reply_id column).
+        ->withExists(['replies as is_solved' => fn ($q) => $q->where('is_accepted', true)])
         ->whereIn('status', ['open', 'closed']);
 
         if ($search) {
@@ -65,15 +67,32 @@ class ForumService
             });
         }
 
-        if ($categorySlug) {
-            $query->whereHas('category', fn ($q) => $q->where('slug', $categorySlug));
+        // Category can arrive as an id (sidebar click) or a slug — handle both.
+        if ($category) {
+            $query->whereHas('category', function ($q) use ($category) {
+                is_numeric($category)
+                    ? $q->where('id', (int) $category)
+                    : $q->where('slug', $category);
+            });
+        }
+
+        // Trending-tag click → show only topics carrying that tag (by slug or id).
+        if ($tag) {
+            $query->whereHas('tags', function ($q) use ($tag) {
+                is_numeric($tag)
+                    ? $q->where('tags.id', (int) $tag)
+                    : $q->where('tags.slug', $tag);
+            });
         }
 
         match ($filter) {
-            'hot'     => $query->where('is_hot', true)->orderByDesc('views_count'),
-            'week'    => $query->where('created_at', '>=', now()->subWeek())->orderByDesc('replies_count'),
+            'hot'        => $query->where('is_hot', true)->orderByDesc('views_count'),
+            'week'       => $query->where('created_at', '>=', now()->subWeek())->orderByDesc('replies_count'),
             'unanswered' => $query->where('replies_count', 0)->orderByDesc('created_at'),
-            default   => $query->orderByDesc('is_pinned')->orderByDesc('last_reply_at'),
+            'solved'     => $query->whereHas('replies', fn ($q) => $q->where('is_accepted', true))->orderByDesc('created_at'),
+            'latest'     => $query->orderByDesc('created_at'),
+            // Default: pinned first, then newest activity.
+            default      => $query->orderByDesc('is_pinned')->orderByDesc('last_reply_at')->orderByDesc('created_at'),
         };
 
         return $query->paginate(15)->withQueryString();

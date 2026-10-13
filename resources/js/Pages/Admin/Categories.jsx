@@ -3,6 +3,7 @@ import { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import CountUp from '@/Components/CountUp';
+import { confirmDialog } from '@/lib/dialog';
 
 const BLANK = { name: '', description: '', icon: '', color: '#7c6dfa', sort_order: 0 };
 
@@ -45,8 +46,8 @@ export default function AdminCategories() {
         router.post(`/admin/categories/${id}/toggle`, {}, { preserveScroll: true });
     }
 
-    function destroy(cat) {
-        if (!confirm(`Delete category "${cat.name}"? This cannot be undone.`)) return;
+    async function destroy(cat) {
+        if (!await confirmDialog(`Delete category "${cat.name}"? This cannot be undone.`, { title: 'Delete category', confirmText: 'Delete', danger: true })) return;
         router.delete(`/admin/categories/${cat.id}`, { preserveScroll: true });
     }
 
