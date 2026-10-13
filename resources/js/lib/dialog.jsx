@@ -49,6 +49,36 @@ export function toast(message, variant = 'success', opts = {}) {
     return request({ kind: 'toast', message, variant, ...opts });
 }
 
+/**
+ * Copy text to the clipboard with a legacy fallback (the async Clipboard API is
+ * blocked in some contexts). Resolves on success, rejects on failure.
+ */
+export function copyToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    }
+    return fallbackCopy(text);
+}
+
+function fallbackCopy(text) {
+    return new Promise((resolve, reject) => {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ok ? resolve() : reject(new Error('copy failed'));
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+
 function DialogHost({ register }) {
     const [modal, setModal] = useState(null);
     const [toasts, setToasts] = useState([]);

@@ -3,7 +3,7 @@ import { useState, lazy, Suspense } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import { FullFooter } from '@/Components/Footer';
-import { confirmDialog } from '@/lib/dialog';
+import { confirmDialog, toast, copyToClipboard } from '@/lib/dialog';
 
 const RichTextEditor = lazy(() => import('@/Components/RichTextEditor'));
 const editorFallback = <div style={{ padding: 16, color: 'var(--text3)', border: '1px solid var(--border2)', borderRadius: 'var(--r-lg)' }}>Loading editor…</div>;
@@ -31,7 +31,10 @@ export default function ForumTopic() {
     }
 
     function copyLink() {
-        navigator.clipboard.writeText(window.location.href);
+        copyToClipboard(window.location.href).then(
+            () => toast('Link copied', 'success'),
+            () => toast('Could not copy link', 'error'),
+        );
     }
 
     function getInitials(name) {

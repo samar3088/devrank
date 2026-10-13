@@ -1,5 +1,6 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { toast, copyToClipboard } from '@/lib/dialog';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 import CountUp from '@/Components/CountUp';
@@ -179,10 +180,15 @@ export default function JobShow() {
                         <hr className="apply-divider" />
                         <div className="apply-share-title">Share This Job</div>
                         <div className="apply-share-btns">
-                            <button className="apply-share-btn" onClick={() => navigator.clipboard.writeText(window.location.href)}>🔗</button>
-                            <button className="apply-share-btn" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(job.title)}`, '_blank')}>𝕏</button>
-                            <button className="apply-share-btn" onClick={() => window.open(`https://www.linkedin.com/shareArticle?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent(job.title)}`, '_blank')}>in</button>
-                            <button className="apply-share-btn">📧</button>
+                            <button className="apply-share-btn" title="Copy link" onClick={() => {
+                                copyToClipboard(window.location.href).then(
+                                    () => toast('Link copied', 'success'),
+                                    () => toast('Could not copy link', 'error'),
+                                );
+                            }}>🔗</button>
+                            <button className="apply-share-btn" title="Share on X" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(job.title)}`, '_blank')}>𝕏</button>
+                            <button className="apply-share-btn" title="Share on LinkedIn" onClick={() => window.open(`https://www.linkedin.com/shareArticle?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent(job.title)}`, '_blank')}>in</button>
+                            <button className="apply-share-btn" title="Share by email" onClick={() => window.open(`mailto:?subject=${encodeURIComponent(job.title)}&body=${encodeURIComponent(window.location.href)}`)}>📧</button>
                         </div>
                     </div>
                 </div>
