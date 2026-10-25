@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.0",
         "ezyang/htmlpurifier": "^4.19",
         "inertiajs/inertia-laravel": "^3.0",
@@ -77,6 +77,7 @@
             "php-http/discovery": true
         },
         "platform": {
+            "php": "8.3.36",
             "ext-gd": "1.0"
         }
     },
