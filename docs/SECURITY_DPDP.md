@@ -21,7 +21,8 @@ DPDP = India's Digital Personal Data Protection Act, 2023._
 ### Owner actions before production (not code)
 - `APP_DEBUG=false`, `APP_ENV=production`, `LOG_LEVEL=warning`.
 - Serve over **HTTPS** (activates HSTS + `secure` cookies).
-- Set real `DEVRANK_GRIEVANCE_EMAIL` / `DEVRANK_ENTITY_NAME`.
+- Grievance contact is now set in config (Samar Srivastva / 9591718928); set `DEVRANK_ENTITY_NAME` to the legal entity and optionally `DEVRANK_GRIEVANCE_EMAIL` for an email channel.
+- **Still open (operational, not code):** (1) a documented **breach-notification process** (DPDP §8(6) — notify the Board + affected users); (2) a stated **data-retention policy** (erasure-on-request is covered; no auto-deletion of inactive data). Also set `DEVRANK_SALARY_MIN_SAMPLE` etc. as needed.
 - Run `php artisan migrate` (consent + SLA columns) and `schedule:run` (cron) for daily score/SLA recompute.
 - CSP is intentionally not enforced (Vite/Inertia inline assets need nonces) — add a nonce-based policy later if required.
 
@@ -36,7 +37,10 @@ DPDP = India's Digital Personal Data Protection Act, 2023._
 | **Right to erasure** | `DELETE /account` (password-confirmed): personal fields scrubbed, email released, account soft-deleted; authored content anonymised (not destroyed) to preserve platform integrity. `AccountService::eraseAccount`. |
 | **Withdraw consent** | Erasure withdraws consent to further processing. |
 | **Purpose limitation / data minimization** | Contact details gated server-side (`PublicProfileService::canViewContact`) — never sent to unauthorised clients. |
-| **Grievance redressal** | Grievance officer + email in privacy notice and account settings (`config/devrank.privacy`). |
+| **Grievance redressal** | Grievance Officer **Samar Srivastva** + phone **9591718928** (optional email via `DEVRANK_GRIEVANCE_EMAIL`) shown in the privacy notice and Account settings (`config/devrank.privacy`, env-overridable). |
+| **Escalation to the Board** | Privacy notice states the right to escalate an unresolved grievance to the **Data Protection Board of India**. |
+| **Right to nominate (§14)** | Privacy notice informs users they may nominate another individual to exercise their rights on death/incapacity (register via the Grievance Officer). |
+| **Children's data (§9)** | Adults-only platform — registration requires a mandatory **"I am at least 18 years old"** declaration bundled with consent (`AuthController` `consent: accepted`). |
 
 ### Self-service hub
 `GET /account/settings` (`Settings/Account.jsx`) — export + delete in one place, with grievance contact.

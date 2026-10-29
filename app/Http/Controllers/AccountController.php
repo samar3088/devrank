@@ -22,7 +22,9 @@ class AccountController extends Controller
     public function settings(Request $request)
     {
         return Inertia::render('Settings/Account', [
-            'grievanceEmail' => config('devrank.privacy.grievance_email'),
+            'grievanceEmail'   => config('devrank.privacy.grievance_email'),
+            'grievanceOfficer' => config('devrank.privacy.grievance_officer'),
+            'grievancePhone'   => config('devrank.privacy.grievance_phone'),
         ]);
     }
 

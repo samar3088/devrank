@@ -42,10 +42,11 @@ class AuthController extends Controller
             'industry' => ['nullable', 'string', 'max:255'],
             'primary_skill' => ['nullable', 'string', 'max:255'],
             'years_of_experience' => ['nullable', 'string'],
-            // DPDP: informed consent to the privacy notice is mandatory to register.
+            // DPDP: informed consent + 18+ self-declaration is mandatory to register
+            // (children's data, §9 — the platform is for adults).
             'consent' => ['accepted'],
         ], [
-            'consent.accepted' => 'You must agree to the Privacy Policy and Terms to create an account.',
+            'consent.accepted' => 'You must be 18+ and agree to the Privacy Policy and Terms to create an account.',
         ]);
 
         $user = $this->authService->register($validated);

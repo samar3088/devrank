@@ -3,7 +3,7 @@ import { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import LoadingButton from '@/Components/LoadingButton';
 
-export default function Account({ grievanceEmail }) {
+export default function Account({ grievanceEmail, grievanceOfficer, grievancePhone }) {
     const [confirming, setConfirming] = useState(false);
     const deleteForm = useForm({ password: '' });
 
@@ -80,7 +80,9 @@ export default function Account({ grievanceEmail }) {
                 </div>
 
                 <p style={{ color: 'var(--text4)', fontSize: 13, marginTop: 24 }}>
-                    Privacy questions? Contact <a href={`mailto:${grievanceEmail}`} className="link-underline">{grievanceEmail}</a>.
+                    Privacy questions or grievances? Contact our Grievance Officer, <strong>{grievanceOfficer}</strong>
+                    {grievancePhone && <> at <a href={`tel:${grievancePhone}`} className="link-underline">{grievancePhone}</a></>}
+                    {grievanceEmail && <> (<a href={`mailto:${grievanceEmail}`} className="link-underline">{grievanceEmail}</a>)</>}.
                     See our <a href="/privacy" className="link-underline">Privacy Policy</a>.
                 </p>
             </div>

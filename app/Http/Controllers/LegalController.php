@@ -12,7 +12,8 @@ class LegalController extends Controller
             'entity'          => config('devrank.privacy.entity_name'),
             'grievanceEmail'  => config('devrank.privacy.grievance_email'),
             'grievanceOfficer'=> config('devrank.privacy.grievance_officer'),
-            'updatedAt'       => 'September 2026',
+            'grievancePhone'  => config('devrank.privacy.grievance_phone'),
+            'updatedAt'       => 'October 2026',
         ]);
     }
 

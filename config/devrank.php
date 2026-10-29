@@ -77,8 +77,10 @@ return [
     // surfaced in the privacy notice and grievance flow. Override via env in prod.
     'privacy' => [
         'entity_name'      => env('DEVRANK_ENTITY_NAME', 'DevRank'),
-        'grievance_email'  => env('DEVRANK_GRIEVANCE_EMAIL', 'privacy@devrank.com'),
-        'grievance_officer'=> env('DEVRANK_GRIEVANCE_OFFICER', 'Data Protection Officer'),
+        'grievance_officer'=> env('DEVRANK_GRIEVANCE_OFFICER', 'Samar Srivastva'),
+        'grievance_phone'  => env('DEVRANK_GRIEVANCE_PHONE', '9591718928'),
+        // Optional — set DEVRANK_GRIEVANCE_EMAIL to add an email channel; blank = phone-only.
+        'grievance_email'  => env('DEVRANK_GRIEVANCE_EMAIL', ''),
         // How long inactive personal data is retained before erasure (informational).
         'retention_note'   => 'Account data is kept while your account is active and removed on erasure request.',
     ],

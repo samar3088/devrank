@@ -340,7 +340,7 @@ export default function Register() {
                                         checked={registerForm.data.consent}
                                         onChange={e => registerForm.setData('consent', e.target.checked)}
                                     />
-                                    <span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>, and consent to DevRank processing my personal data as described.</span>
+                                    <span>I am <strong>at least 18 years old</strong>, I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>, and I consent to DevRank processing my personal data as described.</span>
                                 </label>
                                 {registerForm.errors.consent && (
                                     <span className="auth-error">{registerForm.errors.consent}</span>

@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
 import { FullFooter } from '@/Components/Footer';
 
-export default function Privacy({ entity, grievanceEmail, grievanceOfficer, updatedAt }) {
+export default function Privacy({ entity, grievanceEmail, grievanceOfficer, grievancePhone, updatedAt }) {
     return (
         <MainLayout>
             <Head title="Privacy Policy" />
@@ -63,7 +63,8 @@ export default function Privacy({ entity, grievanceEmail, grievanceOfficer, upda
                         <li><strong>Correction:</strong> edit your profile at any time.</li>
                         <li><strong>Erasure:</strong> delete your account and personal data from Account settings; authored content is anonymised, not attributed to you, and any shared salary figure is removed from the aggregates.</li>
                         <li><strong>Withdraw consent:</strong> erasing your account withdraws consent to further processing.</li>
-                        <li><strong>Grievance redressal:</strong> contact our {grievanceOfficer} at <a href={`mailto:${grievanceEmail}`}>{grievanceEmail}</a>.</li>
+                        <li><strong>Nominate:</strong> you may nominate another individual to exercise these rights on your behalf in the event of your death or incapacity — contact the Grievance Officer to register a nominee.</li>
+                        <li><strong>Grievance redressal:</strong> contact our Grievance Officer, <strong>{grievanceOfficer}</strong>{grievancePhone && <> at <a href={`tel:${grievancePhone}`}>{grievancePhone}</a></>}{grievanceEmail && <> (<a href={`mailto:${grievanceEmail}`}>{grievanceEmail}</a>)</>}. If your grievance is not resolved to your satisfaction, you may escalate it to the <strong>Data Protection Board of India</strong>.</li>
                     </ul>
 
                     <h2>6. Retention &amp; security</h2>
@@ -76,7 +77,9 @@ export default function Privacy({ entity, grievanceEmail, grievanceOfficer, upda
 
                     <h2>7. Contact</h2>
                     <p>
-                        Questions or grievances: <a href={`mailto:${grievanceEmail}`}>{grievanceEmail}</a>. We may
+                        Questions or grievances: contact our Grievance Officer, <strong>{grievanceOfficer}</strong>
+                        {grievancePhone && <> at <a href={`tel:${grievancePhone}`}>{grievancePhone}</a></>}
+                        {grievanceEmail && <> (<a href={`mailto:${grievanceEmail}`}>{grievanceEmail}</a>)</>}. We may
                         update this notice; the "last updated" date above reflects the current version.
                     </p>
                 </div>
